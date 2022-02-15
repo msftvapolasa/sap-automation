@@ -98,6 +98,19 @@
   # when:
   #   - not oracle_permissions_set.stat.exists
 
+- name:     "Mount SAP Filesystems on Database for installation"
+  mount:
+    src: '{{ nfs_server }}:/sapmnt/{{ sap_sid|upper }}'
+    path: '/sapmnt/{{ sap_sid|upper }}'
+    fstype: 'nfs4'
+    opts:   defaults
+    state:  mounted
+  vars:
+    # Get all the hostnames in <SID>_SCS group and return only the first hostname
+    nfs_server:   "{{ query('inventory_hostnames', '{{ sap_sid|upper }}_SCS') | first }}"
+  when:         
+    - node_tier == "oracle"
+
 # # Mount Filesystems
 # - name:     "Mount SAP Filesystems on Database for installation"
 #   mount:
