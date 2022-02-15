@@ -18,9 +18,11 @@
 
 - name:                                "ORACLE: Create sap_deployment_automation folder"
   ansible.builtin.file:
-    path:                              /oracle
+    path:                              /etc/sap_deployment_automation
     mode:                              0755
     state:                             directory
+    owner:  oracle
+    group:  oinstall
 
 
 # /*---------------------------------------------------------------------------8
@@ -34,7 +36,7 @@
 - name:                                "Execute RUNINSTALLER PreCheck"
   # become:                              true
   # become_user:                         "oracle"
-  ansible.builtin.shell:              ./RUNINSTALLER -ohcheck -silent
+  ansible.builtin.shell:              ./RUNINSTALLER -ohcheck -silent |tee -a /etc/sap_deployment_automation/prechecks.log
   register:                            oraprecheck_results
   failed_when:                         oraprecheck_results.rc >= 3
   changed_when:                        oraprecheck_results.rc < 3
@@ -43,7 +45,7 @@
     CV_ASSUME_DISTID:                  OL7
   args:
     chdir:                             /usr/sap/install/oraserver/LINUX_X86_64/db_home/SAP
-    creates:                           /oracle/oracle_pre_check_install.txt
+    creates:                           /etc/sap_deployment_automation/oracle_pre_check_install.txt
     executable:                        /bin/csh
   tags:
     - skip_ansible_lint
@@ -55,14 +57,14 @@
 
 - name:                                "Debug: installer prechecks output"
   ansible.builtin.copy:
-    dest:                              /oracle/pre-req.log
+    dest:                              /etc/sap_deployment_automation/pre-req.log
     content:                           oraprecheck_results.stdout
     mode:                              0777
   when:                                oraprecheck_results.stdout is defined
 
 - name:                                Create oracle_pre_check_install.txt
   ansible.builtin.file:
-    path:                              /oracle/oracle_pre_check_install.txt
+    path:                              /etc/sap_deployment_automation/oracle_pre_check_install.txt
     state:                             touch
     mode:                              0755
 
@@ -77,7 +79,7 @@
 - name:                                "Execute RUNINSTALLER"
   # become:                              true
   # become_user:                         "oracle"
-  ansible.builtin.shell:               ./RUNINSTALLER -silent
+  ansible.builtin.shell:               ./RUNINSTALLER -silent |tee -a /etc/sap_deployment_automation/install.log
   register:                            orainstaller_results
   failed_when:                         orainstaller_results.rc >= 2              #installer returns rc=1 (exited with warning) by default when run is silent mode as the oratab file is created only after running the root.sh
   environment:
@@ -96,14 +98,14 @@
 
 - name:                                "Debug: installer prechecks output"
   ansible.builtin.copy:
-    dest:                              /oracle/install.log
+    dest:                              /etc/sap_deployment_automation/install.log
     content:                           orainstaller_results.stdout
     mode:                              0777
   when:                                orainstaller_results.stdout is defined
 
 - name:                                Create oracleinstall.txt
   ansible.builtin.file:
-    path:                              /oracle/oracleinstall.txt
+    path:                              /etc/sap_deployment_automation/oracleinstall.txt
     state:                             touch
     mode:                              0755
 
@@ -118,17 +120,17 @@
 - name:                                "Oracle Post Processing - Run orainstRoot.sh"
   become:                              true
   become_user:                         root
-  ansible.builtin.shell:               /oracle/oraInventory/orainstRoot.sh
+  ansible.builtin.shell:               /oracle/oraInventory/orainstRoot.sh |tee -a /etc/sap_deployment_automation/rootscript.log
   register:                            orainstRoot_results
   args:
-    creates:                           /oracle/orainstRoot_executed.txt
+    creates:                           /etc/sap_deployment_automation/orainstRoot_executed.txt
     executable:                        /bin/csh
   tags:
     - skip_ansible_lint
 
 - name:                                Create orainstRoot_executed.txt
   ansible.builtin.file:
-    path:                              /oracle/orainstRoot_executed.txt
+    path:                              /etc/sap_deployment_automation/orainstRoot_executed.txt
     state:                             touch
     mode:                              0755
 
@@ -138,14 +140,14 @@
   ansible.builtin.shell  :             /oracle/{{ db_sid }}/{{ ora_version }}/root.sh
   register:                            rootscript_results
   args:
-    creates:                           /oracle/rootscripts_executed.txt
+    creates:                           /etc/sap_deployment_automation/rootscripts_executed.txt
     executable:                        /bin/csh
   tags:
     - skip_ansible_lint
 
 - name:                                Create rootscripts_executed.txt
   ansible.builtin.file:
-    path:                              /oracle/rootscripts_executed.txt
+    path:                              /etc/sap_deployment_automation/rootscripts_executed.txt
     state:                             touch
     mode:                              0755
 
@@ -215,7 +217,7 @@
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.copy:
-    src:                               "{{ mopatch_path }}"
+    src:                               /usr/sap/install/SBP/SAPSBP/S*/MOPatch
     dest:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}
     remote_src:                        true
     mode:                              0777
@@ -224,17 +226,17 @@
 - name:                                "Oracle Post Processing - SBP Patching"
   become:                              true
   become_user:                         "oracle"
-  ansible.builtin.shell:               $IHRDBMS/MOPatch/mopatch.sh -v -s /usr/sap/install/SBP/{{ oracle_sbp_patch }}
+  ansible.builtin.shell:               $IHRDBMS/MOPatch/mopatch.sh -v -s /usr/sap/install/SBP/{{ oracle_sbp_patch }} |tee -a /etc/sap_deployment_automation/sbp.log
   environment:
     DB_SID:                            "{{ db_sid }}"
     CV_ASSUME_DISTID:                  OL7
     IHRDBMS:                           "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
     ORACLE_HOME:                       "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
-    RDBMS:                             "/oracle/{{ db_sid | upper }}/{{ ora_release }}"
+    RDBMS:                             "/oracle/{{ db_sid | upper }}/{{ ora_version }}"
   register:                            sbpscript_results
   failed_when:                         sbpscript_results.rc >= 2
   args:
-    creates:                           /oracle/sbpinstalled.txt
+    creates:                           /etc/sap_deployment_automation/sbpinstalled.txt
     chdir:                             /usr/sap/install/SBP/
     executable:                        /bin/csh
 
@@ -249,7 +251,7 @@
 
 - name:                                Create sbpinstalled.txt
   ansible.builtin.file:
-    path:                              /oracle/sbpinstalled.txt
+    path:                              /etc/sap_deployment_automation/sbpinstalled.txt
     state:                             touch
     mode:                              0755
 
