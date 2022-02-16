@@ -72,10 +72,14 @@
 
 
 - name:                                "ORACLE: Create sap_deployment_automation folder"
+  become:                              true
+  become_user:                         root
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation
     mode:                              0755
     state:                             directory
+    owner:                             oracle
+    group:                             oinstall
 
 
 # - name:                                "ORACLE: Make orasid:dba as owners for Oracle directories - check flag file"

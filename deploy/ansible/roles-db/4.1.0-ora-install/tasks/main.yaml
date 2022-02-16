@@ -21,8 +21,8 @@
     path:                              /etc/sap_deployment_automation
     mode:                              0755
     state:                             directory
-    owner:  oracle
-    group:  oinstall
+    owner:                             oracle
+    group:                             oinstall
 
 
 # /*---------------------------------------------------------------------------8
@@ -88,7 +88,7 @@
   args:
     executable:                        /bin/csh
     chdir:                             "/usr/sap/install/oraserver/LINUX_X86_64/db_home/SAP"
-    creates:                           /oracle/oracleinstall.txt
+    creates:                           /etc/sap_deployment_automation/oracleinstall.txt
   tags:
     - skip_ansible_lint
 
@@ -217,7 +217,7 @@
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.copy:
-    src:                               /usr/sap/install/SBP/SAPSBP/S*/MOPatch
+    src:                               "{{ mopatch_path }}"
     dest:                              /oracle/{{ db_sid | upper }}/{{ ora_version }}
     remote_src:                        true
     mode:                              0777
