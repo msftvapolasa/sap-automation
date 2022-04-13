@@ -1,15 +1,14 @@
 #   2482103 - Installation with SWPM in unattended mode using parameter input file fails
 #   2393060 - SAPinst Framework 749 Central Note
-
 ########################################################################################################################################################################################################
 #                                                                                                                                                                                                      #
-# Installation service 'SAP S/4HANA Server 1909 > SAP HANA Database > Installation > Application Server ABAP                                                                                           #
-#                       > Distributed System > ASCS Instance', product id 'NW_ABAP_ASCS:S4HANA1909.CORE.HDB.ABAP'                                                                                      #
-#                       > Distributed System > Database Instance', product id 'NW_ABAP_DB:S4HANA1909.CORE.HDB.ABAP'                                                                                    #
-#                       > Distributed System > Primary Application Server Instance', product id 'NW_ABAP_CI:S4HANA1909.CORE.HDB.ABAP'                                                                  #
-#                       > Additional SAP System Instances > Additional Application Server Instance', product id 'NW_DI:S4HANA1909.CORE.HDB.PD'                                                         #
-#                       > Generic Options > SAP Web Dispatcher > SAP Web Dispatcher (Unicode)', product id 'NW_Webdispatcher:NW750.IND.PD'                                                             #
-#                                                                                                                                                                                                      #
+# Installation service 'SAP S/4HANA Server 2021 > SAP HANA Database > Installation > Application Server ABAP                                                                                           #
+#                       > Distributed System > ASCS Instance', product id 'NW_ABAP_ASCS:S4HANA2021.CORE.HDB.ABAP'                                                                                      #
+#                       > Distributed System > Database Instance', product id 'NW_ABAP_DB:S4HANA2021.CORE.HDB.ABAP'                                                                                    #
+#                       > Distributed System > Primary Application Server Instance', product id 'NW_ABAP_CI:S4HANA2021.CORE.HDB.ABAP'                                                                  #
+#                       > Additional SAP System Instances > Additional Application Server Instance', product id 'NW_DI:S4HANA2021.CORE.HDB.PD'                                                         #
+#                       > High-Availability System > ERS Instance', product id 'NW_ERS:S4HANA2021.CORE.HDB.ABAPHA'
+#                       Generic Options > SAP HANA Database > Preparations > Operating System Users and Groups', product id 'NW_Users_Create:GENERIC.HDB.PD'                                           #
 ########################################################################################################################################################################################################
 
 archives.downloadBasket                                               = {{ target_media_location }}/download_basket
@@ -25,7 +24,7 @@ NW_GetMasterPassword.masterPwd                                        = {{ main_
 NW_adaptProfile.skipSecurityProfileSettings                           = true
 NW_getFQDN.FQDN                                                       = {{ sap_fqdn }}
 
-NW_GetSidNoProfiles.sid                                               = {{ sap_sid|upper }}
+NW_GetSidNoProfiles.sid                                               = {{ web_sid|upper }}
 NW_webdispatcher_Instance.backEndSID                                  = {{ sap_sid|upper }}
 
 NW_Webdispatcher_Instance.wdInstanceNumber                            = {{ web_instance_number }}
