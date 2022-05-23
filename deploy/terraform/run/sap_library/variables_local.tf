@@ -1,14 +1,9 @@
 
-variable "tfstate_resource_id" {
-  description = "The resource id of tfstate storage account"
-  validation {
-    condition = (
-      length(split("/", var.tfstate_resource_id)) == 9
-    )
-    error_message = "The Azure Resource ID for the storage account containing the Terraform state files must be provided and be in correct format."
-  }
-
-}
+###############################################################################
+#                                                                             # 
+#                            Local Variables                                  # 
+#                                                                             # 
+###############################################################################
 
 
 locals {
@@ -22,13 +17,6 @@ locals {
     module.sap_namegenerator.naming.resource_suffixes.deployer_rg
   ))
 
-
-  // Retrieve the arm_id of deployer's Key Vault from deployer's terraform.tfstate
-
-  spn_key_vault_arm_id = coalesce(
-    local.key_vault.kv_spn_id,
-    try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id, "")
-  )
   // Locate the tfstate storage account
   saplib_subscription_id       = split("/", var.tfstate_resource_id)[2]
   saplib_resource_group_name   = split("/", var.tfstate_resource_id)[4]
@@ -38,6 +26,9 @@ locals {
     var.deployer_tfstate_key) : (
     format("%s%s", local.deployer_rg_name, ".terraform.tfstate")
   )
+
+  // Retrieve the arm_id of deployer's Key Vault from deployer's terraform.tfstate
+  spn_key_vault_arm_id = try(data.terraform_remote_state.deployer[0].outputs.deployer_kv_user_arm_id, "")
 
   spn = {
     subscription_id = var.use_deployer ? data.azurerm_key_vault_secret.subscription_id[0].value : null,

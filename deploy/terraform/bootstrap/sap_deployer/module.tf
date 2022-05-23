@@ -24,6 +24,8 @@ module "sap_deployer" {
   configure                          = false
   tf_version                         = var.tf_version
   bastion_deployment                 = var.bastion_deployment
+  auto_configure_deployer            = var.auto_configure_deployer
+  deployer_vm_count                  = var.deployer_count
 }
 
 module "sap_namegenerator" {
@@ -37,5 +39,5 @@ module "sap_namegenerator" {
     local.vnet_mgmt_name_part
   )
   random_id         = module.sap_deployer.random_id
-  deployer_vm_count = local.deployer_vm_count
+  deployer_vm_count = var.deployer_count
 }

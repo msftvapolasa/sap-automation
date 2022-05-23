@@ -24,17 +24,17 @@ resource "azurerm_lb" "anydb" {
       local.resource_suffixes.db_alb_feip
     )
     subnet_id = var.db_subnet.id
-
-    private_ip_address = var.databases[0].use_DHCP ? (
-      null) : (
-      try(local.anydb.loadbalancer.frontend_ip,
+    private_ip_address = length(try(local.anydb.loadbalancer.frontend_ips[0], "")) > 0 ? (
+      local.anydb.loadbalancer.frontend_ips[0]) : (
+      var.databases[0].use_DHCP ? (
+        null) : (
         cidrhost(
           var.db_subnet.address_prefixes[0],
           tonumber(count.index) + local.anydb_ip_offsets.anydb_lb
-        )
-      )
+      ))
     )
-    private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
+    private_ip_address_allocation = length(try(local.anydb.loadbalancer.frontend_ips[0], "")) > 0 ? "Static" : "Dynamic"
+    zones = ["1", "2", "3"]
   }
 }
 
@@ -109,7 +109,7 @@ resource "azurerm_availability_set" "anydb" {
   name = format("%s%s%s",
     local.prefix,
     var.naming.separator,
-    var.naming.db_avset_names[count.index]
+    var.naming.availabilityset_names.db[count.index]
   )
   location                     = var.resource_group[0].location
   resource_group_name          = var.resource_group[0].name

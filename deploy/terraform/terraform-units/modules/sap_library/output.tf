@@ -1,3 +1,23 @@
+
+###############################################################################
+#                                                                             # 
+#                             Resource Group                                  # 
+#                                                                             # 
+###############################################################################
+
+output "created_resource_group_id" {
+  description = "Created resource group ID"
+  value = local.resource_group_exists ? data.azurerm_resource_group.library[0].id : azurerm_resource_group.library[0].id
+}
+
+output "created_resource_group_subscription_id" {
+  description = "Created resource group' subscription ID"
+  value = local.resource_group_exists ? (
+    split("/",data.azurerm_resource_group.library[0].id))[2] : (
+    split("/",azurerm_resource_group.library[0].id)[2]
+  )
+}
+
 output "tfstate_storage_account" {
   value = local.sa_tfstate_exists ? (
     split("/", local.sa_tfstate_arm_id)[8]) : (
@@ -18,7 +38,7 @@ output "sapbits_storage_account_name" {
 }
 
 output "sapbits_sa_resource_group_name" {
-  value = local.rg_name
+  value = local.resource_group_name
 }
 
 output "storagecontainer_tfstate" {
@@ -34,7 +54,7 @@ output "random_id" {
 }
 
 output "remote_state_resource_group_name" {
-  value = local.rg_name
+  value = local.resource_group_name
 }
 
 output "remote_state_storage_account_name" {
@@ -48,6 +68,9 @@ output "remote_state_storage_account_name" {
 
 
 output "tfstate_resource_id" {
-  value = local.sa_tfstate_exists ? data.azurerm_storage_account.storage_tfstate[0].id : azurerm_storage_account.storage_tfstate[0].id
+  value = local.sa_tfstate_exists ? (
+    data.azurerm_storage_account.storage_tfstate[0].id) : (
+    azurerm_storage_account.storage_tfstate[0].id
+  )
 }
 
