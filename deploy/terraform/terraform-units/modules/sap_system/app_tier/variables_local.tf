@@ -250,8 +250,8 @@ locals {
   scs_size = length(var.application.scs_sku) > 0 ? var.application.scs_sku : local.app_size
   web_size = length(var.application.web_sku) > 0 ? var.application.web_sku : local.app_size
 
-  vm_sizing = length(var.application.vm_sizing) > 0 ? (
-    var.application.vm_sizing) : (
+  vm_sizing_dictionary_key = length(var.application.vm_sizing_dictionary_key) > 0 ? (
+    var.application.vm_sizing_dictionary_key) : (
     length(local.app_size) > 0 ? (
       "Optimized") : (
       "Default"
@@ -282,7 +282,7 @@ locals {
       "") : (
       length(try(var.application.app_os.offer, "")) > 0 ? (
         var.application.app_os.offer) : (
-        "sles-sap-12-sp5"
+        "sles-sap-15-sp3"
       )
     )
     sku = local.app_custom_image ? (
@@ -327,7 +327,7 @@ locals {
       "") : (
       length(try(var.application.scs_os.offer, "")) > 0 ? (
         var.application.scs_os.offer) : (
-        "sles-sap-12-sp5"
+        "sles-sap-15-sp3"
       )
     )
     sku = local.scs_custom_image ? (
@@ -370,7 +370,7 @@ locals {
       "") : (
       length(try(var.application.web_os.offer, "")) > 0 ? (
         var.application.web_os.offer) : (
-        "sles-sap-12-sp5"
+        "sles-sap-15-sp3"
       )
     )
     sku = local.web_custom_image ? (
@@ -419,11 +419,17 @@ locals {
 
 
   // Default VM config should be merged with any the user passes in
-  app_sizing = lookup(local.sizes.app, local.vm_sizing)
+  app_sizing = local.application_server_count > 0 ? (
+    lookup(local.sizes.app, local.vm_sizing_dictionary_key)) : (
+    null
+  )
 
-  scs_sizing = lookup(local.sizes.scs, local.vm_sizing)
+  scs_sizing = lookup(local.sizes.scs, local.vm_sizing_dictionary_key)
 
-  web_sizing = lookup(local.sizes.web, local.vm_sizing)
+  web_sizing = local.webdispatcher_count > 0 ? (
+    lookup(local.sizes.web, local.vm_sizing_dictionary_key)) : (
+    null
+  )
 
   // Ports used for specific ASCS, ERS and Web dispatcher
   lb_ports = {
@@ -640,7 +646,7 @@ locals {
       nic_ips                       = local.app_nic_ips
       private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
       offset                        = 0
-      primary                       = !var.use_secondary_ips
+      primary                       = true
     }
   ]
 
@@ -657,12 +663,12 @@ locals {
       nic_ips                       = local.app_nic_secondary_ips
       private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
       offset                        = local.application_server_count
-      primary                       = var.use_secondary_ips
+      primary                       = false
     }
   ]
 
   application_ips = (var.use_secondary_ips) ? (
-    flatten(concat(local.application_secondary_ips, local.application_primary_ips))) : (
+    flatten(concat(local.application_primary_ips, local.application_secondary_ips))) : (
     local.application_primary_ips
   )
 
@@ -679,7 +685,7 @@ locals {
       nic_ips                       = local.scs_nic_ips
       private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
       offset                        = 0
-      primary                       = !var.use_secondary_ips
+      primary                       = true
     }
   ]
 
@@ -696,12 +702,12 @@ locals {
       nic_ips                       = local.scs_nic_secondary_ips
       private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
       offset                        = local.scs_server_count
-      primary                       = var.use_secondary_ips
+      primary                       = false
     }
   ]
 
   scs_ips = (var.use_secondary_ips) ? (
-    flatten(concat(local.scs_secondary_ips, local.scs_primary_ips))) : (
+    flatten(concat(local.scs_primary_ips, local.scs_secondary_ips))) : (
     local.scs_primary_ips
   )
 
@@ -716,7 +722,7 @@ locals {
       nic_ips                       = local.web_nic_ips
       private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
       offset                        = 0
-      primary                       = !var.use_secondary_ips
+      primary                       = true
     }
   ]
 
@@ -731,12 +737,12 @@ locals {
       nic_ips                       = local.web_nic_secondary_ips
       private_ip_address_allocation = var.application.use_DHCP ? "Dynamic" : "Static"
       offset                        = local.webdispatcher_count
-      primary                       = var.use_secondary_ips
+      primary                       = false
     }
   ]
 
   web_dispatcher_ips = (var.use_secondary_ips) ? (
-    flatten(concat(local.web_dispatcher_secondary_ips, local.web_dispatcher_primary_ips))) : (
+    flatten(concat(local.web_dispatcher_primary_ips, local.web_dispatcher_secondary_ips))) : (
     local.web_dispatcher_primary_ips
   )
 

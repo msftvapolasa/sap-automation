@@ -29,9 +29,9 @@ locals {
     )
   ))
 
-  region    = var.infrastructure.region
-  sid       = upper(var.sap_sid)
-  prefix    = trimspace(var.naming.prefix.SDU)
+  region                = var.infrastructure.region
+  sid                   = upper(var.sap_sid)
+  prefix                = trimspace(var.naming.prefix.SDU)
   resource_group_exists = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
   rg_name = local.resource_group_exists ? (
     try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
@@ -97,7 +97,7 @@ locals {
       "") : (
       length(try(local.hdb.os.offer, "")) > 0 ? (
         local.hdb.os.offer) : (
-        "sles-sap-12-sp5"
+        "sles-sap-15-sp3"
       )
     )
     sku = local.hdb_custom_image ? (
@@ -116,10 +116,10 @@ locals {
     )
   }
 
-  hdb_size = try(local.hdb.size, "Default")
+  db_sizing_key = try(local.hdb.db_sizing_key, "Default")
 
-  db_sizing = local.enable_deployment ? lookup(local.sizes.db, local.hdb_size).storage : []
-  db_size   = local.enable_deployment ? lookup(local.sizes.db, local.hdb_size).compute.vm_size : ""
+  db_sizing = local.enable_deployment ? lookup(local.sizes.db, local.db_sizing_key).storage : []
+  db_size   = local.enable_deployment ? lookup(local.sizes.db, local.db_sizing_key).compute.vm_size : ""
 
   hdb_vm_sku = length(local.db_size) > 0 ? local.db_size : "Standard_E4s_v3"
 
@@ -318,23 +318,23 @@ locals {
       nic_ips                       = var.database_vm_db_nic_ips
       private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
       offset                        = 0
-      primary                       = !var.use_secondary_ips
+      primary                       = true
     }
   ]
 
   database_secondary_ips = [
     {
-      name = "IPConfig2"
+      name                          = "IPConfig2"
       subnet_id                     = var.db_subnet.id
       nic_ips                       = var.database_vm_db_nic_secondary_ips
       private_ip_address_allocation = var.databases[0].use_DHCP ? "Dynamic" : "Static"
       offset                        = var.database_server_count
-      primary                       = var.use_secondary_ips
+      primary                       = false
     }
   ]
 
   database_ips = (var.use_secondary_ips) ? (
-    flatten(concat(local.database_secondary_ips, local.database_primary_ips))) : (
+    flatten(concat(local.database_primary_ips, local.database_secondary_ips))) : (
     local.database_primary_ips
   )
 
