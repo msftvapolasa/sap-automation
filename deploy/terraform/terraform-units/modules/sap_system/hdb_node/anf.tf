@@ -13,14 +13,14 @@ resource "azurerm_netapp_volume" "hanadata" {
     var.naming.resource_prefixes.hanadata,
     local.prefix,
     var.naming.separator,
-    local.resource_suffixes.hanadata, count.index+1
+    local.resource_suffixes.hanadata, count.index + 1
   )
 
   resource_group_name = local.ANF_pool_settings.resource_group_name
   location            = local.ANF_pool_settings.location
   account_name        = local.ANF_pool_settings.account_name
   pool_name           = local.ANF_pool_settings.pool_name
-  volume_path         = format("%s%s-%d", local.sid, local.resource_suffixes.hanadata, count.index+1)
+  volume_path         = format("%s%s-%d", local.sid, local.resource_suffixes.hanadata, count.index + 1)
   service_level       = local.ANF_pool_settings.service_level
   subnet_id           = local.ANF_pool_settings.subnet_id
   protocols           = ["NFSv4.1"]
@@ -33,7 +33,7 @@ resource "azurerm_netapp_volume" "hanadata" {
     root_access_enabled = true
   }
   storage_quota_in_gb = var.hana_ANF_volumes.data_volume_size
-  throughput_in_mibps = 64
+  throughput_in_mibps = var.hana_ANF_volumes.data_volume_throughput
 
 }
 
@@ -57,7 +57,7 @@ data "azurerm_netapp_volume" "hanadata" {
 
 resource "azurerm_netapp_volume" "hanalog" {
 
-  count = var.hana_ANF_volumes.use_for_log  ? (
+  count = var.hana_ANF_volumes.use_for_log ? (
     var.hana_ANF_volumes.use_existing_log_volume ? (
       0
       ) : (
@@ -69,14 +69,14 @@ resource "azurerm_netapp_volume" "hanalog" {
     var.naming.resource_prefixes.hanalog,
     local.prefix,
     var.naming.separator,
-    local.resource_suffixes.hanalog, count.index+1
+    local.resource_suffixes.hanalog, count.index + 1
   )
 
   resource_group_name = local.ANF_pool_settings.resource_group_name
   location            = local.ANF_pool_settings.location
   account_name        = local.ANF_pool_settings.account_name
   pool_name           = local.ANF_pool_settings.pool_name
-  volume_path         = format("%s%s-%d", local.sid, local.resource_suffixes.hanalog, count.index+1)
+  volume_path         = format("%s%s-%d", local.sid, local.resource_suffixes.hanalog, count.index + 1)
   service_level       = local.ANF_pool_settings.service_level
   subnet_id           = local.ANF_pool_settings.subnet_id
   protocols           = ["NFSv4.1"]
@@ -90,7 +90,7 @@ resource "azurerm_netapp_volume" "hanalog" {
   }
 
   storage_quota_in_gb = var.hana_ANF_volumes.log_volume_size
-  throughput_in_mibps = 64
+  throughput_in_mibps = var.hana_ANF_volumes.log_volume_throughput
 
 }
 
@@ -125,14 +125,14 @@ resource "azurerm_netapp_volume" "hanashared" {
     var.naming.resource_prefixes.hanashared,
     local.prefix,
     var.naming.separator,
-    local.resource_suffixes.hanashared, count.index+1
+    local.resource_suffixes.hanashared, count.index + 1
   )
 
   resource_group_name = local.ANF_pool_settings.resource_group_name
   location            = local.ANF_pool_settings.location
   account_name        = local.ANF_pool_settings.account_name
   pool_name           = local.ANF_pool_settings.pool_name
-  volume_path         = format("%s%s-%d", local.sid, local.resource_suffixes.hanashared, count.index+1)
+  volume_path         = format("%s%s-%d", local.sid, local.resource_suffixes.hanashared, count.index + 1)
   service_level       = local.ANF_pool_settings.service_level
   subnet_id           = local.ANF_pool_settings.subnet_id
   protocols           = ["NFSv4.1"]
@@ -145,7 +145,7 @@ resource "azurerm_netapp_volume" "hanashared" {
     root_access_enabled = true
   }
   storage_quota_in_gb = var.hana_ANF_volumes.data_volume_size
-  throughput_in_mibps = 64
+  throughput_in_mibps = var.hana_ANF_volumes.shared_volume_throughput
 
 }
 

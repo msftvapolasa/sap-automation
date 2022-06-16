@@ -251,6 +251,12 @@ variable "enable_purge_control_for_keyvaults" {
   default = true
 }
 
+variable "enable_rbac_authorization_for_keyvault" {
+  description = "Enables RBAC authorization for Azure keyvault"
+  default = false
+}
+
+
 #########################################################################################
 #                                                                                       #
 #  Authentication variables                                                             #
@@ -329,7 +335,7 @@ variable "install_storage_account_id" {
 
 variable "install_volume_size" {
   description = "The volume size in GB for the transport share"
-  default     = 256
+  default     = 1024
 }
 
 variable "install_private_endpoint_id" {
@@ -387,8 +393,18 @@ variable "ANF_use_existing_transport_volume" {
 }
 
 variable "ANF_transport_volume_name" {
-  description = "Transport volume name"
+  description = "If defined provides the Transport volume name"
   default     = false
+}
+
+variable "ANF_transport_volume_throughput" {
+  description = "If defined provides the throughput of the transport volume"
+  default = 128
+}
+
+variable "ANF_transport_volume_size" {
+  description = "If defined provides the size of the transport volume"
+  default = 128
 }
 
 variable "ANF_use_existing_install_volume" {
@@ -399,6 +415,16 @@ variable "ANF_use_existing_install_volume" {
 variable "ANF_install_volume_name" {
   description = "Install volume name"
   default     = ""
+}
+
+variable "ANF_install_volume_throughput" {
+  description = "If defined provides the throughput of the install volume"
+  default = 128
+}
+
+variable "ANF_install_volume_size" {
+  description = "If defined provides the size of the install volume"
+  default = 1024
 }
 
 #########################################################################################
@@ -452,7 +478,7 @@ variable "iscsi_image" {
   default = {
     "source_image_id" = ""
     "publisher"       = "SUSE"
-    "offer"           = "sles-sap-12-sp5"
+    "offer"           = "sles-sap-15-sp3"
     "sku"             = "gen1"
     "version"         = "latest"
   }
