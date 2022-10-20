@@ -135,6 +135,9 @@
         TMPDIR:                        "{{ tmp_directory }}/{{ sid_to_be_deployed.sid | upper }}"
         SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
       register:                        dbload_results
+      failed_when:                     dbload_results.rc > 0
+      async:                               0
+      poll:                                60
       tags:
         - skip_ansible_lint
       async:                           7200
