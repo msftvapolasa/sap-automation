@@ -11,6 +11,8 @@
 # Clustering commands are based on the Host OS
 
 - name:                                "ERS Install: check if installed"
+  become:                          true
+  become_user:                     root
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation/sap_deployment_ers.txt
   register:                            ers_installed
