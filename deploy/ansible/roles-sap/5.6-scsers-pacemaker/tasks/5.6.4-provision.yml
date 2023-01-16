@@ -18,6 +18,8 @@
   register:                            ers_installed
 
 - name:                                "SCS HA Install: check if installed"
+  become:                          true
+  become_user:                     root
   ansible.builtin.stat:
     path:                              /etc/sap_deployment_automation/sap_deployment_scs.txt
   register:                            scs_installed
