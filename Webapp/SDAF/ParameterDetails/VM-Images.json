@@ -5,6 +5,18 @@
       "os_type": "LINUX",
       "source_image_id": "",
       "publisher": "RedHat",
+      "offer": "RHEL-SAP-APPS",
+      "sku": "79sapha-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Red Hat 7.9 HA",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
       "offer": "RHEL-SAP-HA",
       "sku": "79sapha-gen2",
       "version": "latest",
@@ -13,6 +25,18 @@
   },
   {
     "name": "Red Hat 8.2",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
+      "offer": "RHEL-SAP-APPS",
+      "sku": "gen2",
+      "version": "8.2.2022031402",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Red Hat 8.2 HA",
     "data": {
       "os_type": "LINUX",
       "source_image_id": "",
@@ -29,6 +53,18 @@
       "os_type": "LINUX",
       "source_image_id": "",
       "publisher": "RedHat",
+      "offer": "RHEL-SAP-APPS",
+      "sku": "8_4",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Red Hat 8.4 HA",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
       "offer": "RHEL-SAP-HA",
       "sku": "8_4",
       "version": "latest",
@@ -41,8 +77,44 @@
       "os_type": "LINUX",
       "source_image_id": "",
       "publisher": "RedHat",
+      "offer": "RHEL-SAP-APPS",
+      "sku": "8_6",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Red Hat 8.6 HA",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
       "offer": "RHEL-SAP-HA",
       "sku": "86sapha-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Red Hat 9.0",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
+      "offer": "RHEL-SAP-APPS",
+      "sku": "9_0",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Red Hat 9.0 HA",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
+      "offer": "RHEL-SAP-HA",
+      "sku": "90sapha-gen2",
       "version": "latest",
       "type": "marketplace"
     }
@@ -72,7 +144,19 @@
     }
   },
   {
-    "name": "Oracle 8.2",
+    "name": "SUSE 15 SP4",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "SUSE",
+      "offer": "sles-sap-15-sp4",
+      "sku": "gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "OracleLinux 8.2",
     "data": {
       "os_type": "LINUX",
       "source_image_id": "",
@@ -84,7 +168,7 @@
     }
   },
   {
-    "name": "Oracle 8.4",
+    "name": "OracleLinux 8.4",
     "data": {
       "os_type": "LINUX",
       "source_image_id": "",
@@ -96,7 +180,7 @@
     }
   },
   {
-    "name": "Oracle 8.6",
+    "name": "OracleLinux 8.6",
     "data": {
       "os_type": "LINUX",
       "source_image_id": "",

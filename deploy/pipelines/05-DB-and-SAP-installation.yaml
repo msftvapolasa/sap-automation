@@ -144,6 +144,8 @@ stages:
               echo -e "$green--- Configure devops CLI extension ---$reset"
                 az config set extension.use_dynamic_install=yes_without_prompt  --output none
 
+                az extension add --name azure-devops --output none
+
                 az devops configure --defaults organization=$(System.CollectionUri) project='$(System.TeamProject)' --output none
 
               echo -e "$green--- Validations ---$reset"
@@ -264,6 +266,7 @@ stages:
               AZURE_CLIENT_SECRET:           $(ARM_CLIENT_SECRET)
               AZURE_TENANT_ID:               $(ARM_TENANT_ID)
               AZURE_SUBSCRIPTION_ID:         $(ARM_SUBSCRIPTION_ID)
+              ANSIBLE_COLLECTIONS_PATHS:     /opt/ansible/collections
               CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}
               BOM_BASE_NAME:                 ${{ parameters.bom_base_name }}
               SAP_SYSTEM_CONFIGURATION_NAME: ${{ parameters.sap_system_configuration_name }}
@@ -466,6 +469,10 @@ stages:
                   acssSapProduct:              ${{ parameters.acss_sap_product }}
                   sapSystemConfigurationName:  ${{ parameters.sap_system_configuration_name }}
                   parametersFolder:            $(Preparation.FOLDER)
+                  config_repo_path:            ${{ parameters.config_repo_path }}
+                  sap_automation_repo_path:    ${{ parameters.sap_automation_repo_path }}
+                  TF_Remote_SA_Name:           $(Terraform_Remote_Storage_Account_Name)
+                  TF_Remote_Storage_Subscription: $(Terraform_Remote_Storage_Subscription)
 
           - template:                          templates\collect-log-files.yaml
             parameters:

@@ -1,3 +1,4 @@
+---
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
 # |                Perform the MSSQL DB Instance installation                  |
@@ -8,7 +9,7 @@
 
 # Draft version
 # Data file in a different disk
----
+
 
 - name:                                "WIN-SQL: Create run flag directory"
   ansible.windows.win_file:
@@ -66,7 +67,7 @@
       vars:
         ansible_become:                     true
         ansible_become_method:              runas
-        ansible_become_user:                '{{ domain }}\{{ sap_sid }}adm'
+        ansible_become_user:                '{{ sap_sid }}adm@{{ domain_name }}'
         ansible_become_password:            "{{ domain_user_password }}"
       register:                             sql_install_output
       failed_when:                          sql_install_output.rc != 0
@@ -133,7 +134,7 @@
       vars:
         ansible_become:                     true
         ansible_become_method:              runas
-        ansible_become_user:                '{{ domain }}\{{ sap_sid }}adm'
+        ansible_become_user:                '{{ sap_sid }}adm@{{ domain_name }}'
         ansible_become_password:            "{{ domain_user_password }}"
       register:                             sql_install_output
       failed_when:                          sql_install_output.rc != 0

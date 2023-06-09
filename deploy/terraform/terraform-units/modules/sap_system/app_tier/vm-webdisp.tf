@@ -53,6 +53,7 @@ resource "azurerm_network_interface" "web" {
 }
 
 resource "azurerm_network_interface_application_security_group_association" "web" {
+  provider        = azurerm.main
   count = local.enable_deployment ? (
     var.deploy_application_security_groups ? local.webdispatcher_count : 0) : (
     0
@@ -84,7 +85,7 @@ resource "azurerm_network_interface" "web_admin" {
   )
   location                      = var.resource_group[0].location
   resource_group_name           = var.resource_group[0].name
-  enable_accelerated_networking = local.app_sizing.compute.accelerated_networking
+  enable_accelerated_networking = local.web_sizing.compute.accelerated_networking
 
   ip_configuration {
     name      = "IPConfig1"
@@ -122,18 +123,15 @@ resource "azurerm_linux_virtual_machine" "web" {
   location            = var.resource_group[0].location
   resource_group_name = var.resource_group[0].name
 
-  //If no ppg defined do not put the web dispatchers in a proximity placement group
-  proximity_placement_group_id = local.web_no_ppg ? (
-    null) : (
-    local.web_zonal_deployment ? (
-      var.ppg[count.index % max(local.web_zone_count, 1)].id) : (
-      var.ppg[0].id
-    )
+  proximity_placement_group_id = var.application_tier.web_use_ppg ? (
+    local.web_zonal_deployment ? var.ppg[count.index % max(local.web_zone_count, 1)].id : var.ppg[0].id) : (
+    null
   )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id = local.use_web_avset ? (
-    azurerm_availability_set.web[count.index % max(local.web_zone_count, 1)].id) : (
+      azurerm_availability_set.web[count.index % max(local.web_zone_count, 1)].id
+    ) : (
     null
   )
 
@@ -209,7 +207,7 @@ resource "azurerm_linux_virtual_machine" "web" {
   source_image_id = var.application_tier.web_os.type == "custom" ? var.application_tier.web_os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(var.application_tier.web_os.type == "marketplace" ? 1 : 0)
+    for_each = range(var.application_tier.web_os.type == "marketplace" || var.application_tier.web_os.type == "marketplace_with_plan"  ? 1 : 0)
     content {
       publisher = var.application_tier.web_os.publisher
       offer     = var.application_tier.web_os.offer
@@ -220,9 +218,9 @@ resource "azurerm_linux_virtual_machine" "web" {
   dynamic "plan" {
     for_each = range(var.application_tier.web_os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = var.application_tier.web_os.offer
+      name      = var.application_tier.web_os.sku
       publisher = var.application_tier.web_os.publisher
-      product   = var.application_tier.web_os.sku
+      product   = var.application_tier.web_os.offer
     }
   }
 
@@ -257,21 +255,17 @@ resource "azurerm_windows_virtual_machine" "web" {
   location            = var.resource_group[0].location
   resource_group_name = var.resource_group[0].name
 
-  //If no ppg defined do not put the web dispatchers in a proximity placement group
-  proximity_placement_group_id = local.web_no_ppg ? (
-    null) : (
-    local.web_zonal_deployment ? (
-      var.ppg[count.index % max(local.web_zone_count, 1)].id) : (
-      var.ppg[0].id
-    )
+  proximity_placement_group_id = var.application_tier.web_use_ppg ? (
+    local.web_zonal_deployment ? var.ppg[count.index % max(local.web_zone_count, 1)].id : var.ppg[0].id) : (
+    null
   )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id = local.use_web_avset ? (
-    azurerm_availability_set.web[count.index % max(local.web_zone_count, 1)].id) : (
+      azurerm_availability_set.web[count.index % max(local.web_zone_count, 1)].id
+    ) : (
     null
   )
-
   //If length of zones > 1 distribute servers evenly across zones
   zone = local.use_web_avset ? (
     null) : (
@@ -333,7 +327,7 @@ resource "azurerm_windows_virtual_machine" "web" {
   source_image_id = var.application_tier.web_os.type == "custom" ? var.application_tier.web_os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(var.application_tier.web_os.type == "marketplace" ? 1 : 0)
+    for_each = range(var.application_tier.web_os.type == "marketplace" || var.application_tier.web_os.type == "marketplace_with_plan" ? 1 : 0)
     content {
       publisher = var.application_tier.web_os.publisher
       offer     = var.application_tier.web_os.offer
@@ -344,9 +338,9 @@ resource "azurerm_windows_virtual_machine" "web" {
   dynamic "plan" {
     for_each = range(var.application_tier.web_os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = var.application_tier.web_os.offer
+      name      = var.application_tier.web_os.sku
       publisher = var.application_tier.web_os.publisher
-      product   = var.application_tier.web_os.sku
+      product   = var.application_tier.web_os.offer
     }
   }
 
@@ -407,7 +401,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "web" {
 
 resource "azurerm_virtual_machine_extension" "web_lnx_aem_extension" {
   provider = azurerm.main
-  count = local.enable_deployment && upper(var.application_tier.web_os.os_type) == "LINUX" ? (
+  count = local.enable_deployment && var.application_tier.deploy_v1_monitoring_extension && upper(var.application_tier.web_os.os_type) == "LINUX" ? (
     local.webdispatcher_count) : (
     0
   )
@@ -430,7 +424,7 @@ SETTINGS
 
 resource "azurerm_virtual_machine_extension" "web_win_aem_extension" {
   provider = azurerm.main
-  count = local.enable_deployment && upper(var.application_tier.web_os.os_type) == "WINDOWS" ? (
+  count = local.enable_deployment && var.application_tier.deploy_v1_monitoring_extension && upper(var.application_tier.web_os.os_type) == "WINDOWS" ? (
     local.webdispatcher_count) : (
     0
   )
@@ -453,6 +447,9 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_web" {
     local.webdispatcher_count) : (
     0
   )
+
+  depends_on = [azurerm_virtual_machine_data_disk_attachment.web]
+
   virtual_machine_id   = azurerm_windows_virtual_machine.web[count.index].id
   name                 = "configure_ansible"
   publisher            = "Microsoft.Compute"
@@ -460,8 +457,8 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_web" {
   type_handler_version = "1.9"
   settings             = <<SETTINGS
         {
-          "fileUris": ["https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1"],
-          "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File ConfigureRemotingForAnsible.ps1 -Verbose"
+          "fileUris": ["https://raw.githubusercontent.com/Azure/sap-automation/main/deploy/scripts/configure_ansible.ps1"],
+          "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File configure_ansible.ps1 -Verbose"
         }
     SETTINGS
 }

@@ -21,6 +21,17 @@
     - SecurityPolicyDsc
     - StorageDsc
 
+
+- name:                                "WIN: Calculating the domain value from {{ domain_name }}"
+  ansible.builtin.set_fact:
+    domain:                            "{{ domain_name | split('.') | first }}"
+    cacheable:                         true
+  when:
+    - domain_name is defined
+    - domain_name | type_debug != 'NoneType'
+    - domain_name | trim | length > 1
+    - domain is not defined
+
 # Examples for Assign Local Security
 # Reference: https://github.com/dsccommunity/SecurityPolicyDsc/blob/master/source/Examples/Resources/UserRightsAssignment/1-UserRightsAssignment_Basic_Config.ps1
 # - name:                                     "WIN-SQL: Assign Act_as_part_of_the_operating_system Policy"
@@ -122,7 +133,15 @@
       - SecurityUpdates
       - CriticalUpdates
       - UpdateRollups
+  register:                            win_updates
   notify:                              "WIN-SQL: Restart SQL Server VM"
+
+- name:                                "WIN-SQL: Reboot if required"
+  ansible.windows.win_reboot:
+    reboot_timeout:                    600
+    post_reboot_delay:                 120
+    test_command:                      'exit (Get-Service -Name Netlogon).Status -ne "Running"'
+  when:                                win_updates.reboot_required
 
 - name:                                "Force all notified handlers to run now"
   ansible.builtin.meta:                flush_handlers
@@ -149,6 +168,7 @@
 
 
 # collation to use for SAP: SQL_Latin1_General_CP850_BIN2
+
 ...
 
 # /*---------------------------------------------------------------------------8

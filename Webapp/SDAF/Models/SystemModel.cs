@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using static AutomationForm.Models.CustomValidators;
 
@@ -80,7 +80,7 @@ namespace AutomationForm.Models
         public string custom_prefix { get; set; }
 
         public bool? use_prefix { get; set; } = true;
-        public bool? use_secondary_ips { get; set; }
+        public bool? use_secondary_ips { get; set; } = false;
 
         public bool? use_zonal_markers { get; set; } = true;
 
@@ -148,13 +148,15 @@ namespace AutomationForm.Models
         [DatabasePlatformValidator]
         public string database_platform { get; set; }
 
-        public bool? database_high_availability { get; set; }
+        public bool? database_high_availability { get; set; } = false;
 
         public int? database_server_count { get; set; } = 1;
 
         public bool? database_dual_nics { get; set; }
 
         public string database_size { get; set; }
+
+        public string database_vm_sku { get; set; }
 
         public string database_sid { get; set; }
 
@@ -173,9 +175,13 @@ namespace AutomationForm.Models
         [AvSetIdValidator]
         public string[] database_vm_avset_arm_ids { get; set; }
 
-        public bool? database_no_ppg { get; set; } = false;
+        public bool? database_use_ppg { get; set; } = false;
 
-        public bool? database_no_avset { get; set; } = false;
+        public bool? database_use_avset { get; set; } = false;
+
+        public bool? database_no_ppg { get; set; }
+
+        public bool? database_no_avset { get; set; }
 
         public Tag[] database_tags { get; set; }
 
@@ -237,12 +243,16 @@ namespace AutomationForm.Models
         [IpAddressValidator]
         public string[] application_server_nic_secondary_ips { get; set; }
 
-        public bool? application_server_no_avset { get; set; } = false;
-
         [AvSetIdValidator]
         public string[] application_server_vm_avset_arm_ids { get; set; }
 
+        public bool? application_server_no_avset { get; set; }
+
+        public bool? application_server_use_avset { get; set; } = true;
+
         public bool? application_server_no_ppg { get; set; } = false;
+
+        public bool? application_server_use_ppg { get; set; }
 
         // SAP Central Services
 
@@ -252,9 +262,11 @@ namespace AutomationForm.Models
 
         public bool? scs_high_availability { get; set; } = false;
 
-        public string scs_instance_number { get; set; }
+        public string scs_instance_number { get; set; } = "00";
 
-        public string ers_instance_number { get; set; }
+        public string ers_instance_number { get; set; } = "01";
+
+        public string pas_instance_number { get; set; } = "00";
 
         public Image scs_server_image { get; set; }
 
@@ -274,9 +286,13 @@ namespace AutomationForm.Models
         [IpAddressValidator]
         public string[] scs_server_nic_secondary_ips { get; set; }
 
-        public bool? scs_server_no_avset { get; set; } = false;
+        public bool? scs_server_use_avset { get; set; }= false;
 
-        public bool? scs_server_no_ppg { get; set; } = false;
+        public bool? scs_server_no_avset { get; set; }
+
+        public bool? scs_server_use_ppg { get; set; }= true;
+
+        public bool? scs_server_no_ppg { get; set; }
 
         // Web Dispatchers
 
@@ -301,6 +317,11 @@ namespace AutomationForm.Models
 
         [IpAddressValidator]
         public string[] webdispatcher_server_nic_secondary_ips { get; set; }
+
+        public bool? webdispatcher_server_use_avset { get; set; } = true;
+
+        public bool? webdispatcher_server_use_ppg { get; set; } = false;
+
 
         public bool? webdispatcher_server_no_avset { get; set; }
 
@@ -327,6 +348,8 @@ namespace AutomationForm.Models
         public int? sapmnt_volume_size { get; set; }
 
         public string azure_files_sapmnt_id { get; set; }
+
+        public bool? use_random_id_for_storageaccounts  { get; set; } = true;
 
         [PrivateEndpointIdValidator]
         public string sapmnt_private_endpoint_id { get; set; }
@@ -383,6 +406,8 @@ namespace AutomationForm.Models
 
         public int? ANF_sapmnt_volume_throughput { get; set; }
 
+        public bool? ANF_sapmnt_use_clone_in_secondary_zone { get; set; }
+
         // Anchor VM
 
         public string anchor_vm_authentication_username { get; set; }
@@ -404,6 +429,8 @@ namespace AutomationForm.Models
 
         public string bom_name { get; set; }
 
+        public Tag[] configuration_settings { get; set; }
+
 
         [KeyvaultIdValidator]
         public string user_keyvault_id { get; set; }
@@ -414,9 +441,17 @@ namespace AutomationForm.Models
         public bool? enable_purge_control_for_keyvaults { get; set; } = false;
 
         public bool? deploy_application_security_groups { get; set; } = true;
-    }
 
-    public class Tag
+        public bool? deploy_v1_monitoring_extension { get; set; } = true;
+
+        [DisplayName("Web SID")]
+        public string web_sid { get; set; }
+
+        public string web_instance_number { get; set; } = "00";
+
+  }
+
+  public class Tag
     {
         public string Key { get; set; }
         public string Value { get; set; }

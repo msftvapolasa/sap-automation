@@ -63,9 +63,6 @@ $$use_secondary_ips$$
 # subscription is the subscription in which the system will be deployed (informational only)
 $$subscription$$
 
-# bom_name is the name of the SAP Bill of Materials file
-$$bom_name$$
-
 
 #########################################################################################
 #                                                                                       #
@@ -96,6 +93,20 @@ $$use_loadbalancers_for_standalone_deployments$$
 # use_private_endpoint is a boolean flag controlling if the key vaults and storage accounts have private endpoints
 $$use_private_endpoint$$
 
+
+#########################################################################################
+#                                                                                       #
+#  Cluster settings                                                                     #
+#                                                                                       #
+#########################################################################################
+
+# use_msi_for_clusters if defined will use managed service identity for the Pacemaker cluster fencing
+$$use_msi_for_clusters$$
+
+# fencing_role_name, If specified the role name to use for the fencing agent
+$$fencing_role_name$$
+
+
 #########################################################################################
 #                                                                                       #
 #  Database tier                                                                        #                                                                                       #
@@ -108,7 +119,8 @@ $$database_sid$$
 # - HANA
 # - DB2
 # - ORACLE
-# - ASE
+# - ORACLE-ASM
+# - SYBASE
 # - SQLSERVER
 # - NONE (in this case no database tier is deployed)
 $$database_platform$$
@@ -122,6 +134,9 @@ $$database_high_availability$$
 # For M series VMs use the SKU name for instance "M32ts"
 # If using a custom disk sizing populate with the node name for Database you have used in the file custom_disk_sizes_filename
 $$database_size$$
+
+# database_vm_sku, if provided defines the Virtual Machine SKU to use for the database virtual machines"
+$$database_vm_sku$$
 
 # database_instance_number if provided defines the instance number of the HANA database
 $$database_instance_number$$
@@ -202,10 +217,10 @@ $$database_vm_authentication_type$$
 $$database_vm_avset_arm_ids$$
 
 # Optional, Defines the that the database virtual machines will not be placed in a proximity placement group
-$$database_no_ppg$$
+$$database_use_ppg$$
 
 # Optional, Defines the that the database virtual machines will not be placed in an availability set
-$$database_no_avset$$
+$$database_use_avset$$
 
 # Optional, Defines if the tags for the database virtual machines
 $$database_tags$$
@@ -241,11 +256,15 @@ $$scs_server_count$$
 # scs_high_availability is a boolean flag controlling if SCS should be highly available
 $$scs_high_availability$$
 
-# scs_instance_number
+# scs_instance_number defines the instance number for SCS
 $$scs_instance_number$$
 
-# ers_instance_number
+# ers_instance_number defines the instance number for ERS
 $$ers_instance_number$$
+
+# pas_instance_number defines the instance number for PAS
+$$pas_instance_number$$
+
 
 # scs_server_zones is an optional list defining the availability zones to which deploy the SCS servers
 $$scs_server_zones$$
@@ -258,11 +277,11 @@ $$scs_server_sku$$
 # in this case os_type must also be specified
 $$scs_server_image$$
 
-# scs_server_no_ppg defines the that the SCS virtual machines will not be placed in a proximity placement group
-$$scs_server_no_ppg$$
+# scs_server_use_ppg defines the that the SCS virtual machines will be placed in a proximity placement group
+$$scs_server_use_ppg$$
 
-# scs_server_no_avset defines the that the SCS virtual machines will not be placed in an availability set
-$$scs_server_no_avset$$
+# scs_server_use_avset defines the that the SCS virtual machines will be placed in an availability set
+$$scs_server_use_avset$$
 
 # scs_server_app_nic_ips, if provided provides the static IP addresses
 # for the network interface cards connected to the application subnet
@@ -319,11 +338,11 @@ $$app_disk_sizes_filename$$
 # Optional, Defines the default authentication model for the Applicatiuon tier VMs (key/password)
 $$app_tier_authentication_type$$
 
-# application_server_no_ppg defines the that the application server virtual machines will not be placed in a proximity placement group
-$$application_server_no_ppg$$
+# application_server_use_ppg defines the that the application server virtual machines will be placed in a proximity placement group
+$$application_server_use_ppg$$
 
-# application_server_no_avset defines the that the application server virtual machines will not be placed in an availability set
-$$application_server_no_avset$$
+# application_server_use_avset defines the that the application server virtual machines will be placed in an availability set
+$$application_server_use_avset$$
 
 # application_server_tags, if defined provides the tags to be associated to the application servers
 $$application_server_tags$$
@@ -344,6 +363,13 @@ $$application_server_vm_avset_arm_ids$$
 # webdispatcher_server_count defines how many web dispatchers to deploy
 $$webdispatcher_server_count$$
 
+# web_sid is the Web Dispatcher SID
+$$web_sid$$
+
+# web_instance_number defines the web instance number
+$$web_instance_number$$
+
+
 # webdispatcher_server_app_nic_ips, if provided provides the static IP addresses
 # for the network interface cards connected to the application subnet
 $$webdispatcher_server_app_nic_ips$$
@@ -363,11 +389,11 @@ $$webdispatcher_server_loadbalancer_ips$$
 # webdispatcher_server_sku, if defined provides the SKU to use for the web dispatchers
 $$webdispatcher_server_sku$$
 
-# webdispatcher_server_no_ppg defines the that the Web dispatcher virtual machines will not be placed in a proximity placement group
-$$webdispatcher_server_no_ppg$$
+# webdispatcher_server_use_ppg defines the that the Web dispatcher virtual machines will be placed in a proximity placement group
+$$webdispatcher_server_use_ppg$$
 
-#webdispatcher_server_no_avset defines the that the Web dispatcher virtual machines will not be placed in an availability set
-$$webdispatcher_server_no_avset$$
+#webdispatcher_server_use_avset defines the that the Web dispatcher virtual machines will be placed in an availability set
+$$webdispatcher_server_use_avset$$
 
 # webdispatcher_server_tags, if defined provides the tags to be associated to the web dispatchers
 $$webdispatcher_server_tags$$
@@ -379,6 +405,8 @@ $$webdispatcher_server_zones$$
 # if source_image_id is specified the deployment will use the custom image provided,
 # in this case os_type must also be specified
 $$webdispatcher_server_image$$
+
+
 
 #########################################################################################
 #                                                                                       #
@@ -396,8 +424,8 @@ $$vm_disk_encryption_set_id$$
 # deploy_application_security_groups if defined will create application security groups
 $$deploy_application_security_groups$$
 
-# use_msi_for_clusters if defined will use managed service identity for the Pacemaker cluster fencing
-$$use_msi_for_clusters$$
+# deploy_v1_monitoring_extension Defines if the Microsoft.AzureCAT.AzureEnhancedMonitoring extension will be deployed
+$$deploy_v1_monitoring_extension$$
 
 #########################################################################################
 #                                                                                       #
@@ -419,6 +447,8 @@ $$azure_files_sapmnt_id$$
 # sapmnt_private_endpoint_id defines the Resource identifier for the private endpoint for Azure Files for NFS storage account for sapmnt
 $$sapmnt_private_endpoint_id$$
 
+# use_random_id_for_storageaccounts defines if the sapmnt storage account name will have a random suffix
+$$use_random_id_for_storageaccounts$$
 #########################################################################################
 #                                                                                       #
 #  HANA Data                                                                            #
@@ -487,7 +517,7 @@ $$ANF_HANA_shared_volume_name$$
 
 #########################################################################################
 #                                                                                       #
-#  /usr/sap                                                                             #
+#  Azure NetApp Files /usr/sap                                                          #
 #                                                                                       #
 #########################################################################################
 
@@ -509,12 +539,15 @@ $$ANF_usr_sap_volume_name$$
 
 #########################################################################################
 #                                                                                       #
-#  sapmnt                                                                               #
+#  Azure NetApp Files sapmnt                                                            #
 #                                                                                       #
 #########################################################################################
 
 # ANF_sapmnt, if defined, will create Azure NetApp Files volume for /sapmnt
 $$ANF_sapmnt$$
+
+# ANF_sapmnt_use_clone_in_secondary_zone, if defined, uses clone in secondary region for sapmnt volume.
+$$ANF_sapmnt_use_clone_in_secondary_zone$$
 
 # ANF_sapmnt_volume_size, if defined, provides the size of the /sapmnt volume.
 $$ANF_sapmnt_volume_size$$
@@ -731,3 +764,17 @@ $$tfstate_resource_id$$
 $$deployer_tfstate_key$$
 
 $$landscape_tfstate_key$$
+
+
+#########################################################################################
+#                                                                                       #
+#  SAP Application Information                                                          #
+#                                                                                       #
+#########################################################################################
+
+# bom_name is the name of the SAP Application Bill of Materials file
+
+$$bom_name$$
+
+# configuration_settings is a dictionary containing values that will be persisted in sap-parameters.yaml
+$$configuration_settings$$

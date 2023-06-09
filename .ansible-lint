@@ -1,24 +1,18 @@
 exclude_paths:
   - deploy/pipelines
   - deploy/ansible/BOM-catalog
+  - deploy/ansible/filter_plugins
   - deploy/terraform
   - .github
-  # added ansible_skip_lint tag to exclude the task rather than the whole file.
-  # - deploy/ansible/roles-sap-os/2.10-sap-notes/tasks/2.10.1.1.yaml # Has to be excluded as there is a pipe sign in the regex that Ansible sees as filter
 
 warn_list:
   # FIXME: Experimental violations should be fixed in separate PR
   - experimental
 
 skip_list:
-  # Ignored because there is no easier way to do
-  - no-handler
-
-  # Refactor needed
-  - key-order[task]
-
-  # Following are ignored because of readability:
-  - name[casing]
+  - no-handler   # Ignored because there is no easier way to do
+  - key-order[task] # Refactor needed
+  - name[casing] # Following are ignored because of readability:
   - no-changed-when
   - role-name
   - var-naming
@@ -26,7 +20,6 @@ skip_list:
   - yaml[colons]
   - yaml[commas]
   - yaml[line-length]
+  - yaml[octal-values]
   - name[template]
-
-  # csh is not supported in command
-  - command-instead-of-shell
+  - command-instead-of-shell # csh is not supported in commands

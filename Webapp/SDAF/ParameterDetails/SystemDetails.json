@@ -231,9 +231,6 @@
         "Overrules": "",
         "Display": 3
       }
-      
-      
-      
     ]
   },
   {
@@ -243,7 +240,7 @@
       {
         "Name": "database_platform",
         "Required": true,
-        "Description": "The type of database backend. Valid choices are 'HANA', 'DB2', 'ORACLE', 'SQLSERVER','ASE'",
+        "Description": "The type of database backend. Valid choices are 'HANA', 'DB2', 'ORACLE', 'SQLSERVER','SYBASE'",
         "Type": "lookup",
         "Options": [
           {
@@ -263,8 +260,12 @@
             "Value": "ORACLE"
           },
           {
-            "Text": "ASE",
-            "Value": "ASE"
+            "Text": "ORACLE ASM",
+            "Value": "ORACLE-ASM"
+          },
+          {
+            "Text": "SYBASE",
+            "Value": "SYBASE"
           },
           {
             "Text": "SQL SERVER",
@@ -343,6 +344,20 @@
         "Display": 1
       },
       {
+        "Name": "database_vm_sku",
+        "Required": false,
+        "Description": "If provided overrides the Virtual Machine SKU used for the database virtual machines.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "database_vm_zones",
         "Required": false,
         "Description": "Defines the availability zones in which the database servers are deployed.",
@@ -395,7 +410,6 @@
         "Overrules": "",
         "Display": 3
       },
-     
       {
         "Name": "database_vm_db_nic_ips",
         "Required": false,
@@ -512,18 +526,18 @@
         "Display": 3
       },
       {
-        "Name": "database_no_ppg",
+        "Name": "database_use_ppg",
         "Required": false,
-        "Description": "Defines that the database virtual machines will not be placed in a proximity placement group.",
+        "Description": "Defines that the database virtual machines will be placed in a proximity placement group.",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
         "Display": 3
       },
       {
-        "Name": "database_no_avset",
+        "Name": "database_use_avset",
         "Required": false,
-        "Description": "Defines that the database virtual machines will not be placed in an availability set.",
+        "Description": "Defines that the database virtual machines will be placed in an availability set.",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
@@ -654,6 +668,24 @@
         "Display": 1
       },
       {
+        "Name": "scs_instance_number",
+        "Required": false,
+        "Description": "Defines the SCS instance number.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ers_instance_number",
+        "Required": false,
+        "Description": "Defines the ERSS instance number.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "scs_server_zones",
         "Required": false,
         "Description": "Defines the availability zones in which deploy the SAP Central Services servers.",
@@ -768,18 +800,18 @@
         "Display": 3
       },
       {
-        "Name": "scs_server_no_avset",
+        "Name": "scs_server_use_avset",
         "Required": false,
-        "Description": "Defines if the SAP Central Services tier will not use an availability set.",
+        "Description": "Defines if the SAP Central Services tier will be placed in an availability set.",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
         "Display": 3
       },
       {
-        "Name": "scs_server_no_ppg",
+        "Name": "scs_server_use_ppg",
         "Required": false,
-        "Description": "Defines if the Central Services will not be placed in a proximity placement group.",
+        "Description": "Defines if the Central Services will be placed in a proximity placement group.",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
@@ -834,6 +866,15 @@
         ],
         "Overrules": "",
         "Display": 1
+      },
+      {
+        "Name": "pas_instance_number",
+        "Required": false,
+        "Description": "Defines the PAS instance number.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       },
       {
         "Name": "application_server_sku",
@@ -910,9 +951,18 @@
         "Display": 3
       },
       {
-        "Name": "application_server_no_avset",
+        "Name": "application_server_use_avset",
         "Required": false,
-        "Description": "If defined, the application servers will not use an availability set",
+        "Description": "If defined, the application servers will be placed in an availability set",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "application_server_use_ppg",
+        "Required": false,
+        "Description": "If defined, the application servers will be placed in a proximity placement group.",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
@@ -929,15 +979,6 @@
             "Value": ""
           }
         ],
-        "Overrules": "",
-        "Display": 3
-      },
-      {
-        "Name": "application_server_no_ppg",
-        "Required": false,
-        "Description": "If defined, the application servers will not be placed in a proximity placement group.",
-        "Type": "checkbox",
-        "Options": [],
         "Overrules": "",
         "Display": 3
       },
@@ -964,6 +1005,25 @@
         "Options": [],
         "Overrules": "",
         "Display": 1
+      },
+      {
+        "Name": "web_sid",
+        "Required": false,
+        "Description": "Web Dispatcher SID",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+
+      {
+        "Name": "web_instance_number",
+        "Required": false,
+        "Description": "Defines the web instance number. Default is 00.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
       },
       {
         "Name": "webdispatcher_server_zones",
@@ -1080,18 +1140,18 @@
         "Display": 3
       },
       {
-        "Name": "webdispatcher_server_no_avset",
+        "Name": "webdispatcher_server_use_avset",
         "Required": false,
-        "Description": "If defined, the Web Dispatcher tier will not use an availability set",
+        "Description": "If defined, the Web Dispatcher tier will be placed in an availability set",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
         "Display": 3
       },
       {
-        "Name": "webdispatcher_server_no_ppg",
+        "Name": "webdispatcher_server_use_ppg",
         "Required": false,
-        "Description": "If defined, the web dispatchers will not be placed in a proximity placement group",
+        "Description": "If defined, the web dispatchers will be placed in a proximity placement group",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
@@ -1504,6 +1564,15 @@
         "Display": 3
       },
       {
+        "Name": "use_random_id_for_storageaccounts",
+        "Required": false,
+        "Description": "Defines if the sapmnt storage account name will have a random suffix. (this decreases the risk of name conflicts)",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "sapmnt_private_endpoint_id",
         "Required": false,
         "Description": "Azure Resource Identifier for an private endpoint connection for the sapmnt storage account",
@@ -1755,6 +1824,15 @@
         "Display": 3
       },
       {
+        "Name": "ANF_sapmnt_use_clone_in_secondary_zone",
+        "Required": false,
+        "Description": "Use clone in secondary region for sapmnt volume",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
         "Name": "ANF_sapmnt_volume_name",
         "Required": false,
         "Description": "Azure NetApp volumes name(s) for existing HANA /sapmnt volume(s)",
@@ -1898,6 +1976,15 @@
         "Display": 3
       },
       {
+        "Name": "configuration_settings",
+        "Required": false,
+        "Description": "This is dictionary of values that can be used to add values to the sap-parameters file",
+        "Type": "tag",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "nsg_asg_with_vnet",
         "Required": false,
         "Description": "Controls where the Application Security Groups are created.",
@@ -1915,6 +2002,16 @@
         "Overrules": "",
         "Display": 3
       },
+      {
+        "Name": "deploy_v1_monitoring_extension",
+        "Required": false,
+        "Description": "Defines if the Microsoft.AzureCAT.AzureEnhancedMonitoring extension will be deployed.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+
       {
         "Name": "vm_disk_encryption_set_id",
         "Required": false,

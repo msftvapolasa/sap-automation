@@ -105,12 +105,12 @@ resource "azurerm_network_interface" "app_admin" {
 # Create the Linux Application VM(s)
 resource "azurerm_linux_virtual_machine" "app" {
   provider   = azurerm.main
-  depends_on = [azurerm_linux_virtual_machine.scs,azurerm_windows_virtual_machine.scs]
+  depends_on = [azurerm_linux_virtual_machine.scs, azurerm_windows_virtual_machine.scs]
   count = local.enable_deployment && upper(var.application_tier.app_os.os_type) == "LINUX" ? (
     local.application_server_count) : (
     0
   )
-  
+
   name = format("%s%s%s%s%s",
     var.naming.resource_prefixes.vm,
     local.prefix,
@@ -122,10 +122,9 @@ resource "azurerm_linux_virtual_machine" "app" {
   location            = var.resource_group[0].location
   resource_group_name = var.resource_group[0].name
 
-  //If no ppg defined do not put the application servers in a proximity placement group
-  proximity_placement_group_id = local.app_no_ppg ? (
-    null) : (
-    local.app_zonal_deployment ? var.ppg[count.index % max(local.app_zone_count, 1)].id : var.ppg[0].id
+  proximity_placement_group_id = var.application_tier.app_use_ppg ? (
+    local.app_zonal_deployment ? var.ppg[count.index % max(local.app_zone_count, 1)].id : var.ppg[0].id) : (
+    null
   )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
@@ -138,7 +137,7 @@ resource "azurerm_linux_virtual_machine" "app" {
   )
 
   //If length of zones > 1 distribute servers evenly across zones
-  zone = local.use_app_avset ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
+  zone = var.application_tier.app_use_avset  ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
 
   network_interface_ids = var.application_tier.dual_nics ? (
     var.options.legacy_nic_order ? (
@@ -206,7 +205,7 @@ resource "azurerm_linux_virtual_machine" "app" {
   source_image_id = var.application_tier.app_os.type == "custom" ? var.application_tier.app_os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(var.application_tier.app_os.type == "marketplace" ? 1 : 0)
+    for_each = range(var.application_tier.app_os.type == "marketplace" || var.application_tier.app_os.type == "marketplace_with_plan" ? 1 : 0)
     content {
       publisher = var.application_tier.app_os.publisher
       offer     = var.application_tier.app_os.offer
@@ -218,9 +217,9 @@ resource "azurerm_linux_virtual_machine" "app" {
   dynamic "plan" {
     for_each = range(var.application_tier.app_os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = var.application_tier.app_os.offer
+      name      = var.application_tier.app_os.sku
       publisher = var.application_tier.app_os.publisher
-      product   = var.application_tier.app_os.sku
+      product   = var.application_tier.app_os.offer
     }
   }
 
@@ -255,10 +254,9 @@ resource "azurerm_windows_virtual_machine" "app" {
   location            = var.resource_group[0].location
   resource_group_name = var.resource_group[0].name
 
-  //If no ppg defined do not put the application servers in a proximity placement group
-  proximity_placement_group_id = local.app_no_ppg ? (
-    null) : (
-    local.app_zonal_deployment ? var.ppg[count.index % max(local.app_zone_count, 1)].id : var.ppg[0].id
+  proximity_placement_group_id = var.application_tier.app_use_ppg ? (
+    local.app_zonal_deployment ? var.ppg[count.index % max(local.app_zone_count, 1)].id : var.ppg[0].id) : (
+    null
   )
 
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
@@ -269,8 +267,9 @@ resource "azurerm_windows_virtual_machine" "app" {
     )) : (
     null
   )
+
   //If length of zones > 1 distribute servers evenly across zones
-  zone = local.use_app_avset ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
+  zone = var.application_tier.app_use_avset ? null : try(local.app_zones[count.index % max(local.app_zone_count, 1)], null)
 
   network_interface_ids = var.application_tier.dual_nics ? (
     var.options.legacy_nic_order ? (
@@ -315,7 +314,7 @@ resource "azurerm_windows_virtual_machine" "app" {
   source_image_id = var.application_tier.app_os.type == "custom" ? var.application_tier.app_os.source_image_id : null
 
   dynamic "source_image_reference" {
-    for_each = range(var.application_tier.app_os.type == "marketplace" ? 1 : 0)
+    for_each = range(var.application_tier.app_os.type == "marketplace" || var.application_tier.app_os.type == "marketplace_with_plan" ? 1 : 0)
     content {
       publisher = var.application_tier.app_os.publisher
       offer     = var.application_tier.app_os.offer
@@ -327,9 +326,9 @@ resource "azurerm_windows_virtual_machine" "app" {
   dynamic "plan" {
     for_each = range(var.application_tier.app_os.type == "marketplace_with_plan" ? 1 : 0)
     content {
-      name      = var.application_tier.app_os.offer
+      name      = var.application_tier.app_os.sku
       publisher = var.application_tier.app_os.publisher
-      product   = var.application_tier.app_os.sku
+      product   = var.application_tier.app_os.offer
     }
   }
 
@@ -393,7 +392,7 @@ resource "azurerm_virtual_machine_data_disk_attachment" "app" {
 # VM Extension
 resource "azurerm_virtual_machine_extension" "app_lnx_aem_extension" {
   provider = azurerm.main
-  count = local.enable_deployment && upper(var.application_tier.app_os.os_type) == "LINUX" ? (
+  count = local.enable_deployment && var.application_tier.deploy_v1_monitoring_extension && upper(var.application_tier.app_os.os_type) == "LINUX" ? (
     local.application_server_count) : (
     0
   )
@@ -416,7 +415,7 @@ SETTINGS
 
 resource "azurerm_virtual_machine_extension" "app_win_aem_extension" {
   provider = azurerm.main
-  count = local.enable_deployment && upper(var.application_tier.app_os.os_type) == "WINDOWS" ? (
+  count = local.enable_deployment && var.application_tier.deploy_v1_monitoring_extension && upper(var.application_tier.app_os.os_type) == "WINDOWS" ? (
     local.application_server_count) : (
     0
   )
@@ -440,6 +439,8 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_app" {
     0
   )
 
+  depends_on = [azurerm_virtual_machine_data_disk_attachment.app]
+
   name                 = "configure_ansible"
   virtual_machine_id   = azurerm_windows_virtual_machine.app[count.index].id
   publisher            = "Microsoft.Compute"
@@ -447,8 +448,8 @@ resource "azurerm_virtual_machine_extension" "configure_ansible_app" {
   type_handler_version = "1.9"
   settings             = <<SETTINGS
         {
-          "fileUris": ["https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1"],
-          "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File ConfigureRemotingForAnsible.ps1 -Verbose"
+          "fileUris": ["https://raw.githubusercontent.com/Azure/sap-automation/main/deploy/scripts/configure_ansible.ps1"],
+          "commandToExecute": "powershell.exe -ExecutionPolicy Unrestricted -File configure_ansible.ps1 -Verbose"
         }
     SETTINGS
 }
