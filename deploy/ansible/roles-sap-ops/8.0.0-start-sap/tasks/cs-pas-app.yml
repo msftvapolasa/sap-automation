@@ -1,0 +1,19 @@
+- name: Start SAP Central Services
+  become:        true
+  become_user:   "{{ sap_sid | lower }}_adm"
+  community.sap_libs.sap_control_exec:
+    hostname: "{{ scs_virtual_hostname }}"
+    sysnr: "{{ scs_instance_number }}"
+    function: StartSystem
+
+
+
+- name: Start SAP Central Services
+  become:        true
+  become_user:   "{{ sap_sid | lower }}_adm"
+  community.sap_libs.sap_control_exec:
+    hostname: "{{ ers_virtual_hostname }}"
+    sysnr: "{{ ers_instance_number_instance_number }}"
+    function: Start
+
+

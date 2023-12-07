@@ -1,0 +1,21 @@
+# Start SAP Application server
+
+- name: Start SAP Primary Application server
+  become:        true
+  become_user:   "{{ sap_sid | lower }}_adm"
+  community.sap_libs.sap_control_exec:
+    hostname: "{{ ansible_hostname }}"
+    sysnr: "{{ pas_instance_number }}"
+    function: Start
+  when:
+    - node_tier == "pas"
+
+- name: Start SAP Application server
+  become:        true
+  become_user:   "{{ sap_sid | lower }}_adm"
+  community.sap_libs.sap_control_exec:
+    hostname: "{{ ansible_hosts_all[ ] }}"
+    sysnr: "{{ app_instance_number }}"
+    function: Start
+  when:
+   - node_tier == "app"

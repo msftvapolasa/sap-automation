@@ -1,0 +1,18 @@
+# Start HANA Database
+- name: Start HANA DB Primary
+  become:        true
+  become_user:   "{{ db_sid | lower }}_adm"
+  community.sap_libs.sap_control_exec:
+    hostname: "{{ db_lb_virtual_host }}"
+    sysnr: "{{ scs_instance_number }}"
+    function: Start
+
+
+
+- name: Start HANA DB Secondary
+  become:        true
+  become_user:   "{{ db_sid | lower }}_adm"
+  community.sap_libs.sap_control_exec:
+    hostname: "{{ ers_virtual_hostname }}"
+    sysnr: "{{ ers_instance_number_instance_number }}"
+    function: Start

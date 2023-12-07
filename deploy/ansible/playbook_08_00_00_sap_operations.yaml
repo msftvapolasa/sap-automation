@@ -1,0 +1,171 @@
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                      Playbook for Post installation activities             |
+# |                                                                            |
+# +------------------------------------4---------------------------------------*/
+---
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                       Retrieving the SPN details                           |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+- hosts:                               localhost
+  name:                                Get SPN from KeyVault
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml      # API Input template with defaults
+
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+
+
+  tasks:
+    - name:                            Create Progress folder
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress"
+        state:                         directory
+        mode:                          0755
+
+    - name:                            Remove post-install-done flag
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/post-install-done"
+        state:                         absent
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                       Start SAP Systems                                    |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+#  Start the Database Nodes
+- hosts:                               "{{ sap_sid | upper }}_DB"
+  name:                                Start SAP Systems
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                                               # API Input template with defaults
+
+  tasks:
+    - name:                    Include 8.0.0-START-SAP DB
+      ansible.builtin.include_role:
+        name:                  roles-sap-ops/8.0.0-stop-sap/database.yml
+      tags:
+        - 8.0.0-start-sap-db
+
+#  Start the Central Services Nodes & App Servers
+- hosts:                               "{{ sap_sid | upper }}_SCS :
+                                        {{ sap_sid | upper }}_ERS"
+  name:                                Start SAP Systems
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                                               # API Input template with defaults
+
+  tasks:
+    - name:                    Include 8.0.0-START-SAP CS
+      ansible.builtin.include_role:
+        name:                  roles-sap-ops/8.0.0-stop-sap/cs-pas-app.yml
+      tags:
+        - 8.0.0-start-sap-cs-app
+
+
+# #  Start the Primary Application Servers appserver.yml
+# - hosts:                               "{{ sap_sid | upper }}_PAS"
+#   name:                                Start SAP Systems
+#   remote_user:                         "{{ orchestration_ansible_user }}"
+#   become:                              true
+#   gather_facts:                        true
+#   vars_files:
+#     - vars/ansible-input-api.yaml                                               # API Input template with defaults
+
+#   tasks:
+#     - name:                    Include 8.0.0-START-SAP PAS
+#       ansible.builtin.include_role:
+#         name:                  roles-sap-ops/8.0.0-stop-sap/central_services.yml
+#       tags:
+#         - 8.0.0-start-sap-pas
+
+
+# #  Start the  Application Servers appserver.yml
+# - hosts:                               "{{ sap_sid | upper }}_APP"
+#   name:                                Start SAP Systems
+#   remote_user:                         "{{ orchestration_ansible_user }}"
+#   become:                              true
+#   gather_facts:                        true
+#   vars_files:
+#     - vars/ansible-input-api.yaml                                               # API Input template with defaults
+
+#   tasks:
+#     - name:                    Include 8.0.0-START-SAP APP
+#       ansible.builtin.include_role:
+#         name:                  roles-sap-ops/8.0.0-stop-sap/appserver.yml
+#       tags:
+#         - 8.0.0-start-sap-app
+
+
+- hosts:                               localhost
+  name:                                Log results
+  gather_facts:                        false
+
+  tasks:
+
+    - name:                            Ensure the post-install-done file exists
+      ansible.builtin.file:
+        path:                          "{{ _workspace_directory }}/.progress/post-install-done"
+        state:                         touch
+        mode:                          0755
+
+
+# /*---------------------------------------------------------------------------8
+# |                                                                            |
+# |                       Stop SAP Systems                                    |
+# |                                                                            |
+# +------------------------------------4--------------------------------------*/
+
+
+- hosts:                               "{{ sap_sid | upper }}_SCS :
+                                        {{ sap_sid | upper }}_DB"
+  name:                                Post Installation
+  remote_user:                         "{{ orchestration_ansible_user }}"
+  become:                              true
+  gather_facts:                        true
+  vars_files:
+    - vars/ansible-input-api.yaml                                               # API Input template with defaults
+
+  tasks:
+# -------------------------------------+---------------------------------------8
+#
+# Build the list of tasks to be executed in order here.
+#
+# -------------------------------------+---------------------------------------8
+
+    - name:                    Include 8.0.0-START-SAP
+      ansible.builtin.include_role:
+        name:                  roles-sap-ops/8.0.1-stop-sap
+      tags:
+        - 8.0.1-stop-sap
+
+
+- hosts:                               localhost
+  name:                                Log results
+  gather_facts:                        false
+
+  tasks:
+
+    # - name:                            Ensure the post-install-done file exists
+    #   ansible.builtin.file:
+    #     path:                          "{{ _workspace_directory }}/.progress/post-install-done"
+    #     state:                         touch
+    #     mode:                          0755
+...
+
+# /*----------------------------------------------------------------------------8
+# |                                    END                                      |
+# +------------------------------------4--------------------------------------*/

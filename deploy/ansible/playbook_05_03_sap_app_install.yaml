@@ -233,7 +233,15 @@
           loop:                        "{{ all_sids }}"
           loop_control:
             loop_var:                  sid_to_be_deployed
-
+        
+        - name: Start SAP Central Services
+          become:        true
+          become_user:   "{{ sap_sid | lower }}_adm"
+          community.sap_libs.sap_control_exec:
+            hostname: "{{ scs_virtual_hostname }}"
+            sysnr: "{{ scs_instance_number }}"
+            function: StopSystem
+        
         - name:                        "APP Playbook - Install: Errors from APP installation"
           ansible.builtin.debug:
             msg:                       "{{ error_lines }}"
