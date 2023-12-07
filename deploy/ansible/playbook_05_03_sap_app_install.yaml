@@ -236,8 +236,8 @@
         
         - name:                        "Stop SAP Central Services"
           become:                       true
-          become_user:                 "{{ sap_sid | lower }}adm"
-          ansible.builtin.shell:       sapcontrol -nr {{ app_instance_number }} -function StopSystem
+          become_user:                  root
+          ansible.builtin.shell:       su -c "sapcontrol -nr {{ app_instance_number }} -function StopSystem" {{ sap_sid |lower }}adm
           register:                    sapsystem_stopped          
             
           
