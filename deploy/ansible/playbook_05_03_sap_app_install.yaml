@@ -237,7 +237,7 @@
         - name:                        "Start SAP Central Services"
           become:                       true
           become_user:                 "{{ sap_sid | lower }}_adm"
-          ansible.community.sap_libs.sap_control_exec:
+          community.sap_libs.sap_control_exec:
             hostname: "{{ scs_virtual_hostname }}"
             sysnr: "{{ scs_instance_number }}"
             function: StopSystem
