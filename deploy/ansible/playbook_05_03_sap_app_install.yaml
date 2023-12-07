@@ -234,10 +234,10 @@
           loop_control:
             loop_var:                  sid_to_be_deployed
         
-        - name: Start SAP Central Services
-          become:        true
-          become_user:   "{{ sap_sid | lower }}_adm"
-          community.sap_libs.sap_control_exec:
+        - name:                        "Start SAP Central Services"
+          become:                       true
+          become_user:                 "{{ sap_sid | lower }}_adm"
+          ansible.community.sap_libs.sap_control_exec:
             hostname: "{{ scs_virtual_hostname }}"
             sysnr: "{{ scs_instance_number }}"
             function: StopSystem
