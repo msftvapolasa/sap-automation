@@ -233,15 +233,7 @@
           loop:                        "{{ all_sids }}"
           loop_control:
             loop_var:                  sid_to_be_deployed
-        
-        - name:                        "Stop SAP Central Services"
-          become:                       true
-          become_user:                  root
-          ansible.builtin.shell:       su -c "sapcontrol -nr {{ app_instance_number }} -function StopSystem" {{ sap_sid |lower }}adm
-          register:                    sapsystem_stopped          
             
-          
-        
         - name:                        "APP Playbook - Install: Errors from APP installation"
           ansible.builtin.debug:
             msg:                       "{{ error_lines }}"
