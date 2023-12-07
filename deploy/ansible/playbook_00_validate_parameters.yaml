@@ -119,8 +119,8 @@
       when:
                                             - (database_high_availability and database_cluster_type == "AFA") or
                                               (scs_high_availability      and      scs_cluster_type == "AFA")
-                                            - platform != "ORACLE" or 
-                                            - platform != "ORACLE-ASM"
+                                            - platform not in ["ORACLE", "ORACLE-ASM"]
+                                      
       tags:
                                             - kv-secrets
 
@@ -462,8 +462,7 @@
         fail_msg:                      "Please ensure that the sap_sid is different from the db_sid when performing a standalone installation"
       when:
         - (ansible_play_hosts_all | length) == 1
-        - platform != "ORACLE" or
-        - platform != "ORACLE-ASM"
+        - platform not in ["ORACLE", "ORACLE-ASM"]
 
     - name: Validate SCS and PAS instance numbers
       ansible.builtin.assert:
