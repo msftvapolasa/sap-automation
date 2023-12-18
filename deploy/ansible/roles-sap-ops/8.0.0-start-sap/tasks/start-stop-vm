@@ -1,0 +1,32 @@
+
+# Start Azure VM.
+- block:
+  - name: Start Azure VM
+    hosts: localhost
+    connection: local
+    tasks:
+      - name: Start virtual machine
+        azure_rm_virtualmachine:
+          resource_group: "{{ sap_group_name }}"
+          name: "{{ item }}"
+          started: yes
+        loop: "{{ ansible_play_hosts_all }}"
+  when:
+  -  sap_ops == "start"
+
+
+
+#  Stop Azure VM
+- block:
+  - name: Stop Azure VM
+    hosts: localhost
+    connection: local
+    tasks:
+      - name: Stop virtual machine
+        azure_rm_virtualmachine:
+          resource_group: "{{ sap_group_name }}"
+          name: "{{ item }}"
+          allocated: no
+        loop: "{{ ansible_play_hosts_all }}"
+  when:
+    - sap_ops == "stop"

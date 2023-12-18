@@ -12,29 +12,62 @@ db_secondary_hostname:
     db_secondary:                     "{{ sap_sid | upper }}_DB[1] }}"         # Oracle Secondary Host
   
 
-
-# sapcontrol_command:                    "sapcontrol -nr {{ instance_number }}"
-
-
-# Start Central Services
-- name:                           "Start Central Services"
-  ansible.builtin.include_tasks:  "central_services.yml"
+# Start the SAP Systems
+- block:
+  - tasks:
+     # Start Database
+     - name:                           "Start Database"
+       ansible.builtin.include_tasks:  "database.yml"
+       when: node_tier in ["hana","oracle","oracle-asm","db2"]
+   
+     # Start Central Services
+     - name:                           "Start Central Services"
+       ansible.builtin.include_tasks:  "cs-pas-app.yml"
+       when:
+       - node_tier in ["scs", "ers"]
   when:
-  - node_tier in ["scs", "ers"] 
+    - sap_ops == "start"
 
-# Start Database
-- name:                           "Start Database"
-  ansible.builtin.include_tasks:  "database.yml"
-  when: node_tier in ["hana","oracle","oracle-asm","db2"]
-
-# Start Primary Application Server
-- name:                           "Start Primary Application server"
-  ansible.builtin.include_tasks:  "appserver.yml"
+- block:
+    - tasks:
+       # Start Database
+       - name:                           "Start Database"
+         ansible.builtin.include_tasks:  "database.yml"
+         when: node_tier in ["hana","oracle","oracle-asm","db2"]
+     
+       # Start Central Services
+       - name:                           "Start Central Services"
+         ansible.builtin.include_tasks:  "cs-pas-app.yml"
+         when:
+         - node_tier in ["scs", "ers"]
   when:
-  - node_tier == "pas"
+     - sap_ops == "stop"
 
-# Start  Application Servers
-- name:                           "Start Primary Application server"
-  ansible.builtin.include_tasks:  "appserver.yml"
-  when:
-  - node_tier == "app"
+
+
+
+
+
+
+
+  
+
+# # Start Central Services
+# - name:                           "Start Central Services"
+#   ansible.builtin.include_tasks:  "central_services.yml"
+#   when:
+#   - node_tier in ["scs", "ers"] 
+
+
+
+# # Start Primary Application Server
+# - name:                           "Start Primary Application server"
+#   ansible.builtin.include_tasks:  "appserver.yml"
+#   when:
+#   - node_tier == "pas"
+
+# # Start  Application Servers
+# - name:                           "Start Primary Application server"
+#   ansible.builtin.include_tasks:  "appserver.yml"
+#   when:
+#   - node_tier == "app"

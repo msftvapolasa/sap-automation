@@ -1,19 +1,24 @@
-- name: Start SAP Central Services
-  become:        true
-  become_user:   "{{ sap_sid | lower }}_adm"
-  community.sap_libs.sap_control_exec:
-    hostname: "{{ scs_virtual_hostname }}"
-    sysnr: "{{ scs_instance_number }}"
-    function: StartSystem
+- name:                        "Start SAP Services"
+  become:                       true
+  become_user:                  root
+  ansible.builtin.shell:       su -c "sapcontrol -nr {{ app_instance_number }} -function StartSystem" {{ sap_sid |lower }}adm
+  register:                    sapsystem_stopped
+
+- name:                        "Wait 120 secs for the StartService {{ sap_sid | upper }} to finish"
+  ansible.builtin.wait_for:
+    timeout:                   120
+
+- name:                        " Get SAP Services Status"
+  become:                       true
+  become_user:                  root
+  ansible.builtin.shell:       su -c "sapcontrol -nr {{ app_instance_number }} -function GetSystemInstanceList" {{ sap_sid |lower }}adm
+  register:                    sapsystem_status
+
+- name:                            "0.0 Validations - Show Mounts"
+  ansible.builtin.debug:
+    msg:  "{{ sapsystem_status }}"
 
 
 
-- name: Start SAP Central Services
-  become:        true
-  become_user:   "{{ sap_sid | lower }}_adm"
-  community.sap_libs.sap_control_exec:
-    hostname: "{{ ers_virtual_hostname }}"
-    sysnr: "{{ ers_instance_number_instance_number }}"
-    function: Start
 
 
