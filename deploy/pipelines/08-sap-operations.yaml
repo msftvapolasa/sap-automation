@@ -196,39 +196,23 @@ stages:
                 cp ${SID}_hosts.yaml artifacts/.
 
                 2> >(while read line; do (>&2 echo "STDERROR: $line"); done)
-            name:                      Preparation
-            displayName:               Preparation for Ansible
-            env:
-              SCRIPT_PATH:                   $${{ parameters.sap_automation_repo_path }}/deploy/pipelines/templates/*.sh
-              SYSTEM_ACCESSTOKEN:            $(System.AccessToken)
-              AZURE_DEVOPS_EXT_PAT:          $(System.AccessToken)
-              ANSIBLE_HOST_KEY_CHECKING:     false
-              AZURE_CLIENT_ID:               $(ARM_CLIENT_ID)
-              AZURE_CLIENT_SECRET:           $(ARM_CLIENT_SECRET)
-              AZURE_TENANT_ID:               $(ARM_TENANT_ID)
-              AZURE_SUBSCRIPTION_ID:         $(ARM_SUBSCRIPTION_ID)
-              ANSIBLE_COLLECTIONS_PATHS:     /opt/ansible/collections
-              CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}
-              # BOM_BASE_NAME:                 ${{ parameters.bom_base_name }}
-              SAP_SYSTEM_CONFIGURATION_NAME: ${{ parameters.sap_system_configuration_name }}
-              EXTRA_PARAMETERS:              $(EXTRA_PARAMETERS)
-              PIPELINE_EXTRA_PARAMETERS:     ${{ parameters.extra_params }}
-          # - template:                        templates\run-ansible.yaml
-          #   # parameters:
-          #   #   displayName:                   "Parameter validation"
-          #   #   # ansibleFilePath:               ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_00_validate_parameters.yaml
-          #   #   secretName:                    "$(Preparation.SSH_KEY_NAME)"
-          #   #   passwordSecretName:            "$(Preparation.PASSWORD_KEY_NAME)"
-          #   #   userNameSecretName:            "$(Preparation.USERNAME_KEY_NAME)"
-          #   #   vaultName:                     $(Preparation.VAULT_NAME)
-          #   #   parametersFolder:              $(Preparation.FOLDER)
-          #   #   sapParams:                     "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-          #   #   sidHosts:                      $(Preparation.HOSTS)
-          #   #   extraParams:                   "$(Preparation.NEW_PARAMETERS)"
-          #   #   azureClientId:                 $(ARM_CLIENT_ID)
-          #   #   azureClientSecret:             $(ARM_CLIENT_SECRET)
-          #   #   azureTenantId:                 $(ARM_TENANT_ID)
-          #   #   azureSubscriptionId:           $(ARM_SUBSCRIPTION_ID)
+            # name:                      Start/Stop
+            # displayName:               "Start and Stop SAP Systems"
+            # env:
+            #   SCRIPT_PATH:                   $${{ parameters.sap_automation_repo_path }}/deploy/pipelines/templates/*.sh
+            #   SYSTEM_ACCESSTOKEN:            $(System.AccessToken)
+            #   AZURE_DEVOPS_EXT_PAT:          $(System.AccessToken)
+            #   ANSIBLE_HOST_KEY_CHECKING:     false
+            #   AZURE_CLIENT_ID:               $(ARM_CLIENT_ID)
+            #   AZURE_CLIENT_SECRET:           $(ARM_CLIENT_SECRET)
+            #   AZURE_TENANT_ID:               $(ARM_TENANT_ID)
+            #   AZURE_SUBSCRIPTION_ID:         $(ARM_SUBSCRIPTION_ID)
+            #   ANSIBLE_COLLECTIONS_PATHS:     /opt/ansible/collections
+            #   CONFIG_REPO_PATH:              ${{ parameters.config_repo_path }}
+            #   # BOM_BASE_NAME:                 ${{ parameters.bom_base_name }}
+            #   SAP_SYSTEM_CONFIGURATION_NAME: ${{ parameters.sap_system_configuration_name }}
+            #   EXTRA_PARAMETERS:              $(EXTRA_PARAMETERS)
+            #   PIPELINE_EXTRA_PARAMETERS:     ${{ parameters.extra_params }}
 
           - ${{ if eq(parameters.operation, true) }}:
               - template:                    templates\run-ansible.yaml
