@@ -15,7 +15,14 @@
 
 #  Start the Oracle Database
 - block:
+  # Start the Azure VM
+  - name:                              "Start the VM"
+    azure_rm_virtualmachine:
+     resource_group:                   "{{ sap_system_configuration_name }}"
+     name:                             "{{ansible_hostname }}"
+     restarted:                        true
   
+
   - name:                            "Create Oracle Primary Startup Script"
     become:                              true
     become_user:                         "oracle"
