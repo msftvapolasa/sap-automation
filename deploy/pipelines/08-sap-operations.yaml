@@ -214,21 +214,21 @@ stages:
               EXTRA_PARAMETERS:              $(EXTRA_PARAMETERS)
               PIPELINE_EXTRA_PARAMETERS:     ${{ parameters.extra_params }}
           - template:                        templates\run-ansible.yaml
-            parameters:
-              displayName:                   "Parameter validation"
-              # ansibleFilePath:               ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_00_validate_parameters.yaml
-              secretName:                    "$(Preparation.SSH_KEY_NAME)"
-              passwordSecretName:            "$(Preparation.PASSWORD_KEY_NAME)"
-              userNameSecretName:            "$(Preparation.USERNAME_KEY_NAME)"
-              vaultName:                     $(Preparation.VAULT_NAME)
-              parametersFolder:              $(Preparation.FOLDER)
-              sapParams:                     "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
-              sidHosts:                      $(Preparation.HOSTS)
-              extraParams:                   "$(Preparation.NEW_PARAMETERS)"
-              azureClientId:                 $(ARM_CLIENT_ID)
-              azureClientSecret:             $(ARM_CLIENT_SECRET)
-              azureTenantId:                 $(ARM_TENANT_ID)
-              azureSubscriptionId:           $(ARM_SUBSCRIPTION_ID)
+            # parameters:
+            #   displayName:                   "Parameter validation"
+            #   # ansibleFilePath:               ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_00_validate_parameters.yaml
+            #   secretName:                    "$(Preparation.SSH_KEY_NAME)"
+            #   passwordSecretName:            "$(Preparation.PASSWORD_KEY_NAME)"
+            #   userNameSecretName:            "$(Preparation.USERNAME_KEY_NAME)"
+            #   vaultName:                     $(Preparation.VAULT_NAME)
+            #   parametersFolder:              $(Preparation.FOLDER)
+            #   sapParams:                     "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
+            #   sidHosts:                      $(Preparation.HOSTS)
+            #   extraParams:                   "$(Preparation.NEW_PARAMETERS)"
+            #   azureClientId:                 $(ARM_CLIENT_ID)
+            #   azureClientSecret:             $(ARM_CLIENT_SECRET)
+            #   azureTenantId:                 $(ARM_TENANT_ID)
+            #   azureSubscriptionId:           $(ARM_SUBSCRIPTION_ID)
           - ${{ if eq(parameters.operation, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
