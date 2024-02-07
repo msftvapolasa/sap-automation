@@ -213,7 +213,7 @@ stages:
               SAP_SYSTEM_CONFIGURATION_NAME: ${{ parameters.sap_system_configuration_name }}
               EXTRA_PARAMETERS:              $(EXTRA_PARAMETERS)
               PIPELINE_EXTRA_PARAMETERS:     ${{ parameters.extra_params }}
-          # - template:                        templates\run-ansible.yaml
+          - template:                        templates\run-ansible.yaml
           #   # parameters:
           #   #   displayName:                   "Parameter validation"
           #   #   # ansibleFilePath:               ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_00_validate_parameters.yaml
@@ -229,7 +229,7 @@ stages:
           #   #   azureClientSecret:             $(ARM_CLIENT_SECRET)
           #   #   azureTenantId:                 $(ARM_TENANT_ID)
           #   #   azureSubscriptionId:           $(ARM_SUBSCRIPTION_ID)
-          
+
           - ${{ if eq(parameters.operation, true) }}:
               - template:                    templates\run-ansible.yaml
                 parameters:
