@@ -259,6 +259,36 @@
     - current_host == ora_secondary
     - secondary_startup_results.rc == 0
 
+# Create the oraarch and spfile parameter folder on ASM for recovery
+
+- name:                                "Oracle Data Guard - Create oraarch and parameter folders for oracle-asm"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.shell: |
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir +RECO/{{ db_sid | upper }}
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir +ARCH/{{ db_sid | upper }}
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir +ARCH/{{ db_sid | upper }}/oraarch
+                                       /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir +DATA/{{ db_sid | upper }}/
+  register:                            asm_oraarch_created_results
+  failed_when:                         asm_oraarch_created_results.rc > 0
+  args:
+    executable:                        /bin/csh
+    creates:                           /etc/sap_deployment_automation/dgscripts/asm_oraarch_created.txt
+  when:
+    - node_tier == 'oracle-asm'
+    - current_host == ora_secondary
+
+- name:                                "Oracle Data Guard - Setup Secondary: Create asm_oraarch_created.txt"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.file:
+    path:                              /etc/sap_deployment_automation/dgscripts/asm_oraarch_created.txt
+    state:                             touch
+    mode:                              '0755'
+  when:
+    - node_tier == 'oracle-asm'
+    - current_host == ora_secondary
+    - asm_oraarch_created_results.rc == 0
 
 - name:                                "Oracle Data Guard - Setup Secondary: Duplicate Secondary DB from Primary DB using RMAN"
   block:
