@@ -63,7 +63,7 @@
       tags:
         - 8.0.0-start-sap-vms
       when:
-        - sap_ops is defined
+        - sapops is defined
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |

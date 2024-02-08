@@ -26,7 +26,7 @@ db_secondary_hostname:
        when:
        - node_tier in ["scs", "ers"]
   when:
-    - sap_ops == "START"
+    - sapops == "START"
 
 - block:
     - tasks:
@@ -41,7 +41,7 @@ db_secondary_hostname:
          when:
          - node_tier in ["scs", "ers"]
   when:
-     - sap_ops == "STOP"
+     - sapops == "STOP"
 
 
 
