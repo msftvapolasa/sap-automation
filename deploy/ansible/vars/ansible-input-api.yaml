@@ -218,6 +218,10 @@ cluster_use_scheduled_events_agent:    true
 custom_cluster_fs_mon_timeout:         ""
 custom_cluster_sap_mon_timeout:        ""
 
+
+# SAP Operations
+sapops:                                "START"
+
 # ------------------- Begin - SAP SWAP settings variables --------------------8
 sap_swap:
   - { tier: "scs",                swap_size_mb: "4096"  }
