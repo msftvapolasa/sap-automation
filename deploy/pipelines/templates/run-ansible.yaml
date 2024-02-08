@@ -43,7 +43,7 @@ steps:
 
     fi
 
-    set -eu
+    set -e
 
     if [ ! -f $PARAMETERS_FOLDER/sshkey ]; then
       echo "##[section]Retrieving sshkey..."
