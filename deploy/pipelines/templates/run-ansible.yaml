@@ -14,7 +14,7 @@ parameters:
     sapParams: ''
     passwordSecretName: ''
     userNameSecretName: ''
-    sap_ops: ''
+    sapops: ''
 
 steps:
 - bash: |
@@ -102,7 +102,7 @@ steps:
 
     command="ansible-playbook -i $INVENTORY --private-key $PARAMETERS_FOLDER/sshkey                               \
       -e @$SAP_PARAMS -e 'download_directory=$(Agent.TempDirectory)' -e '_workspace_directory=$PARAMETERS_FOLDER' \
-      -e ansible_ssh_pass='${password_secret}' -e sap_ops='$OPERATION'  "$EXTRA_PARAMS" $EXTRA_PARAM_FILE                                   \
+      -e ansible_ssh_pass='${password_secret}' -e sap_ops='$OPERATION'  "$EXTRA_PARAMS" $EXTRA_PARAM_FILE          \
        $ANSIBLE_FILE_PATH"
 
 
@@ -165,4 +165,4 @@ steps:
     VAULT_NAME:                     ${{ parameters.vaultName }}
     PASSWORD_KEY_NAME:              ${{ parameters.passwordSecretName }}
     USERNAME_KEY_NAME:              ${{ parameters.userNameSecretName }}
-    OPERATION:                      ${{ parameters.sap_ops }}
+    OPERATION:                      ${{ parameters.sapops }}

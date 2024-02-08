@@ -218,7 +218,7 @@ stages:
               - template:                    templates\run-ansible.yaml
                 parameters:
                   displayName:               "Start and Stop SAP Systems"
-                  sap_ops:                   "${{parameters.operation}}"
+                  sapops:                   "${{parameters.operation}}"
                   ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_08_00_00_sap_operations.yaml
                   secretName:                "$(Preparation.SSH_KEY_NAME)"
                   passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
@@ -227,7 +227,7 @@ stages:
                   parametersFolder:          $(Preparation.FOLDER)
                   sapParams:                 "${{ parameters.config_repo_path }}/$(Deployment_Configuration_Path)/SYSTEM/${{ parameters.sap_system_configuration_name }}/artifacts/$(Preparation.SAP_PARAMETERS)"
                   sidHosts:                  $(Preparation.HOSTS)
-                  #extraParams:               "$(Preparation.NEW_PARAMETERS)"
+                  extraParams:               "$(Preparation.NEW_PARAMETERS)"
                   azureClientId:             $(ARM_CLIENT_ID)
                   azureClientSecret:         $(ARM_CLIENT_SECRET)
                   azureTenantId:             $(ARM_TENANT_ID)
