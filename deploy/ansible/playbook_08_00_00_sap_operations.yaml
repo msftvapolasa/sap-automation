@@ -51,8 +51,8 @@
       ansible.builtin.wait_for_connection:
         timeout:                       120
       register:                        wait_for_connection_results
-  when:
-    - sapops == "START"
+      when:
+       - sapops == "START"
   
 
 # /*---------------------------------------------------------------------------8
