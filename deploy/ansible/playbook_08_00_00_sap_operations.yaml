@@ -40,9 +40,6 @@
     - name:                    "Include 8.0.0-START-SAP VMs"
       ansible.builtin.include_role:
         name:                  roles-sap-ops/8.0.0-stop-sap/start-stop-vm.yml
-        
-      # with_inventory_hostnames:
-      #  - all
       when:
         - sapops == "START"
       tags:
