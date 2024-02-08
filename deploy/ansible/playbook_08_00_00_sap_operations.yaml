@@ -17,6 +17,7 @@
   vars_files:
     - vars/ansible-input-api.yaml      # API Input template with defaults
 
+
 # -------------------------------------+---------------------------------------8
 #
 # Build the list of tasks to be executed in order here.
@@ -36,6 +37,23 @@
         path:                          "{{ _workspace_directory }}/.progress/post-install-done"
         state:                         absent
 
+    - name:                    Include 8.0.0-START-SAP DB
+      ansible.builtin.include_role:
+        name:                  roles-sap-ops/8.0.0-stop-sap/start-vm.yml
+      tags:
+        - 8.0.0-start-sap-vms
+      when:
+        - sapops == "START"
+      with_inventory_hostnames:
+       - all
+
+    - name:                            "0.0 Validations: - Wait for system to become reachable"
+      ansible.builtin.wait_for_connection:
+        timeout:                       120
+      register:                        wait_for_connection_results
+  when:
+    - sapops == "START"
+  
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -43,7 +61,7 @@
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
-#  Start the Database Nodes
+#  Start the SAp VMs
 - hosts:                               "{{ sap_sid | upper }}_DB:
                                         {{ sap_sid | upper }}_SCS:
                                         {{ sap_sid | upper }}_ERS:
@@ -55,6 +73,7 @@
   gather_facts:                        true
   vars_files:
     - vars/ansible-input-api.yaml                                               # API Input template with defaults
+
 
   tasks:
     - name:                    Include 8.0.0-START-SAP DB
@@ -76,7 +95,7 @@
   name:                                Start SAP Systems
   remote_user:                         "{{ orchestration_ansible_user }}"
   become:                              true
-  gather_facts:                        true
+  gather_facts:                        false
   vars_files:
     - vars/ansible-input-api.yaml                                               # API Input template with defaults
 
