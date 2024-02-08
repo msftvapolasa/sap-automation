@@ -20,9 +20,9 @@ db_secondary_hostname:
        ansible.builtin.import_tasks:        "start-stop-vm.yml"
         
 
-     - name:                           "Start Database"
-       ansible.builtin.include_tasks:  "database.yml"
-       when: node_tier in ["hana","oracle","oracle-asm","db2"]
+    #  - name:                           "Start Database"
+    #    ansible.builtin.include_tasks:  "database.yml"
+    #    when: node_tier in ["hana","oracle","oracle-asm","db2"]
    
     #  # Start Central Services
     #  - name:                           "Start Central Services"
