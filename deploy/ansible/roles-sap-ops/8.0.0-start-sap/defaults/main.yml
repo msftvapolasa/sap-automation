@@ -18,34 +18,34 @@ db_secondary_hostname:
      # Start Database
      - name:                                "Start Database VMs"
        ansible.builtin.import_tasks:        "start-stop-vm.yml"
-       when: node_tier in ["hana","oracle","oracle-asm","db2"]
+        
 
      - name:                           "Start Database"
        ansible.builtin.include_tasks:  "database.yml"
        when: node_tier in ["hana","oracle","oracle-asm","db2"]
    
-     # Start Central Services
-     - name:                           "Start Central Services"
-       ansible.builtin.include_tasks:  "cs-pas-app.yml"
-       when:
-       - node_tier in ["scs", "ers"]
+    #  # Start Central Services
+    #  - name:                           "Start Central Services"
+    #    ansible.builtin.include_tasks:  "cs-pas-app.yml"
+    #    when:
+    #    - node_tier in ["scs", "ers"]
   when:
     - sapops == "START"
 
-- block:
-    - tasks:
-       # Start Database
-       - name:                           "Start Database"
-         ansible.builtin.include_tasks:  "database.yml"
-         when: node_tier in ["hana","oracle","oracle-asm","db2"]
+# - block:
+#     - tasks:
+#        # Start Database
+#        - name:                           "Start Database"
+#          ansible.builtin.include_tasks:  "database.yml"
+#          when: node_tier in ["hana","oracle","oracle-asm","db2"]
      
-       # Start Central Services
-       - name:                           "Start Central Services"
-         ansible.builtin.include_tasks:  "cs-pas-app.yml"
-         when:
-         - node_tier in ["scs", "ers"]
-  when:
-     - sapops == "STOP"
+#        # Start Central Services
+#        - name:                           "Start Central Services"
+#          ansible.builtin.include_tasks:  "cs-pas-app.yml"
+#          when:
+#          - node_tier in ["scs", "ers"]
+#   when:
+#      - sapops == "STOP"
 
 
 
