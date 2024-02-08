@@ -39,7 +39,7 @@
 
     - name:                    Include 8.0.0-START-SAP DB
       ansible.builtin.include_role:
-        name:                  roles-sap-ops/8.0.0-stop-sap/start-vm.yml
+        name:                  roles-sap-ops/8.0.0-stop-sap/start-stop-vm.yml
       tags:
         - 8.0.0-start-sap-vms
       when:
