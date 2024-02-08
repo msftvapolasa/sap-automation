@@ -180,34 +180,34 @@
 # +------------------------------------4--------------------------------------*/
 
 
-- hosts:                               "{{ sap_sid | upper }}_SCS :
-                                        {{ sap_sid | upper }}_DB"
-  name:                                Post Installation
-  remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
-  gather_facts:                        true
-  vars_files:
-    - vars/ansible-input-api.yaml                                               # API Input template with defaults
+# - hosts:                               "{{ sap_sid | upper }}_SCS :
+#                                         {{ sap_sid | upper }}_DB"
+#   name:                                Post Installation
+#   remote_user:                         "{{ orchestration_ansible_user }}"
+#   become:                              true
+#   gather_facts:                        true
+#   vars_files:
+#     - vars/ansible-input-api.yaml                                               # API Input template with defaults
 
-  tasks:
-# -------------------------------------+---------------------------------------8
-#
-# Build the list of tasks to be executed in order here.
-#
-# -------------------------------------+---------------------------------------8
+#   tasks:
+# # -------------------------------------+---------------------------------------8
+# #
+# # Build the list of tasks to be executed in order here.
+# #
+# # -------------------------------------+---------------------------------------8
 
-    - name:                    Include 8.0.0-START-SAP
-      ansible.builtin.include_role:
-        name:                  roles-sap-ops/8.0.1-stop-sap
-      tags:
-        - 8.0.1-stop-sap
+#     - name:                    Include 8.0.0-START-SAP
+#       ansible.builtin.include_role:
+#         name:                  roles-sap-ops/8.0.1-stop-sap
+#       tags:
+#         - 8.0.1-stop-sap
 
 
-- hosts:                               localhost
-  name:                                Log results
-  gather_facts:                        false
+# - hosts:                               localhost
+#   name:                                Log results
+#   gather_facts:                        false
 
-  tasks:
+#   tasks:
 
     # - name:                            Ensure the post-install-done file exists
     #   ansible.builtin.file:
