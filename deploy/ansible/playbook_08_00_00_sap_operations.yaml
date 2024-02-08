@@ -62,27 +62,27 @@
 # +------------------------------------4--------------------------------------*/
 
 #  Start the SAp VMs
-- hosts:                               "{{ sap_sid | upper }}_DB:
-                                        {{ sap_sid | upper }}_SCS:
-                                        {{ sap_sid | upper }}_ERS:
-                                        {{ sap_sid | upper }}_PAS:
-                                        {{ sap_sid | upper }}_APP "
-  name:                                Start SAP VMs
-  remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
-  gather_facts:                        true
-  vars_files:
-    - vars/ansible-input-api.yaml                                               # API Input template with defaults
+# - hosts:                               "{{ sap_sid | upper }}_DB:
+#                                         {{ sap_sid | upper }}_SCS:
+#                                         {{ sap_sid | upper }}_ERS:
+#                                         {{ sap_sid | upper }}_PAS:
+#                                         {{ sap_sid | upper }}_APP "
+#   name:                                Start SAP VMs
+#   remote_user:                         "{{ orchestration_ansible_user }}"
+#   become:                              true
+#   gather_facts:                        true
+#   vars_files:
+#     - vars/ansible-input-api.yaml                                               # API Input template with defaults
 
 
-  tasks:
-    - name:                    Include 8.0.0-START-SAP DB
-      ansible.builtin.include_role:
-        name:                  roles-sap-ops/8.0.0-stop-sap/start-stop-vm.yml
-      tags:
-        - 8.0.0-start-sap-vms
-      when:
-        - sapops is defined
+#   tasks:
+#     - name:                    Include 8.0.0-START-SAP DB
+#       ansible.builtin.include_role:
+#         name:                  roles-sap-ops/8.0.0-stop-sap/start-stop-vm.yml
+#       tags:
+#         - 8.0.0-start-sap-vms
+#       when:
+#         - sapops == "START"
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -91,37 +91,37 @@
 # +------------------------------------4--------------------------------------*/
 
 #  Start the Database Nodes
-- hosts:                               "{{ sap_sid | upper }}_DB"
-  name:                                Start SAP Systems
-  remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
-  gather_facts:                        false
-  vars_files:
-    - vars/ansible-input-api.yaml                                               # API Input template with defaults
+# - hosts:                               "{{ sap_sid | upper }}_DB"
+#   name:                                Start SAP Systems
+#   remote_user:                         "{{ orchestration_ansible_user }}"
+#   become:                              true
+#   gather_facts:                        false
+#   vars_files:
+#     - vars/ansible-input-api.yaml                                               # API Input template with defaults
 
-  tasks:
-    - name:                    Include 8.0.0-START-SAP DB
-      ansible.builtin.include_role:
-        name:                  roles-sap-ops/8.0.0-stop-sap/database.yml
-      tags:
-        - 8.0.0-start-sap-db
+#   tasks:
+#     - name:                    Include 8.0.0-START-SAP DB
+#       ansible.builtin.include_role:
+#         name:                  roles-sap-ops/8.0.0-stop-sap/database.yml
+#       tags:
+#         - 8.0.0-start-sap-db
 
-#  Start the Central Services Nodes & App Servers
-- hosts:                               "{{ sap_sid | upper }}_SCS :
-                                        {{ sap_sid | upper }}_ERS"
-  name:                                Start SAP Systems
-  remote_user:                         "{{ orchestration_ansible_user }}"
-  become:                              true
-  gather_facts:                        true
-  vars_files:
-    - vars/ansible-input-api.yaml                                               # API Input template with defaults
+# #  Start the Central Services Nodes & App Servers
+# - hosts:                               "{{ sap_sid | upper }}_SCS :
+#                                         {{ sap_sid | upper }}_ERS"
+#   name:                                Start SAP Systems
+#   remote_user:                         "{{ orchestration_ansible_user }}"
+#   become:                              true
+#   gather_facts:                        true
+#   vars_files:
+#     - vars/ansible-input-api.yaml                                               # API Input template with defaults
 
-  tasks:
-    - name:                    Include 8.0.0-START-SAP CS
-      ansible.builtin.include_role:
-        name:                  roles-sap-ops/8.0.0-stop-sap/cs-pas-app.yml
-      tags:
-        - 8.0.0-start-sap-cs-app
+#   tasks:
+#     - name:                    Include 8.0.0-START-SAP CS
+#       ansible.builtin.include_role:
+#         name:                  roles-sap-ops/8.0.0-stop-sap/cs-pas-app.yml
+#       tags:
+#         - 8.0.0-start-sap-cs-app
 
 
 
