@@ -16,7 +16,7 @@ parameters:
   - name:                              resource_group
     displayName:                       "Resource Group Name of the SAP System"
     type:                              string
-    # default:                           DEV-WEEU-SAP01-X00
+    default:                           DEV-WEEU-SAP01-X00
 
   - name:                              environment
     displayName:                       Workload Environment (DEV, QUA, PRD, ...)
