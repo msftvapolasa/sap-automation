@@ -37,6 +37,10 @@
         path:                          "{{ _workspace_directory }}/.progress/post-install-done"
         state:                         absent
 
+
+    
+
+
     - name:                    "Include 8.0.0-START-SAP VMs"
       ansible.builtin.include_role:
         name:                  roles-sap-ops/8.0.0-start-sap
