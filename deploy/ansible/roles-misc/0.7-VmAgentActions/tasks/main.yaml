@@ -6,7 +6,7 @@
 
 - name:          "Debug display sub and rg"
   ansible.builtin.debug:
-    msg:        "subscriptionId: {{ subscriptionId }}, resourceGroup_name: {{ RG_NAME }}"
+    msg:        "subscriptionId: {{ subscriptionId }}, resourceGroup_name: {{ rgname }}"
 
 - name:                                "Get VM list from resource_group: {{ resourceGroup_name }}"
   delegate_to:                         localhost
