@@ -224,7 +224,7 @@ stages:
             parameters:
               displayName:               "Start and Stop SAP Systems"
               sapops:                   "${{parameters.operation}}"
-              rgname:                    $(Preparation.resource_group)
+              rgname:                   "${{parameters.resource_group}}"
               ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_08_00_00_sap_operations.yaml
               secretName:                "$(Preparation.SSH_KEY_NAME)"
               passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
