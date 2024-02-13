@@ -41,7 +41,7 @@
       ansible.builtin.include_role:
         name:                  roles-sap-ops/8.0.0-stop-sap
       when:
-        - sapops == "START"
+        - sap_ops == "START"
       tags:
         - 8.0.0-start-sap-vms
 
@@ -50,7 +50,7 @@
         timeout:                       120
       register:                        wait_for_connection_results
       when:
-       - sapops == "START"
+       - sap_ops == "START"
   
 
 # /*---------------------------------------------------------------------------8
