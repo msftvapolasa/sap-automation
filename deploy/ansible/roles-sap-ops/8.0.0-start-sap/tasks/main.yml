@@ -1,64 +1,11 @@
 ---
 # Start the SAP Systems
 - name:                 "Start SAP Systems"
-  when:                sap_ops == "START"
+  when:                 sap_ops == "START"
   block:
      # Start Database
     - name:                                "Start Database VMs"
       ansible.builtin.import_tasks:        "start-stop-vm.yml"
         
 
-    #  - name:                           "Start Database"
-    #    ansible.builtin.include_tasks:  "database.yml"
-    #    when: node_tier in ["hana","oracle","oracle-asm","db2"]
-   
-    #  # Start Central Services
-    #  - name:                           "Start Central Services"
-    #    ansible.builtin.include_tasks:  "cs-pas-app.yml"
-    #    when:
-    #    - node_tier in ["scs", "ers"]
- 
 
-# - block:
-#     - tasks:
-#        # Start Database
-#        - name:                           "Start Database"
-#          ansible.builtin.include_tasks:  "database.yml"
-#          when: node_tier in ["hana","oracle","oracle-asm","db2"]
-     
-#        # Start Central Services
-#        - name:                           "Start Central Services"
-#          ansible.builtin.include_tasks:  "cs-pas-app.yml"
-#          when:
-#          - node_tier in ["scs", "ers"]
-#   when:
-#      - sapops == "STOP"
-
-
-
-
-
-
-
-
-  
-
-# # Start Central Services
-# - name:                           "Start Central Services"
-#   ansible.builtin.include_tasks:  "central_services.yml"
-#   when:
-#   - node_tier in ["scs", "ers"] 
-
-
-
-# # Start Primary Application Server
-# - name:                           "Start Primary Application server"
-#   ansible.builtin.include_tasks:  "appserver.yml"
-#   when:
-#   - node_tier == "pas"
-
-# # Start  Application Servers
-# - name:                           "Start Primary Application server"
-#   ansible.builtin.include_tasks:  "appserver.yml"
-#   when:
-#   - node_tier == "app"
