@@ -224,6 +224,7 @@ stages:
             parameters:
               displayName:               "Start and Stop SAP Systems"
               sapops:                   "${{parameters.operation}}"
+              rgname:                    $(Preparation.resource_group)
               ansibleFilePath:           ${{ parameters.sap_automation_repo_path }}/deploy/ansible/playbook_08_00_00_sap_operations.yaml
               secretName:                "$(Preparation.SSH_KEY_NAME)"
               passwordSecretName:        "$(Preparation.PASSWORD_KEY_NAME)"
@@ -239,7 +240,7 @@ stages:
               azureSubscriptionId:       $(ARM_SUBSCRIPTION_ID)
               USE_MSI:                   $(USE_MSI)
               EXTRA_PARAMETERS:          $(EXTRA_PARAMETERS)
-              rgname:                    $(Preparation.resource_group)
+              
 
           - template:                          templates\collect-log-files.yaml
             parameters:
