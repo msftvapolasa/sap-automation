@@ -9,7 +9,7 @@
      restarted:                        true    
     with_items:           "{{ groups['all'] }}" 
   when:
-  -  sapops == "start"
+  -  sap_ops == "start"
    
 
 
