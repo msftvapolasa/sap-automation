@@ -1,17 +1,24 @@
 
 # Start Azure VM.
-- block:
-  # Start the Azure VM
-  - name:                              "Start the VM"
-    azure_rm_virtualmachine:
-     resource_group:                   "{{ sap_system_configuration_name }}"
-     name:                             "{{ansible_hostname }}"
-     restarted:                        true    
-    with_items:           "{{ groups['all'] }}" 
-  when:
-  -  sap_ops == "start"
+# - block:
+#   # Start the Azure VM
+#   - name:                              "Start the VM"
+#     azure_rm_virtualmachine:
+#      resource_group:                   "{{ sap_system_configuration_name }}"
+#      name:                             "{{ansible_hostname }}"
+#      restarted:                        true    
+    
+#   when:
+#   -  sap_ops == "start"
    
-
+  - name:                            "2.10.1 sap-notes: Including Task for VM Agent Actions"
+    ansible.builtin.include_tasks:    roles-misc/0.7-VmAgentActions/tasks/main.yaml
+    vars:
+      subscriptionId:                "{{ subscription_id }}"
+      resourceGroup_name:            "{{ resource_group_name }}"
+      # vmName:                        "{{ item.name }}"
+    # loop:           "{{ groups['all'] }}" 
+    when:                sap_ops == "start"
 
 # #  Stop Azure VM
 # - block:
