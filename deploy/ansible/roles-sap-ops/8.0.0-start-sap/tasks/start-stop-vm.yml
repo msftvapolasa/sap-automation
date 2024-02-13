@@ -10,7 +10,11 @@
     
 #   when:
 #   -  sap_ops == "start"
-   
+# Debug I am here
+  - name:                                "Debug I am here"
+    ansible.builtin.debug:
+      msg:                                "I am here"
+
   - name:                            "2.10.1 sap-notes: Including Task for VM Agent Actions"
     ansible.builtin.include_tasks:    roles-misc/0.7-VmAgentActions/tasks/main.yaml
     vars:
