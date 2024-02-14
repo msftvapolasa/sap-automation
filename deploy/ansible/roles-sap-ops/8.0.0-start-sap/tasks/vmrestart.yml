@@ -49,7 +49,7 @@
       delegate_to:                     localhost
       become:                          false
       ansible.builtin.command: >-
-                                       az vm restart --name {{ item.name }} --resource-group {{ resourceGroup_name }} \
+                                       az vm restart --name {{ item }} --resource-group {{ resourceGroup_name }} \
                                            --subscription {{ subscriptionId }}
       when:
         - rg_vm_list is defined
