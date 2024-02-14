@@ -7,5 +7,15 @@
     - name:                                "Start Database VMs"
       ansible.builtin.import_tasks:        "start-stop-vm.yml"
         
-
-
+    # Start/Stop the SAP Database
+    - name:                                "Start Database VMs"
+      ansible.builtin.import_tasks:        "ora-db.yml"
+      when:                                
+       - platform in ["ORACLE","ORACLE-ASM"]
+    
+    # Start/Stop the SAP Central Services and Application server
+    - name:                                "Start Database VMs"
+      ansible.builtin.import_tasks:        "ora-db.yml"
+      when:                                
+       - node_tier in ['scs', 'ers', 'pas', 'app']
+    

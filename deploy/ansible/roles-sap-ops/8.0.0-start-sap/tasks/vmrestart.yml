@@ -44,7 +44,7 @@
 
     - name:         Create the list of VM to be restarted
       set_fact:
-        vms_to_restart: "{{ rg_vm_list.stdout_lines }}"
+        vms_to_action: "{{ rg_vm_list.stdout_lines }}"
       when:
        -  rg_vm_list is defined
 
@@ -53,15 +53,15 @@
       ansible.builtin.debug:
        msg:        "List of VMs: {{ vms_to_restart }}"
 
-    - name:                            "Start the Virtual machines"
+    - name:                            "Start/Stop the Virtual machines"
       delegate_to:                     localhost
       become:                          false
       ansible.builtin.command: >-
-                                       az vm start --name {{ item }} --resource-group {{ resourceGroup_name }} \
+                                       az vm {{ sap_ops | lower }} --name {{ item }} --resource-group {{ resourceGroup_name }} \
                                            --subscription {{ subscriptionId }}
       when:
         - rg_vm_list is defined
-      loop:                            "{{ vms_to_restart }}"
+      loop:                            "{{ vms_to_action }}"
       register:                        vm_reboot
       changed_when:                    false
 
