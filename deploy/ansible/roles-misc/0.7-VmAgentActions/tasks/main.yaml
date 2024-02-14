@@ -43,7 +43,7 @@
     
     - name:          "Debug display sub and rg"
       ansible.builtin.debug:
-       msg:        "VM Agent Status: {{ vm_agent_status}}"
+       msg:        "VM Agent Status: {{ vm_agent_status[0]}}"
 
     - name:                            "Reboot VM when agent status is not ready"
       delegate_to:                     localhost
