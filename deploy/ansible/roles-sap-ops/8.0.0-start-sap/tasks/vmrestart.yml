@@ -51,13 +51,13 @@
 
     - name:          "Debug the List of VMs to be restarted"
       ansible.builtin.debug:
-       msg:        "VM Agent Status: {{ vms_to_restart }}"
+       msg:        "List of VMs: {{ vms_to_restart }}"
 
     - name:                            "Reboot VM when agent status is not ready"
       delegate_to:                     localhost
       become:                          false
       ansible.builtin.command: >-
-                                       az vm restart --name {{ item }} --resource-group {{ resourceGroup_name }} \
+                                       az vm start --name {{ item }} --resource-group {{ resourceGroup_name }} \
                                            --subscription {{ subscriptionId }}
       when:
         - rg_vm_list is defined
