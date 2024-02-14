@@ -19,7 +19,7 @@
   failed_when:                         false
 
 # List the VMs in the resource group
-- name:          "Debug display sub and rg"
+- name:          "Debug List of VMs"
   ansible.builtin.debug:
     msg:        "VM Agent Status: {{ rg_vm_list}}"
 
