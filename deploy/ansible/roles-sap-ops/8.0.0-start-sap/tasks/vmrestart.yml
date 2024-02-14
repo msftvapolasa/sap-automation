@@ -41,9 +41,17 @@
       when:
         - item | length > 2
     
-    # - name:          "Debug display sub and rg"
-    #   ansible.builtin.debug:
-    #    msg:        "VM Agent Status: {{ vm_agent_status[0]}}"
+
+    - name:         Create the list of VM to be restarted
+      set_fact:
+        vms_to_restart: "{{ rg_vm_list.stdout_lines }}"
+      when:
+       -  rg_vm_list is defined
+
+
+    - name:          "Debug the List of VMs to be restarted"
+      ansible.builtin.debug:
+       msg:        "VM Agent Status: {{ vms_to_restart }}"
 
     - name:                            "Reboot VM when agent status is not ready"
       delegate_to:                     localhost
@@ -53,7 +61,7 @@
                                            --subscription {{ subscriptionId }}
       when:
         - rg_vm_list is defined
-      loop:                            "{{ rg_vm_list }}"
+      loop:                            "{{ vms_to_restart }}"
       register:                        vm_reboot
       changed_when:                    false
 
