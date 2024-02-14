@@ -51,7 +51,7 @@
 
     - name:          "Debug the List of VMs to be started"
       ansible.builtin.debug:
-       msg:        "List of VMs: {{ vms_to_restart }}"
+       msg:        "List of VMs: {{ vms_to_action }}"
 
     - name:                            "Start/Stop the Virtual machines"
       delegate_to:                     localhost
