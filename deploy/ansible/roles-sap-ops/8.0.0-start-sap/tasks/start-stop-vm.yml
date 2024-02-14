@@ -17,7 +17,7 @@
     when:                                 sap_ops == "START"
 
   - name:                            "Start the VM Based on the VM Agent Status"
-    ansible.builtin.include_tasks:    roles-sap-ops/8.0.0-start-sap/tasks/vmrestart.yaml
+    ansible.builtin.include_tasks:    roles-sap-ops/8.0.0-start-sap/tasks/vmrestart.yml
     vars:
       subscriptionId:                "{{ ansible_env.AZURE_SUBSCRIPTION_ID }}"
       resourceGroup_name:            "{{ rgname }}"
