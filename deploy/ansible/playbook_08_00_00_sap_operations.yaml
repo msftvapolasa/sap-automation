@@ -45,12 +45,12 @@
       tags:
         - 8.0.0-start-sap-vms
 
-    - name:                            "0.0 Validations: - Wait for system to become reachable"
-      ansible.builtin.wait_for_connection:
-        timeout:                       120
-      register:                        wait_for_connection_results
-      when:
-       - sap_ops == "START"
+    # - name:                            "0.0 Validations: - Wait for system to become reachable"
+    #   ansible.builtin.wait_for_connection:
+    #     timeout:                       120
+    #   register:                        wait_for_connection_results
+    #   when:
+    #    - sap_ops == "START"
   
 
 # /*---------------------------------------------------------------------------8
