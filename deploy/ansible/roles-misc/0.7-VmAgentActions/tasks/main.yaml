@@ -21,7 +21,7 @@
 # List the VMs in the resource group
 - name:          "Debug display sub and rg"
   ansible.builtin.debug:
-    msg:        "VM Agent Status: {{ vm_agent_status}}"
+    msg:        "VM Agent Status: {{ rg_vm_list}}"
 
 - name:                                "Get the agent status for each VM in resource_group: {{ resourceGroup_name }}"
   block:
