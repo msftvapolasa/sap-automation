@@ -35,6 +35,10 @@
       loop:                            "{{ rg_vm_list.stdout_lines }}"
       when:
         - item | length > 2
+    
+    - name:          "Debug display sub and rg"
+      ansible.builtin.debug:
+       msg:        "VM Agent Status: {{ vm_agent_status}}"
 
     - name:                            "Reboot VM when agent status is not ready"
       delegate_to:                     localhost
@@ -49,12 +53,12 @@
       register:                        vm_reboot
       changed_when:                    false
 
-    # - name:                                "Wait for 120 seconds"
-    #   delegate_to:                         localhost
-    #   become:                              false
-    #   ansible.builtin.pause:
-    #     seconds:                           120
-    #   when:                                vm_reboot is changed
+    - name:                                "Wait for 120 seconds"
+      delegate_to:                         localhost
+      become:                              false
+      ansible.builtin.pause:
+        seconds:                           120
+      when:                                vm_reboot is changed
   when:
     - rg_vm_list is defined
     - rg_vm_list.rc == 0
