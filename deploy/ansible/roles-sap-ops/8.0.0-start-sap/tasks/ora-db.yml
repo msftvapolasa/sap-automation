@@ -1,5 +1,17 @@
 
 ---
+
+# Set Primary and Secondary node names.
+
+- name:                                "Oracle Data Guard: Setting the primary and Secondary DB names"
+  ansible.builtin.set_fact:
+    db_primary:                       "{{ ansible_play_hosts_all[0] }}"         # Oracle Primary Host
+    db_secondary:                     "{{ ansible_play_hosts_all[1] }}"         # Oracle Secondary Host
+    current_host:                      "{{ ansible_hostname }}"
+  when:
+    - node_tier == "oracle" or node_tier == "oracle-asm"
+
+
 #  Start the Oracle Database
 - name:                            "Start Oracle Databases"
   when:                           sap_ops == "START"
@@ -33,6 +45,7 @@
       mode: '0755'
     when: 
       - current_host == "{{ db_secondary }}"
+      - db_high_availability == true
 
 
   # - name:                     "Start Oracle Database"

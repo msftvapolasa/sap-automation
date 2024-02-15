@@ -3,5 +3,5 @@
 db_primary:           "{{ ansible_play_hosts_all[0] }}"
 db_secondary:         "{{ ansible_play_hosts_all[1] }}"
 current_host:         "{{ ansible_hostname }}"
-  
+ 
 
