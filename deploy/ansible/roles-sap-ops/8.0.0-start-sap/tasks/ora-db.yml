@@ -82,6 +82,7 @@
     when:
     - platform in ["ORACLE","ORACLE-ASM"]
     - current_host == "{{ db_secondary }}"
+    - db_high_availability == true
 
 #  Stop the oracle Database
 - block:
