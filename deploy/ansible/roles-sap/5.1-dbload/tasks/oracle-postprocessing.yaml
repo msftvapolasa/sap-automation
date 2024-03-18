@@ -129,7 +129,7 @@
     chdir:                             /etc/sap_deployment_automation/{{ db_sid | upper }}
     executable:                        /bin/csh
 
-# Create a block for starting the oracle listener on primary node
+# Create a block for starting the oracle listener on primary node after VM reboot.
 - name:                                "Oracle Post-Processing - start lsnrctl on Primary"
   become:                              true
   become_user:                         "oracle"
@@ -140,6 +140,8 @@
     creates:                           /etc/sap_deployment_automation/{{ db_sid | upper }}/lsnrctl_started.txt
     chdir:                             /etc/sap_deployment_automation/{{ db_sid | upper }}
     executable:                        /bin/csh
+  when:
+    - node_tier == "oracle"
 
 - name:                                "Oracle Post-Processing: Create lsnrctl_started.txt"
   become:                              true
