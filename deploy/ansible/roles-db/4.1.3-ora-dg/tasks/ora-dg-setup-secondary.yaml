@@ -56,13 +56,13 @@
   ansible.builtin.wait_for:
     timeout:                       15
 
-- name:                               "Update the initSID.ora for adopting oraarch location"
-  ansible.builtin.replace:
-    path:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
-    regexp:                          '{{ db_sid | upper }}/oraarch'
-    replace:                         '{{ db_sid | upper }}_STDBY/oraarch'
-  when:
-    - node_tier == "oracle-asm"
+# - name:                               "Update the initSID.ora for adopting oraarch location"
+#   ansible.builtin.replace:
+#     path:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
+#     regexp:                          '{{ db_sid | upper }}/oraarch'
+#     replace:                         '{{ db_sid | upper }}_STDBY/oraarch'
+#   when:
+#     - node_tier == "oracle-asm"
 #  You can also use "sed" to replace the string. sed -i 's|/DBSID/c|/DBSID_STDBY/c|g'
 
 - name:                            "File update wait for 15 sec to avoid multiple locks"
@@ -76,7 +76,17 @@
                                sed -i '/local_listener=/d' /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
   register:                         local_listener_results
   failed_when:                      local_listener_results.rc > 1
-    
+
+
+# # Delete the old arch destination and standby location for Oracle-ASM.
+# - name:                               "Update the initSID.ora to delete the old  value only for Oracle-ASM Workloads"
+#   become:                             true
+#   become_user:                       "root"
+#   ansible.builtin.shell:      |
+#                                sed -i '/log_archive_dest_1=/d' /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
+                               
+#   register:                         local_listener_results
+#   failed_when:                      local_listener_results.rc > 1
 
 # - name:                           "debug file update"
 #   fail:                            
@@ -98,10 +108,13 @@
                 *.db_unique_name ='{{ db_sid | upper }}_STDBY'
                 *.log_file_name_convert='{{ db_sid | upper }}','{{ db_sid | upper }}'
                 *.db_create_online_log_dest_1='+DATA'
-                *.db_create_online_log_dest_2='+DATA'
+                
                 
   when:
     - node_tier == "oracle-asm"
+
+
+#  *.db_create_online_log_dest_2='+ARCH'
 
 # Replace the archive log destination in the initSID.ora file.
 # - name:                               "Update the initSID.ora for changing the control file location"
