@@ -149,7 +149,10 @@
     state:                             touch
     mode:                              '0755'
   when:
+    - node_tier == "oracle"
     - lsnrctl_start_primary_results.rc == 0
+
+  
 
 - name:                                "ORACLE Post Processing: Create db_startup_completed.txt"
   ansible.builtin.file:
