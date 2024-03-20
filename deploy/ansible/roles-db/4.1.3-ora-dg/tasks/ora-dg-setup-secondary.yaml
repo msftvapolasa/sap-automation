@@ -108,6 +108,7 @@
                 *.db_unique_name ='{{ db_sid | upper }}_STDBY'
                 *.log_file_name_convert='{{ db_sid | upper }}','{{ db_sid | upper }}'
                 *.db_create_online_log_dest_1='+DATA'
+                *.db_create_online_log_dest_2='+DATA'
                 
                 
   when:
@@ -117,14 +118,14 @@
 #  *.db_create_online_log_dest_2='+ARCH'
 
 # Replace the archive log destination in the initSID.ora file.
-# - name:                               "Update the initSID.ora for changing the control file location"
-#   ansible.builtin.replace:
-#     path:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
-#     regexp:                          "'log_archive_dest_1='LOCATION='"
-#     replace:                         "log_archive_dest_1='LOCATION=/oracle/{{ db_sid | upper }}/oraarch'"
-#     backup:                           true
-#   when:
-#     - node_tier == "oracle"
+- name:                               "Update the initSID.ora for changing the control file location"
+  ansible.builtin.replace:
+    path:                             /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
+    regexp:                          "'log_archive_dest_1='LOCATION='"
+    replace:                         "log_archive_dest_1='LOCATION=/oracle/{{ db_sid | upper }}/oraarch'"
+    backup:                           true
+  when:
+    - node_tier == "oracle"
 
 
 - name:                                "Replace the local listener entires in initSID.ora"
