@@ -58,10 +58,10 @@
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
-        alter database add standby logfile '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl1.dbf' size 200M reuse;
-        alter database add standby logfile '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl2.dbf' size 200M reuse;
-        alter database add standby logfile '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl3.dbf' size 200M reuse;
-        alter database add standby logfile '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl4.dbf' size 200M reuse;
+        alter database add standby logfile thread 1  group 5 '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl1.dbf' size 200M reuse;
+        alter database add standby logfile thread 1  group 6 '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl2.dbf' size 200M reuse;
+        alter database add standby logfile thread 1  group 7 '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl3.dbf' size 200M reuse;
+        alter database add standby logfile thread 1  group 8 '/oracle/{{ db_sid | upper }}/oraarch/standbylog/srl4.dbf' size 200M reuse;
         exit
     mode:                              '0755'
   when:                                node_tier == "oracle"
@@ -76,10 +76,10 @@
     marker_begin:                      "-- BEGIN"
     marker_end:                        "-- END"
     block: |
-        alter database add standby logfile '+ARCH' size 200M reuse;
-        alter database add standby logfile '+ARCH' size 200M reuse;
-        alter database add standby logfile '+ARCH' size 200M reuse;
-        alter database add standby logfile '+ARCH' size 200M reuse;
+        alter database add standby logfile thread 1  group 5 '+ARCH' size 200M reuse;
+        alter database add standby logfile thread 1  group 6 '+ARCH' size 200M reuse;
+        alter database add standby logfile thread 1  group 7 '+ARCH' size 200M reuse;
+        alter database add standby logfile thread 1  group 8 '+ARCH' size 200M reuse;
         exit
     mode:                              '0755'
   when:                                node_tier == "oracle-asm"
