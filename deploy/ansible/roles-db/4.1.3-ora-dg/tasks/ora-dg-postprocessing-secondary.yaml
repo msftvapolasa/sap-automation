@@ -68,6 +68,13 @@
         state:                         touch
         mode:                          '0755'
       when:                            secondary_log_apply_off_results.rc == 0
+    
+    - name:                            "File update wait for 300 sec to avoid to complete the log apply on secondary"
+      ansible.builtin.wait_for:
+       timeout:                       300
+      # when:
+      #   - node_tier == "oracle-asm"
+
 
 # Enable Flashback on Secondary      
     - name:                                "Oracle Data Guard - Enable Flashback on Oracle Secondary DB"
