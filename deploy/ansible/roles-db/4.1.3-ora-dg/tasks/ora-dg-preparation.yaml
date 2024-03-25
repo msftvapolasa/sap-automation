@@ -130,6 +130,26 @@
          ALTER SYSTEM SET STANDBY_FILE_MANAGEMENT=AUTO;
          exit
     mode:                              '0755'
+  when:  current_host == ora_primary
+
+
+# Flashback on for secondary according to the Oracle documentation Doc ID 1286863.1
+- name:                                "Oracle Data Guard - Preparation: create turnonflashback.sql"
+  become:                              true
+  become_user:                         "oracle"
+  ansible.builtin.blockinfile:
+    create:                            true
+    path:                              /etc/sap_deployment_automation/dgscripts/turnonflashback.sql
+    marker_begin:                      "-- BEGIN"
+    marker_end:                        "-- END"
+    block: |
+         ALTER DATABASE RECOVER MANAGED STANDBY DATABASE CANCEL;
+         ALTER DATABASE FLASHBACK ON;
+         ALTER DATABASE RECOVER MANAGED STANDBY DATABASE DISCONNECT FROM SESSION;
+         ALTER SYSTEM SET STANDBY_FILE_MANAGEMENT=AUTO;
+         exit
+    mode:                              '0755'
+  when:  current_host == ora_secondary
 
 - name:                                "Oracle Data Guard - Preparation: create createpfile.sql"
   become:                              true
