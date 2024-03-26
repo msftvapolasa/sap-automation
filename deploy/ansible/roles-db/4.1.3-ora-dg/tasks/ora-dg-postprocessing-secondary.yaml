@@ -108,6 +108,13 @@
         mode:                              '0755'
       when:
         - turn_on_flashback_secondary_results.rc == 0
+
+
+# Fail here for debug
+    - name:                                "Oracle Data Guard - Fail here for debug"
+      ansible.builtin.fail:
+        msg:                               "Fail here for debug"
+    
         
 # Enable the log apply on secondary DB after enabling Flashback
     - name:                            "Oracle Data Guard - Post Processing: Set Log apply on on Standby"
