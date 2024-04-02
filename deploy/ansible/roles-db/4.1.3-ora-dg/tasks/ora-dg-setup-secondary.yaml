@@ -1,9 +1,8 @@
 ---
 
 # /*---------------------------------------------------------------------------8
-# |Execute the SQL scripts  for  data guard initial configuration.             |
 # |                                                                            |
-# |                                                                            |
+# |       Execute the SQL scripts for Oracle Data Guard configuration.         |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
 
@@ -84,12 +83,12 @@
   become_user:                       "root"
   ansible.builtin.shell:      |
                                sed -i '/log_archive_dest_1=/d' /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
-                               
+
 #   register:                         local_listener_results
 #   failed_when:                      local_listener_results.rc > 1
 
 # - name:                           "debug file update"
-#   fail:                            
+#   fail:
 #     msg:                          "fail here for checking if the file is updated"
 
 - name:                            "File update wait for 15 sec to avoid multiple locks"
@@ -111,8 +110,8 @@
                 *.db_create_online_log_dest_2='+DATA'
                 *.local_listener='(Address=(Protocol=TCP)(Host={{ ora_secondary }})(Port=1521))'
                 *.log_archive_dest_1='LOCATION=+ARCH/{{ db_sid | upper }}_STDBY/oraarch'
-                
-                
+
+
   when:
     - node_tier == "oracle-asm"
 
@@ -150,11 +149,11 @@
     block: |
                 *.db_unique_name ='{{ db_sid | upper }}_STDBY'
                 *.log_file_name_convert='{{ db_sid | upper }}','{{ db_sid | upper }}'
-                *.local_listener='(Address=(Protocol=TCP)(Host={{ ora_secondary }})(Port=1521))'            
+                *.local_listener='(Address=(Protocol=TCP)(Host={{ ora_secondary }})(Port=1521))'
 
   when:
     - node_tier == "oracle"
-    
+
 - name:                                "Oracle Data Guard - Setup Secondary: start lsnrctl on Secondary"
   become:                              true
   become_user:                         "oracle"
@@ -165,7 +164,7 @@
     creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_started_sec.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
-  when:                                
+  when:
     - current_host == ora_secondary
     - node_tier == "oracle"
 
@@ -192,7 +191,7 @@
     - node_tier == "oracle"
     - current_host == ora_secondary
     - lsnrctl_start_secondary_results.rc == 0
-    
+
 
 
 # Restart the Listener on Secondary node when the node_tier is Oracle-ASM.
@@ -207,10 +206,10 @@
     creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_stopped_sec.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
-  when:                                
+  when:
     - node_tier == "oracle-asm"
     - current_host == ora_secondary
-    
+
 
 - name:                                "ASM Oracle Data Guard - Setup Secondary: Create lsnrctl_stopped_sec.txt"
   become:                              true
@@ -223,7 +222,7 @@
     - node_tier == "oracle-asm"
     - current_host == ora_secondary
     - lsnrctl_stop_secondary_results.rc == 0
-    
+
 
 - name:                                "Oracle Data Guard - Setup Secondary: Start lsnrctl on Secondary"
   become:                              true
@@ -235,13 +234,18 @@
     creates:                           /etc/sap_deployment_automation/dgscripts/lsnrctl_asm_started_sec.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
-  when:                                
+  when:
+    - node_tier == "oracle-asm"
+  when:
     - node_tier == "oracle-asm"
     - current_host == ora_secondary
-    
+
+
+
 
 - name:                                "Oracle Data Guard - Setup Secondary: restart lsnrctl on Secondary (Debug)"
   ansible.builtin.debug:
+    var:                               lsnrctl_asm_start_secondary_results.stdout_lines
     var:                               lsnrctl_asm_start_secondary_results.stdout_lines
     verbosity:                         2
 
@@ -249,7 +253,9 @@
   ansible.builtin.copy:
     dest:                              /etc/sap_deployment_automation/lsnrctl_start_primary.log
     content:                           "{{ lsnrctl_asm_start_secondary_results.stdout }}"
+    content:                           "{{ lsnrctl_asm_start_secondary_results.stdout }}"
     mode:                              '0777'
+  when:                                lsnrctl_asm_start_secondary_results.stdout is defined
   when:                                lsnrctl_asm_start_secondary_results.stdout is defined
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create lsnrctl_started_sec.txt"
@@ -257,13 +263,15 @@
   become_user:                         "oracle"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_asm_started_sec.txt
+    path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_asm_started_sec.txt
     state:                             touch
     mode:                              '0755'
   when:
     - node_tier == "oracle-asm"
+    - node_tier == "oracle-asm"
     - current_host == ora_secondary
     - lsnrctl_asm_start_secondary_results.rc == 0
-    
+
 
 - name:                            "ASM Listener Starting: Sleep for 40 seconds and continue with play"
   ansible.builtin.wait_for:
@@ -317,7 +325,7 @@
                                        /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir +DATA/{{ db_sid | upper }}_STDBY
                                        /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir +ARCH/{{ db_sid | upper }}_STDBY/oraarch
                                        /oracle/GRID/{{ ora_version }}/bin/asmcmd --privilege sysdba mkdir +DATA/{{ db_sid | upper }}_STDBY/PARAMETERFILE
-                                       
+
   register:                            asm_oraarch_created_results
   failed_when:                         asm_oraarch_created_results.rc > 0
   args:
@@ -326,7 +334,7 @@
   when:
     - node_tier == "oracle-asm"
     - current_host == ora_secondary
-    
+
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create asm_oraarch_created.txt"
   become:                              true
@@ -377,7 +385,10 @@
     - name:                            "Oracle Data Guard - Setup Secondary: Remove files"
       become:                          true
       become_user:                     "oracle"
-      ansible.builtin.command:         rm -rf {{ item.directory_to_empty }}/*
+      ansible.builtin.file:
+        path:                          "{{ item.directory_to_empty }}"
+        state:                         absent
+        recurse:                       true
       loop:
         - { directory_to_empty: '/oracle/{{ db_sid | upper }}/sapdata1' }
         - { directory_to_empty: '/oracle/{{ db_sid | upper }}/sapdata2' }
@@ -476,7 +487,7 @@
     creates:                           /etc/sap_deployment_automation/dgscripts/redo_rename.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
-  when: 
+  when:
     - node_tier == "oracle"
     - current_host == ora_secondary
 
@@ -489,7 +500,7 @@
     mode:                              '0755'
     owner:                             oracle
     group:                             oinstall
-  when:                                
+  when:
    - node_tier == "oracle"
    - redo_rename_results.rc == 0
 
@@ -504,7 +515,7 @@
     group:                             oinstall
   when:                                rman_results.rc == 0
 
-#--------------------------------------------------------------------------------------------------------------- 
+#---------------------------------------------------------------------------------------------------------------
 
 # Create the SPFILE from PFILE on Standby and Start the Standby Database using PFILE for non-ASM.
 - name:                                "Oracle Data Guard - Setup Secondary: Create spfile on non-ASM"
@@ -519,10 +530,10 @@
     creates:                           /etc/sap_deployment_automation/dgscripts/spfile_created.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
-  when: 
+  when:
     - node_tier == "oracle"
     - current_host == ora_secondary
-    
+
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create spfile_created.txt"
   become:                              true
@@ -533,7 +544,7 @@
     mode:                              '0755'
     owner:                             oracle
     group:                             oinstall
-  when:                                
+  when:
     - node_tier == "oracle"
     - create_spfile_results.rc == 0
     - current_host == ora_secondary
@@ -551,10 +562,10 @@
     creates:                           /etc/sap_deployment_automation/dgscripts/pfile_backup_created.txt
     chdir:                             /oracle/{{ db_sid |upper }}/{{ ora_release}}/dbs
     executable:                        /bin/csh
-  when: 
+  when:
     - node_tier == "oracle"
     - current_host == ora_secondary
-    
+
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create pfile_backup_created.txt"
   become:                              true
@@ -565,7 +576,7 @@
     mode:                              '0755'
     owner:                             oracle
     group:                             oinstall
-  when:                                
+  when:
     - node_tier == "oracle"
     - backup_pfile_results.rc == 0
     - current_host == ora_secondary
@@ -580,8 +591,8 @@
    creates:                           /etc/sap_deployment_automation/dgscripts/local_listener_on_secondary.txt
    chdir:                             /etc/sap_deployment_automation/dgscripts
    executable:                        /bin/csh
-  when: 
-    - current_host == ora_secondary 
+  when:
+    - current_host == ora_secondary
 
 # Stop the Secondary Database.
 - name:                                "Oracle Data Guard - Setup Secondary: Stop secondary DB for  spfile"
@@ -596,10 +607,10 @@
     creates:                           /etc/sap_deployment_automation/dgscripts/ora_secondary_shutdown.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
-  when: 
+  when:
     - node_tier == "oracle"
     - current_host == ora_secondary
-    
+
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create ora_secondary_shutdown.txt"
   become:                              true
@@ -610,7 +621,7 @@
     mode:                              '0755'
     owner:                             oracle
     group:                             oinstall
-  when:                                
+  when:
     - node_tier == "oracle"
     - secondary_shutdown_results.rc == 0
     - current_host == ora_secondary
@@ -646,10 +657,10 @@
     creates:                           /etc/sap_deployment_automation/dgscripts/ora_secondary_startup_spfile.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
-  when: 
+  when:
     - node_tier == "oracle"
     - current_host == ora_secondary
-    
+
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create ora_secondary_startup_spfile.txt"
   become:                              true
@@ -660,7 +671,7 @@
     mode:                              '0755'
     owner:                             oracle
     group:                             oinstall
-  when:                                
+  when:
     - node_tier == "oracle"
     - ora_secondary_startup_spfile_results.rc == 0
     - current_host == ora_secondary
@@ -680,10 +691,10 @@
     creates:                           /etc/sap_deployment_automation/dgscripts/spfile_created.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
-  when: 
+  when:
     - node_tier == "oracle-asm"
     - current_host == ora_secondary
-    
+
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create spfile_created.txt"
   become:                              true
@@ -694,7 +705,7 @@
     mode:                              '0755'
     owner:                             oracle
     group:                             oinstall
-  when:                                
+  when:
     - node_tier == "oracle-asm"
     - create_spfile_results.rc == 0
     - current_host == ora_secondary
@@ -712,10 +723,10 @@
     creates:                           /etc/sap_deployment_automation/dgscripts/pfile_backup_created.txt
     chdir:                             /oracle/{{ db_sid |upper }}/{{ ora_release}}/dbs
     executable:                        /bin/csh
-  when: 
+  when:
     - node_tier == "oracle-asm"
     - current_host == ora_secondary
-    
+
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create pfile_backup_created.txt"
   become:                              true
@@ -726,7 +737,7 @@
     mode:                              '0755'
     owner:                             oracle
     group:                             oinstall
-  when:                                
+  when:
     - node_tier == "oracle-asm"
     - backup_pfile_results.rc == 0
     - current_host == ora_secondary
@@ -745,10 +756,10 @@
     creates:                           /etc/sap_deployment_automation/dgscripts/asm_secondary_shutdown.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
-  when: 
+  when:
     - node_tier == "oracle-asm"
     - current_host == ora_secondary
-    
+
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create asm_secondary_shutdown.txt"
   become:                              true
@@ -759,7 +770,7 @@
     mode:                              '0755'
     owner:                             oracle
     group:                             oinstall
-  when:                                
+  when:
     - node_tier == "oracle-asm"
     - secondary_shutdown_results.rc == 0
     - current_host == ora_secondary
@@ -795,10 +806,10 @@
     creates:                           /etc/sap_deployment_automation/dgscripts/asm_secondary_startup_spfile.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
-  when: 
+  when:
     - node_tier == "oracle-asm"
     - current_host == ora_secondary
-    
+
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create asm_secondary_startup_spfile.txt"
   become:                              true
@@ -809,13 +820,13 @@
     mode:                              '0755'
     owner:                             oracle
     group:                             oinstall
-  when:                                
+  when:
     - node_tier == "oracle-asm"
     - asm_secondary_startup_spfile_results.rc == 0
     - current_host == ora_secondary
 
-   
-    
+
+
 - name:                            "Create local_listener_on_secondary on secondary"
   become:                          true
   become_user:                     root
@@ -825,7 +836,7 @@
     mode:                           '0755'
     owner:                          oracle
     group:                          oinstall
-  when:                             
+  when:
     - node_tier == "oracle-asm"
     - local_listener_on_secondary_results.rc  == 0
     - current_host == ora_secondary

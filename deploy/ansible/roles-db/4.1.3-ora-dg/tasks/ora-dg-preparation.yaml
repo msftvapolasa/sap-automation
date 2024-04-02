@@ -84,8 +84,6 @@
     mode:                              '0755'
   when:                                node_tier == "oracle-asm"
 
-
-
 - name:                                "Oracle Data Guard for oracle asm - Preparation: create fralogs.sql"
   become:                              true
   become_user:                         "oracle"

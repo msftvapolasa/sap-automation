@@ -148,6 +148,7 @@
   when:
     - current_host == ora_primary
     - standby_redo_log_results.rc == 0
+    - standby_redo_log_results.rc == 0
 
 - name:                                "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Primary DB"
   become:                              true
@@ -185,8 +186,12 @@
     - turn_on_flashback_results.rc == 0
 
 # - name:                            "Update the Local_Listener Value in primary"
+# - name:                            "Update the Local_Listener Value in primary"
 #   become:                              true
 #   become_user:                         "oracle"
+#   ansible.builtin.shell:               sqlplus / as sysdba @listenerupdate.sql
+#   register:                            local_listener_on_secondary_results
+#   failed_when:                         local_listener_on_secondary_results.rc > 0
 #   ansible.builtin.shell:               sqlplus / as sysdba @listenerupdate.sql
 #   register:                            local_listener_on_secondary_results
 #   failed_when:                         local_listener_on_secondary_results.rc > 0
@@ -194,7 +199,7 @@
 #    creates:                           /etc/sap_deployment_automation/dgscripts/local_listener_on_secondary.txt
 #    chdir:                             /etc/sap_deployment_automation/dgscripts
 #    executable:                        /bin/csh
-#   when: 
+#   when:
 #     - current_host == ora_primary
 
 
@@ -211,7 +216,7 @@
     creates:                           /etc/sap_deployment_automation/dgscripts/dbparametersfordg.txt
     chdir:                             /etc/sap_deployment_automation/dgscripts
     executable:                        /bin/csh
-  when:  
+  when:
     - current_host == ora_primary
     - node_tier == "oracle-asm"
 
@@ -219,7 +224,7 @@
   ansible.builtin.debug:
     var:                               dbparametersfordg_results.stdout_lines
     verbosity:                         2
-  when:                                
+  when:
    - node_tier == "oracle-asm"
 
 - name:                                "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Primary DB (save output)"
@@ -227,7 +232,7 @@
     dest:                              /etc/sap_deployment_automation/dgscripts/dbparametersfordg.log
     content:                           "{{ turn_on_flashback_results.stdout }}"
     mode:                              '0777'
-  when:                                
+  when:
    - node_tier == "oracle-asm"
    - dbparametersfordg_results.stdout is defined
 
