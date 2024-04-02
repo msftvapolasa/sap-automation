@@ -480,7 +480,7 @@
     dest:                             "/etc/sap_deployment_automation/dgscripts/rman-restore.rman"
     mode:                             '0644'
     force:                            true
-  when:  
+  when:
     - current_host == ora_secondary
     - node_tier == 'oracle'
 
@@ -493,7 +493,7 @@
     dest:                             "/etc/sap_deployment_automation/dgscripts/rman-restore.rman"
     mode:                             '0644'
     force:                            true
-  when:  
+  when:
     - current_host == ora_secondary
     - node_tier == 'oracle-asm'
 
@@ -695,7 +695,7 @@
     dest:                             "/etc/sap_deployment_automation/dgscripts/asmfilesystems-secondary.sh"
     mode:                             '0755'
     force:                            true
-  when:  
+  when:
     - current_host == ora_secondary
     - node_tier == "oracle-asm"
 
