@@ -276,7 +276,7 @@
     marker_begin: "-- BEGIN"
     marker_end:   "-- END"
     block: |
-         ALTER SYSTEM SET dg_broker_start=true;
+         ALTER SYSTEM SET dg_broker_start=true scope=both;
          exit
     mode:                              '0755'
 
