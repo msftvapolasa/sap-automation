@@ -68,7 +68,6 @@
   register:                            oracle_installed
 
 
-
 # /*---------------------------------------------------------------------------8
 # | Start of Oracle software installation using SAP RUNINSTALLER wrapper.      |
 # | Before running Installer set DB_SID and CV_ASSUME_DISTID according to      |
@@ -371,8 +370,6 @@
     #   ansible.builtin.wait_for:
     #     timeout:                       30
 
-
-
     # # Debug for testing
     # - name:                            "Oracle ASM: Prepare for GRID SBP Patching print output"
     #   ansible.builtin.debug:
@@ -607,7 +604,6 @@
       ansible.builtin.set_fact:
         mopatch_path:                  "{{ mopatch_directory.files[0].path }}"
       when:                            mopatch_directory.matched == 1
-
 
 
     - name:                            "Oracle ASM: Check if 'OPatch.bck' exists"
