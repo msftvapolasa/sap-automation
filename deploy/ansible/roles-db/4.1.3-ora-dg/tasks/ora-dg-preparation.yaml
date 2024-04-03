@@ -377,6 +377,15 @@
     sap_dbs_hostname: "{{ ora_secondary }}"
   when:  current_host == ora_secondary
 
+- name:                                "Oracle : Create {{ db_sid }} folder"
+  ansible.builtin.file:
+    path:                              "{{ target_media_location }}/downloads/{{ db_sid | upper }}"
+    mode:                              '0755'
+    state:                             directory
+    owner:                             oracle
+    group:                             oinstall
+  when:
+   - current_host == ora_secondary
 
 # Create sqlnet.ora for secondary node.
 
