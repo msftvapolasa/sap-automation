@@ -66,13 +66,17 @@
     gid:                               "{{ item.gid }}"
     state:                             present
   loop:
+    - { group: 'asmoper',   gid: '{{ asmoper_gid }}'   }
     - { group: 'dgdba',     gid: '{{ dgdba_gid }}'     }
     - { group: 'kmdba',     gid: '{{ kmdba_gid }}'     }
+    - { group: 'asmdba',    gid: '{{ asmdba_gid }}'    }
+    - { group: 'asmadmin',  gid: '{{ asmadmin_gid }}'  }
     - { group: 'racdba',    gid: '{{ racdba_gid }}'    }
     - { group: 'backupdba', gid: '{{ backupdba_gid }}' }
     - { group: 'oinstall',  gid: '{{ oinstall_gid }}'  }
   when:
     - node_tier == "observer"
+#  asmoper,asmadmin,asmdba,asmoper,backupdba,dgdba,kmdba,racdba
 
 - name:                                "2.5.1 SAP Users: - Create SAP User for Oracle ASM"
   ansible.builtin.user:
