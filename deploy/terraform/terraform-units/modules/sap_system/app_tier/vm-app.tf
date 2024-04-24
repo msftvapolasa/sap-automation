@@ -105,6 +105,7 @@ resource "azurerm_linux_virtual_machine" "app" {
                                            local.application_server_count) : (
                                            0
                                          )
+  depends_on                           = [azurerm_virtual_machine_data_disk_attachment.scs]
   name                                 = format("%s%s%s%s%s",
                                            var.naming.resource_prefixes.vm,
                                            local.prefix,
@@ -117,7 +118,8 @@ resource "azurerm_linux_virtual_machine" "app" {
   source_image_id                      = var.application_tier.app_os.type == "custom" ? var.application_tier.app_os.source_image_id : null
 
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
-
+  # ToDo Add back later
+# patch_mode                           = var.infrastructure.patch_mode
 
   custom_data                          = var.deployment == "new" ? var.cloudinit_growpart_config : null
   location                             = var.resource_group[0].location
@@ -254,6 +256,7 @@ resource "azurerm_windows_virtual_machine" "app" {
                                            local.application_server_count) : (
                                            0
                                          )
+  depends_on                           = [azurerm_virtual_machine_data_disk_attachment.scs]
   name                                 = format("%s%s%s%s%s",
                                            var.naming.resource_prefixes.vm,
                                            local.prefix,
@@ -304,6 +307,8 @@ resource "azurerm_windows_virtual_machine" "app" {
 
   #ToDo: Remove once feature is GA  patch_mode = "Manual"
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
+  # ToDo Add back later
+# patch_mode                           = var.infrastructure.patch_mode
 
   tags                                 = merge(var.application_tier.app_tags, var.tags)
 
@@ -554,7 +559,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_app_win" {
   name                                 = "Microsoft.Azure.Security.Monitoring.AzureSecurityWindowsAgent"
   publisher                            = "Microsoft.Azure.Security.Monitoring"
   type                                 = "AzureSecurityWindowsAgent"
-  type_handler_version                 = "2.0"
+  type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
 
   settings                             = jsonencode(
