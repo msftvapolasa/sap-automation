@@ -113,7 +113,7 @@
       ansible.builtin.set_fact:
         s_password: >-
           {{ (keyvault_secret_show_s_password.stdout | from_json).value }}
-      no_log:                          true
+      no_log:                          false
 
   when:
     - s_password is not defined
