@@ -83,6 +83,8 @@
   become_user:                       "root"
   ansible.builtin.shell:      |
                                sed -i '/log_archive_dest_1=/d' /oracle/{{ db_sid | upper }}/{{ ora_release }}/dbs/init{{ db_sid | upper }}.ora
+  when:
+    - node_tier == "oracle-asm"
 
 #   register:                         local_listener_results
 #   failed_when:                      local_listener_results.rc > 1
@@ -236,8 +238,6 @@
     executable:                        /bin/csh
   when:
     - node_tier == "oracle-asm"
-  when:
-    - node_tier == "oracle-asm"
     - current_host == ora_secondary
 
 
@@ -246,28 +246,24 @@
 - name:                                "Oracle Data Guard - Setup Secondary: restart lsnrctl on Secondary (Debug)"
   ansible.builtin.debug:
     var:                               lsnrctl_asm_start_secondary_results.stdout_lines
-    var:                               lsnrctl_asm_start_secondary_results.stdout_lines
     verbosity:                         2
 
 - name:                                "Oracle Data Guard - Setup Secondary: restart lsnrctl on Secondary (save output)"
   ansible.builtin.copy:
     dest:                              /etc/sap_deployment_automation/lsnrctl_start_primary.log
     content:                           "{{ lsnrctl_asm_start_secondary_results.stdout }}"
-    content:                           "{{ lsnrctl_asm_start_secondary_results.stdout }}"
     mode:                              '0777'
   when:                                lsnrctl_asm_start_secondary_results.stdout is defined
-  when:                                lsnrctl_asm_start_secondary_results.stdout is defined
+
 
 - name:                                "Oracle Data Guard - Setup Secondary: Create lsnrctl_started_sec.txt"
   become:                              true
   become_user:                         "oracle"
   ansible.builtin.file:
     path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_asm_started_sec.txt
-    path:                              /etc/sap_deployment_automation/dgscripts/lsnrctl_asm_started_sec.txt
     state:                             touch
     mode:                              '0755'
   when:
-    - node_tier == "oracle-asm"
     - node_tier == "oracle-asm"
     - current_host == ora_secondary
     - lsnrctl_asm_start_secondary_results.rc == 0
