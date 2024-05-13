@@ -417,7 +417,7 @@
 
     - name:                            "0.0 Validations - Check for free disk space on deployer"
       ansible.builtin.assert:
-        that:                          (mnt_free_diskspace |  int / (1024 * 1024 * 1024) | int) > ( deployer_free_temp_disk_space )
+        that:                          (mnt_free_diskspace | int) > ( deployer_free_temp_disk_space )
         fail_msg:                      "The deployer needs at least {{ deployer_free_temp_disk_space }} GB of free disk space in /mnt"
       when:
         - mnt_free_diskspace | length > 0
