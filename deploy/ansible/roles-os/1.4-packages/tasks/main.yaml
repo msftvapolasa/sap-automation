@@ -57,6 +57,8 @@
   ansible.builtin.service:
     name:                              systemd
     state:                             reloaded
+  when:
+   - distro_name != 'ORACLELINUX-8'
 
 - name:                                "1.4 Packages: - Restart WAAgent on {{ distro_name }}"
   ansible.builtin.service:
