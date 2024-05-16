@@ -428,7 +428,7 @@ packages:
     - { tier: 'os',    package: 'csh',                                          node_tier: 'all',     state: 'present' }
     - { tier: 'ha',    package: 'jq',                                           node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'unzip',                                        node_tier: 'all',     state: 'present' }
-    - { tier: 'os',    package: 'oracleasm',                                    node_tier: 'all',     state: 'present' }
+    # - { tier: 'os',    package: 'oracleasm',                                    node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'elfutils-libelf',                              node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'elfutils-libelf-devel',                        node_tier: 'all',     state: 'present' }
     - { tier: 'os',    package: 'fontconfig-devel',                             node_tier: 'all',     state: 'present' }
