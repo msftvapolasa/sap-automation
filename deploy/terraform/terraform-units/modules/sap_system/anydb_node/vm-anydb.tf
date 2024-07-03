@@ -135,8 +135,8 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id                  = var.database.use_avset ? (
                                            local.availabilitysets_exist ? (
-                                             data.azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id) : (
-                                             azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id
+                                             data.azurerm_availability_set.anydb[count.index % max(length(data.azurerm_availability_set.anydb), 1)].id) : (
+                                             azurerm_availability_set.anydb[count.index % max(length(azurerm_availability_set.anydb), 1)].id
                                            )
                                          ) : null
 
@@ -161,6 +161,8 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   size                                 = local.anydb_sku
   source_image_id                      = var.database.os.type == "custom" ? var.database.os.source_image_id : null
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
+  # ToDo Add back later
+# patch_mode                           = var.infrastructure.patch_mode
 
   admin_username                       = var.sid_username
   admin_password                       = local.enable_auth_key ? null : var.sid_password
@@ -233,8 +235,8 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   lifecycle {
     ignore_changes = [
       // Ignore changes to computername
-      tags,
-      computer_name
+      computer_name,
+      source_image_id
     ]
   }
 
@@ -273,8 +275,8 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   //If more than one servers are deployed into a single zone put them in an availability set and not a zone
   availability_set_id                  = var.database.use_avset ? (
                                            local.availabilitysets_exist ? (
-                                             data.azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id) : (
-                                             azurerm_availability_set.anydb[count.index % max(local.db_zone_count, 1)].id
+                                             data.azurerm_availability_set.anydb[count.index % max(length(data.azurerm_availability_set.anydb), 1)].id) : (
+                                             azurerm_availability_set.anydb[count.index % max(length(azurerm_availability_set.anydb), 1)].id
                                            )
                                          ) : null
 
@@ -299,6 +301,9 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   size                                 = local.anydb_sku
   source_image_id                      = var.database.os.type == "custom" ? var.database.os.source_image_id : null
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
+  # ToDo Add back later
+# patch_mode                           = var.infrastructure.patch_mode
+
 
   admin_username                       = var.sid_username
   admin_password                       = var.sid_password
@@ -360,7 +365,8 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   lifecycle {
     ignore_changes = [
       // Ignore changes to computername
-      computer_name
+      computer_name,
+      source_image_id
     ]
   }
 }
@@ -408,6 +414,14 @@ resource "azurerm_managed_disk" "disks" {
 
   tags                                 = var.tags
 
+  lifecycle {
+    ignore_changes = [
+      create_option,
+      hyper_v_generation,
+      source_resource_id
+    ]
+  }
+
 }
 
 // Manages attaching a Disk to a Virtual Machine
@@ -445,7 +459,7 @@ resource "azurerm_virtual_machine_extension" "anydb_lnx_aem_extension" {
   type_handler_version                 = "1.0"
   settings                             = jsonencode(
                                            {
-                                             "system": "SAP"
+                                             "system": "SAP",
                                            }
                                          )
   tags                                 = var.tags
@@ -469,7 +483,7 @@ resource "azurerm_virtual_machine_extension" "anydb_win_aem_extension" {
   type_handler_version                 = "1.0"
   settings                             = jsonencode(
                                            {
-                                             "system": "SAP"
+                                             "system": "SAP",
                                            }
                                          )
   tags                                 = var.tags
@@ -526,9 +540,6 @@ resource "azurerm_managed_disk" "cluster" {
                                              )
                                            )
                                          ) ? 1 : 0
-  lifecycle {
-    ignore_changes                     = [tags]
-    }
 
   name                                 = format("%s%s%s%s",
                                            var.naming.resource_prefixes.database_cluster_disk,
@@ -539,20 +550,27 @@ resource "azurerm_managed_disk" "cluster" {
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
   create_option                        = "Empty"
-  storage_account_type                 = "Premium_LRS"
-  disk_size_gb                         = var.database_cluster_disk_size
+  storage_account_type                 = var.database.database_cluster_disk_type
+  disk_size_gb                         = var.database.database_cluster_disk_size
   disk_encryption_set_id               = try(var.options.disk_encryption_set_id, null)
   max_shares                           = var.database_server_count
   tags                                 = var.tags
 
-  zone                                 = local.zonal_deployment && !var.database.use_avset ? (
+  zone                                 = var.database.database_cluster_disk_type == "Premium_LRS" && local.zonal_deployment && !var.database.use_avset ? (
                                            upper(local.anydb_ostype) == "LINUX" ? (
                                              azurerm_linux_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone) : (
                                              azurerm_windows_virtual_machine.dbserver[local.anydb_disks[count.index].vm_index].zone
                                          )) : (
                                            null
                                          )
-
+  lifecycle {
+    ignore_changes = [
+      create_option,
+      hyper_v_generation,
+      source_resource_id,
+      tags
+    ]
+  }
 }
 
 resource "azurerm_virtual_machine_data_disk_attachment" "cluster" {
@@ -576,13 +594,13 @@ resource "azurerm_virtual_machine_data_disk_attachment" "cluster" {
                                          ) : (
                                            (upper(var.database.os.os_type) == "WINDOWS"                            # If Windows
                                            ) ? (
-                                             null
+                                             azurerm_windows_virtual_machine.dbserver[count.index].id
                                            ) : (
                                              null                                                                  # If Other
                                            )
                                          )
   caching                              = "None"
-  lun                                  = var.database_cluster_disk_lun
+  lun                                  = var.database.database_cluster_disk_lun
 }
 
 
@@ -617,3 +635,145 @@ resource "azurerm_role_assignment" "role_assignment_msi_ha" {
   role_definition_name                 = var.fencing_role_name
   principal_id                         = azurerm_linux_virtual_machine.dbserver[(count.index +1) % var.database_server_count].identity[0].principal_id
 }
+
+
+#########################################################################################
+#                                                                                       #
+#  Azure Data Disk for Kdump                                                            #
+#                                                                                       #
+#######################################+#################################################
+resource "azurerm_managed_disk" "kdump" {
+  provider                             = azurerm.main
+  count                                = (
+                                           local.enable_deployment &&
+                                           var.database.high_availability &&
+                                           (
+                                               upper(var.database.os.os_type) == "LINUX" &&
+                                               ( var.database.fence_kdump_disk_size > 0 )
+                                           )
+                                         ) ? var.database_server_count : 0
+
+  name                                 = format("%s%s%s%s%s",
+                                           try( var.naming.resource_prefixes.fence_kdump_disk, ""),
+                                           local.prefix,
+                                           var.naming.separator,
+                                           var.naming.virtualmachine_names.ANYDB_VMNAME[count.index],
+                                           try( var.naming.resource_suffixes.fence_kdump_disk, "fence_kdump_disk" )
+                                         )
+  location                             = var.resource_group[0].location
+  resource_group_name                  = var.resource_group[0].name
+  create_option                        = "Empty"
+  storage_account_type                 = "Premium_LRS"
+  disk_size_gb                         = try(var.database.fence_kdump_disk_size,128)
+  disk_encryption_set_id               = try(var.options.disk_encryption_set_id, null)
+  tags                                 = var.tags
+
+  zone                                 = local.zonal_deployment && !var.database.use_avset ? (
+                                             azurerm_linux_virtual_machine.dbserver[count.index].zone
+                                         ) : (
+                                           null
+                                         )
+  lifecycle {
+    ignore_changes = [
+      create_option,
+      hyper_v_generation,
+      source_resource_id,
+      tags
+    ]
+  }
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "kdump" {
+  provider                             = azurerm.main
+  count                                = (
+                                           local.enable_deployment &&
+                                           var.database.high_availability &&
+                                           (
+                                               upper(var.database.os.os_type) == "LINUX" &&
+                                               ( var.database.fence_kdump_disk_size > 0 )
+                                           )
+                                         ) ? var.database_server_count : 0
+
+  managed_disk_id                      = azurerm_managed_disk.kdump[count.index].id
+  virtual_machine_id                   = (upper(var.database.os.os_type) == "LINUX"                                # If Linux
+                                         ) ? (
+                                           azurerm_linux_virtual_machine.dbserver[count.index].id
+                                         ) : null
+  caching                              = "None"
+  lun                                  = var.database.fence_kdump_lun_number
+}
+
+resource "azurerm_virtual_machine_extension" "monitoring_extension_db_lnx" {
+  provider                             = azurerm.main
+  count                                = local.deploy_monitoring_extension  && upper(var.database.os.os_type) == "LINUX" ? (
+                                           var.database_server_count) : (
+                                           0                                           )
+  virtual_machine_id                   = azurerm_linux_virtual_machine.dbserver[count.index].id
+  name                                 = "Microsoft.Azure.Monitor.AzureMonitorLinuxAgent"
+  publisher                            = "Microsoft.Azure.Monitor"
+  type                                 = "AzureMonitorLinuxAgent"
+  type_handler_version                 = "1.0"
+  auto_upgrade_minor_version           = true
+
+}
+
+
+resource "azurerm_virtual_machine_extension" "monitoring_extension_db_win" {
+  provider                             = azurerm.main
+  count                                = local.deploy_monitoring_extension  && upper(var.database.os.os_type) == "WINDOWS" ? (
+                                           var.database_server_count) : (
+                                           0                                           )
+  virtual_machine_id                   = azurerm_windows_virtual_machine.dbserver[count.index].id
+  name                                 = "Microsoft.Azure.Monitor.AzureMonitorWindowsAgent"
+  publisher                            = "Microsoft.Azure.Monitor"
+  type                                 = "AzureMonitorWindowsAgent"
+  type_handler_version                 = "1.0"
+  auto_upgrade_minor_version           = true
+
+}
+
+
+resource "azurerm_virtual_machine_extension" "monitoring_defender_db_lnx" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.deploy_defender_extension  && upper(var.database.os.os_type) == "LINUX" ? (
+                                           var.database_server_count) : (
+                                           0
+                                         )
+  virtual_machine_id                   = azurerm_linux_virtual_machine.dbserver[count.index].id
+  name                                 = "Microsoft.Azure.Security.Monitoring.AzureSecurityLinuxAgent"
+  publisher                            = "Microsoft.Azure.Security.Monitoring"
+  type                                 = "AzureSecurityLinuxAgent"
+  type_handler_version                 = "2.0"
+  auto_upgrade_minor_version           = true
+
+  settings                             = jsonencode(
+                                            {
+                                              "enableGenevaUpload"  = true,
+                                              "enableAutoConfig"  = true,
+                                              "reportSuccessOnUnsupportedDistro"  = true,
+                                            }
+                                          )
+}
+
+resource "azurerm_virtual_machine_extension" "monitoring_defender_db_win" {
+  provider                             = azurerm.main
+  count                                = var.infrastructure.deploy_defender_extension  && upper(var.database.os.os_type) == "WINDOWS" ? (
+                                           var.database_server_count) : (
+                                           0
+                                         )
+  virtual_machine_id                   = azurerm_windows_virtual_machine.dbserver[count.index].id
+  name                                 = "Microsoft.Azure.Security.Monitoring.AzureSecurityWindowsAgent"
+  publisher                            = "Microsoft.Azure.Security.Monitoring"
+  type                                 = "AzureSecurityWindowsAgent"
+  type_handler_version                 = "1.0"
+  auto_upgrade_minor_version           = true
+
+  settings                             = jsonencode(
+                                            {
+                                              "enableGenevaUpload"  = true,
+                                              "enableAutoConfig"  = true,
+                                              "reportSuccessOnUnsupportedDistro"  = true,
+                                            }
+                                          )
+}
+

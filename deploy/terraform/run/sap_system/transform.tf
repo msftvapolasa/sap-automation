@@ -9,6 +9,9 @@ locals {
                                             codename                         = try(var.codename, try(var.infrastructure.codename, ""))
                                             tags                             = try(merge(var.resourcegroup_tags, try(var.infrastructure.tags, {})), {})
                                             use_app_proximityplacementgroups = var.use_app_proximityplacementgroups
+                                            deploy_monitoring_extension      = var.deploy_monitoring_extension
+                                            deploy_defender_extension        = var.deploy_defender_extension
+                                            patch_mode                       = var.patch_mode
                                          }
 
 
@@ -82,6 +85,10 @@ locals {
                                            deploy_v1_monitoring_extension  = var.deploy_v1_monitoring_extension
                                            dual_nics                       = var.database_dual_nics || try(var.databases[0].dual_nics, false)
                                            high_availability               = var.database_high_availability || try(var.databases[0].high_availability, false)
+                                           database_cluster_disk_lun       = var.database_cluster_disk_lun
+                                           database_cluster_disk_size      = var.database_cluster_disk_size
+                                           database_cluster_disk_type      = var.database_cluster_disk_type
+
                                            platform                        = var.database_platform
                                            use_ANF                         = var.database_HANA_use_ANF_scaleout_scenario || try(var.databases[0].use_ANF, false)
                                            use_avset                       = var.database_server_count == 0 || var.use_scalesets_for_deployment || length(var.database_vm_zones) > 0 || var.database_platform == "NONE" ? (
@@ -94,6 +101,8 @@ locals {
                                                                                var.database_use_ppg
                                                                              )
                                            user_assigned_identity_id       = var.user_assigned_identity_id
+                                           scale_out                       = var.database_HANA_use_ANF_scaleout_scenario
+                                           stand_by_node_count             = var.stand_by_node_count
                                            zones                           = var.database_vm_zones
                                          }
 
@@ -173,14 +182,15 @@ locals {
                                                                             0
                                                                           )
                                         app_sku                         = var.application_server_sku
-                                        app_use_ppg                     = var.application_server_count > 0 ? var.use_scalesets_for_deployment ? (
+                                        app_use_ppg                     = var.application_server_count == 0 || var.use_scalesets_for_deployment || !local.enable_app_tier_deployment ? (
                                                                             false) : (
                                                                             var.application_server_use_ppg
-                                                                          ) : false
-                                        app_use_avset                   = var.application_server_count == 0 || var.use_scalesets_for_deployment || length(var.application_server_zones) > 0 || !local.enable_app_tier_deployment ? (
+                                                                          )
+                                        app_use_avset                   = var.application_server_count == 0 || var.use_scalesets_for_deployment || !local.enable_app_tier_deployment ? (
                                                                             false) : (
                                                                             var.application_server_use_avset
                                                                           )
+
                                         avset_arm_ids                   = var.application_server_vm_avset_arm_ids
                                         scs_server_count                = local.enable_app_tier_deployment ? (
                                                                             max(var.scs_server_count, try(var.application_tier.scs_server_count, 0))
@@ -200,16 +210,21 @@ locals {
                                                                             false) : (
                                                                             var.scs_server_use_ppg
                                                                           ) : false
-                                        scs_use_avset                   = var.scs_server_count == 0 || var.use_scalesets_for_deployment || length(var.scs_server_zones) > 0 || !local.enable_app_tier_deployment ? (
+                                        scs_use_avset                   = var.scs_server_count == 0 || var.use_scalesets_for_deployment || !local.enable_app_tier_deployment ? (
                                                                             false) : (
                                                                             var.scs_server_use_avset
                                                                           )
+                                        scs_cluster_disk_lun            = var.scs_cluster_disk_lun
+                                        scs_cluster_disk_size           = var.scs_cluster_disk_size
+                                        scs_cluster_disk_type           = var.scs_cluster_disk_type
+
                                         webdispatcher_count             = local.enable_app_tier_deployment ? (
                                                                             max(var.webdispatcher_server_count, try(var.application_tier.webdispatcher_count, 0))
                                                                             ) : (
                                                                             0
                                                                           )
                                         web_instance_number             = var.web_instance_number
+                                        web_sid                         = upper(var.web_sid)
                                         web_sku                         = try(coalesce(var.webdispatcher_server_sku, var.application_tier.web_sku), "")
                                         web_use_ppg                     = (var.webdispatcher_server_count) > 0 ? var.use_scalesets_for_deployment ? (
                                                                             false) : (
@@ -219,6 +234,7 @@ locals {
                                                                             false) : (
                                                                             var.webdispatcher_server_use_avset
                                                                           )
+
                                         deploy_v1_monitoring_extension  = var.deploy_v1_monitoring_extension
                                         user_assigned_identity_id       = var.user_assigned_identity_id
                                       }
@@ -379,6 +395,25 @@ locals {
                                            length(try(var.infrastructure.vnets.sap.subnet_web.nsg.arm_id, ""))
                                          ) > 0
 
+  subnet_storage_defined                 = (
+                                           length(var.storage_subnet_address_prefix) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.prefix, "")) +
+                                           length(var.storage_subnet_arm_id) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.arm_id, ""))
+                                         ) > 0
+
+  subnet_storage_arm_id_defined          = (
+                                           length(var.storage_subnet_arm_id) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.arm_id, ""))
+                                         ) > 0
+
+  subnet_storage_nsg_defined             = (
+                                           length(var.storage_subnet_nsg_name) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.nsg.name, "")) +
+                                           length(var.storage_subnet_nsg_arm_id) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.nsg.arm_id, ""))
+                                         ) > 0
+
   app_nic_ips                          = distinct(concat(var.application_server_app_nic_ips, try(var.application_tier.app_nic_ips, [])))
   app_nic_secondary_ips                = distinct(var.application_server_app_nic_ips)
   app_admin_nic_ips                    = distinct(concat(var.application_server_admin_nic_ips, try(var.application_tier.app_admin_nic_ips, [])))
@@ -502,6 +537,34 @@ locals {
                                            )
                                          )
 
+  subnet_storage                           = merge(
+                                           (
+                                             {
+                                               "name" = try(var.infrastructure.vnets.sap.subnet_storage.name, var.storage_subnet_name)
+                                             }
+                                             ), (
+                                             local.subnet_storage_arm_id_defined ? (
+                                               {
+                                                 "arm_id" = try(var.infrastructure.vnets.sap.subnet_storage.arm_id, var.storage_subnet_arm_id)
+                                               }
+                                               ) : (
+                                               null
+                                             )), (
+                                             {
+                                               "prefix" = try(var.infrastructure.vnets.sap.subnet_storage.prefix, var.storage_subnet_address_prefix)
+                                             }
+                                             ), (
+                                             local.subnet_storage_nsg_defined ? (
+                                               {
+                                                 "nsg" = {
+                                                           "name"   = try(var.infrastructure.vnets.sap.subnet_storage.nsg.name, var.storage_subnet_nsg_name)
+                                                           "arm_id" = try(var.infrastructure.vnets.sap.subnet_storage.nsg.arm_id, var.storage_subnet_nsg_arm_id)
+                                                         }
+                                               }
+                                             ) : null
+                                           )
+                                         )
+
   all_subnets                          = merge(local.sap, (
                                           local.subnet_admin_defined ? (
                                             {
@@ -531,6 +594,14 @@ locals {
                                             ) : (
                                             null
                                           )
+                                          ), (
+                                            local.subnet_storage_defined ? (
+                                              {
+                                                "subnet_storage" = local.subnet_storage
+                                              }
+                                            ): (
+                                              null
+                                            )
                                           )
                                         )
 
@@ -565,7 +636,7 @@ locals {
 
   infrastructure                       = merge(local.temp_infrastructure, (
                                            local.resource_group_defined ? { resource_group = local.resource_group } : null), (
-                                           local.app_ppg_defined        ? { ppg = local.app_ppg } : null), (
+                                           local.app_ppg_defined        ? { app_ppg = local.app_ppg } : null), (
                                            local.ppg_defined            ? { ppg = local.ppg } : null), (
                                            local.deploy_anchor_vm       ? { anchor_vms = local.anchor_vms } : null),
                                            { vnets = local.temp_vnet }
@@ -589,21 +660,28 @@ locals {
                                            length(local.web_nic_ips) > 0                          ? { web_nic_ips = local.web_nic_ips } : null), (
                                            length(var.webdispatcher_server_nic_secondary_ips) > 0 ? { web_nic_secondary_ips = var.webdispatcher_server_nic_secondary_ips } : null), (
                                            length(local.web_admin_nic_ips) > 0                    ? { web_admin_nic_ips = local.web_admin_nic_ips } : null), (
-                                           length(local.webdispatcher_loadbalancer_ips) > 0                           ? { webdispatcher_loadbalancer_ips = local.webdispatcher_loadbalancer_ips } : null), (
+                                           length(local.webdispatcher_loadbalancer_ips) > 0       ? { webdispatcher_loadbalancer_ips = local.webdispatcher_loadbalancer_ips } : null), (
                                            length(local.app_tags) > 0                             ? { app_tags = local.app_tags } : { app_tags = local.app_tags }), (
                                            length(local.scs_tags) > 0                             ? { scs_tags = local.scs_tags } : { scs_tags = local.scs_tags }), (
-                                           length(local.web_tags) > 0                             ? { web_tags = local.web_tags } : { web_tags = local.web_tags }
+                                           length(local.web_tags) > 0                             ? { web_tags = local.web_tags } : { web_tags = local.web_tags }), (
+                                           var.use_fence_kdump && var.scs_high_availability       ? { fence_kdump_disk_size = var.use_fence_kdump_size_gb_scs } : { fence_kdump_disk_size = 0 } ), (
+                                           var.use_fence_kdump && var.scs_high_availability       ? { fence_kdump_lun_number = var.use_fence_kdump_lun_scs } : { fence_kdump_lun_number = -1 }
                                            )
                                          )
 
   database                             = merge(
                                             local.databases_temp,
-                                           (local.db_os_specified                ? { os             = local.db_os }                           : null),
-                                           (local.db_authentication_defined      ? { authentication = local.db_authentication }               : null),
-                                           (local.db_avset_arm_ids_defined       ? { avset_arm_ids  = local.avset_arm_ids }                   : null),
-                                           (length(local.frontend_ips)      > 0  ? { loadbalancer   = { frontend_ips = local.frontend_ips } } : { loadbalancer = { frontend_ips = [] } }),
-                                           (length(local.db_tags)           > 0  ? { tags           = local.db_tags }                         : null),
-                                           (local.db_sid_specified               ? { instance       = local.instance }                        : null)
+                                           (local.db_os_specified                                 ? { os             = local.db_os }                           : null),
+                                           (local.db_authentication_defined                       ? { authentication = local.db_authentication }               : null),
+                                           (local.db_avset_arm_ids_defined                        ? { avset_arm_ids  = local.avset_arm_ids }                   : null),
+                                           (length(local.frontend_ips)      > 0                   ? { loadbalancer   = { frontend_ips = local.frontend_ips } } : { loadbalancer = { frontend_ips = [] } }),
+                                           (length(local.db_tags)           > 0                   ? { tags           = local.db_tags }                         : null),
+                                           (local.db_sid_specified                                ? { instance       = local.instance }                        : null), (
+                                           ( var.use_fence_kdump &&
+                                             var.database_high_availability )                     ? { fence_kdump_disk_size = var.use_fence_kdump_size_gb_db } : { fence_kdump_disk_size = 0 } ), (
+                                           ( var.use_fence_kdump &&
+                                             var.database_high_availability )                     ? { fence_kdump_lun_number = var.use_fence_kdump_lun_db } : { fence_kdump_lun_number = -1 }
+                                           )
                                          )
 
 
@@ -634,5 +712,45 @@ locals {
                                              disk_encryption_set_id = local.disk_encryption_set_id
                                            }
                                          ) : null))
+
+  hana_ANF_volumes                     = {
+                                            use_for_data                       = var.ANF_HANA_data
+                                            data_volume_size                   = var.ANF_HANA_data_volume_size
+                                            use_existing_data_volume           = var.ANF_HANA_data_use_existing_volume
+                                            data_volume_name                   = var.ANF_HANA_data_volume_name
+                                            data_volume_throughput             = var.ANF_HANA_data_volume_throughput
+                                            data_volume_count                  = var.ANF_HANA_data_volume_count
+
+                                            use_for_log                        = var.ANF_HANA_log
+                                            log_volume_size                    = var.ANF_HANA_log_volume_size
+                                            use_existing_log_volume            = var.ANF_HANA_log_use_existing
+                                            log_volume_name                    = var.ANF_HANA_log_volume_name
+                                            log_volume_throughput              = var.ANF_HANA_log_volume_throughput
+                                            log_volume_count                   = var.ANF_HANA_log_volume_count
+
+                                            use_for_shared                     = var.ANF_HANA_shared
+                                            shared_volume_size                 = var.ANF_HANA_shared_volume_size
+                                            use_existing_shared_volume         = var.ANF_HANA_shared_use_existing
+                                            shared_volume_name                 = var.ANF_HANA_shared_volume_name
+                                            shared_volume_throughput           = var.ANF_HANA_shared_volume_throughput
+
+                                            use_for_usr_sap                    = var.ANF_usr_sap
+                                            usr_sap_volume_size                = var.ANF_usr_sap_volume_size
+                                            use_existing_usr_sap_volume        = var.ANF_usr_sap_use_existing
+                                            usr_sap_volume_name                = var.ANF_usr_sap_volume_name
+                                            usr_sap_volume_throughput          = var.ANF_usr_sap_throughput
+
+                                            sapmnt_volume_size                 = var.sapmnt_volume_size
+                                            use_for_sapmnt                     = var.ANF_sapmnt
+                                            use_existing_sapmnt_volume         = var.ANF_sapmnt_use_existing
+                                            sapmnt_volume_name                 = var.ANF_sapmnt_volume_name
+                                            sapmnt_volume_throughput           = var.ANF_sapmnt_volume_throughput
+                                            sapmnt_use_clone_in_secondary_zone = var.ANF_sapmnt_use_clone_in_secondary_zone
+
+                                            use_AVG_for_data                   = var.ANF_HANA_use_AVG
+                                            use_zones                          = var.ANF_HANA_use_Zones
+
+                                          }
+
 
 }

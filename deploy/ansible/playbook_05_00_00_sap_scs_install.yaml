@@ -29,6 +29,14 @@
         path:                          "{{ _workspace_directory }}/.progress/ers-install-done"
         state:                          absent
 
+    - name:                            "SCS Installation Playbook: - Ensure passlib is installed on the controller"
+      become:                          true
+      become_user:                     root
+      ansible.builtin.pip:
+        name:                          passlib
+        state:                         present
+      tags:
+        - always
 
     - name:                            "SCS Installation Playbook: - Set scs fact"
       ansible.builtin.set_fact:
@@ -196,6 +204,9 @@
 #
 # -------------------------------------+---------------------------------------8
     - name:                            "SCS Installation Playbook: - Standalone SCS Setup"
+      when:
+        - not scs_high_availability
+        - "'scs' in supported_tiers"
       block:
         - name:                        "SCS Installation Playbook: Define this SID"
           ansible.builtin.set_fact:
@@ -387,11 +398,6 @@
                     - ansible_os_family == "Windows"
               tags:
                 - 5.0.0-scs-install
-
-      when:
-        - not scs_high_availability
-        - "'scs' in supported_tiers"
-
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
@@ -588,6 +594,7 @@
               when:
                 - scs_installation.stdout_lines is defined
                 - scs_installation.rc is defined
+                - scs_installation.rc > 0
                 - '"ERROR" in item'
 
             - name:                    "SCS HA Installation Playbook: - Show errors from SCS installation"
@@ -603,8 +610,8 @@
               when:
                 - ers_installation.stdout_lines is defined
                 - ers_installation.rc is defined
-                - '"ERROR" in item'
                 - ers_installation.rc > 0
+                - '"ERROR" in item'
 
             - name:                    "SCS HA Installation Playbook: - Show errors from ERS installation"
               ansible.builtin.debug:

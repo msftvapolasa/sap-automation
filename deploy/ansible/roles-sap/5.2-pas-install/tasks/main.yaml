@@ -21,24 +21,33 @@
   with_items:
     - "{{ query('inventory_hostnames', '{{ sap_sid | upper }}_DB') }}"
 
-- name:                            "Backward Compatibility - Check required Database HA variables"
+- name:                                "Backward Compatibility - Check required Database HA variables"
   ansible.builtin.set_fact:
-    database_high_availability:    "{{ db_high_availability | default(false) }}"
+    database_high_availability:        "{{ db_high_availability | default(false) }}"
   when:
     - db_high_availability is defined
     - database_high_availability is not defined
+
+- name:                                "PAS Install: Calculate virtual host name when running scale out"
+  ansible.builtin.set_fact:
+    db_virtualhost_temp:  >-
+                                       {%- set _host_name = hostvars[db_server_temp | first]['virtual_host'] -%}
+                                       {%- if db_scale_out and not database_high_availability -%}
+                                       {%-  set _host_name = sap_sid | lower ~ db_sid | lower ~ 'db' ~ db_instance_number ~ 'so' -%}
+                                       {%- endif -%}
+                                       {{- _host_name -}}
 
 - name:                                "PAS Install: Set BOM facts"
   ansible.builtin.set_fact:
     sap_inifile:                       "{{ bom_base_name }}-pas-{{ sid_to_be_deployed.sid | lower }}-{{ ansible_hostname }}.params"
     sap_inifile_template:              "{{ bom_base_name }}{{ bom_suffix }}-pas-inifile-param.j2"
     dir_params:                        "{{ tmp_directory }}/.{{ sid_to_be_deployed.sid | lower }}-params"
-    db_lb_virtual_host_HANA:           "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl.{{ sap_fqdn }}{% else %}{{ hostvars[db_server_temp | first]['virtual_host'] }}{% endif %}"
+    db_lb_virtual_host_HANA:           "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl.{{ sap_fqdn }}{% else %}{{ db_virtualhost_temp | default(hostvars[db_server_temp | first]['virtual_host'], true) }}{% endif %}"
     db_lb_virtual_host_AnyDB:          "{% if database_high_availability %}{{ sid_to_be_deployed.sid | lower }}{{ db_sid | lower }}db{{ db_instance_number }}cl.{{ sap_fqdn }}{% else %}{{ db_server_temp }}{% endif %}"
 
 - name:                                "PAS Install: Set BOM facts db host"
   ansible.builtin.set_fact:
-    db_lb_virtual_host:                "{% if platform == 'HANA' %}{{ db_lb_virtual_host_HANA }}{% else %}{{ db_lb_virtual_host_AnyDB }}{% endif %}"
+    db_lb_virtual_host:                "{% if platform == 'HANA' %}{{ custom_db_virtual_hostname | default(db_lb_virtual_host_HANA, true) }}{% else %}{{ custom_db_virtual_hostname | default(db_lb_virtual_host_AnyDB, true) }}{% endif %}"
 
 - name:                                "PAS Install: -  Create directories"
   ansible.builtin.file:
@@ -120,21 +129,12 @@
     - platform == "HANA"
     - db_port_open.msg is defined
 
-- name:                                "PAS Install: Set schema_name variable for HANA"
-  when: platform == "HANA"
-  block:
-    - name:                            "PAS Install: Get DEFAULT.PFL"
-      ansible.builtin.slurp:
-        src:                           "/sapmnt/{{ sap_sid | upper }}/profile/DEFAULT.PFL"
-      register: profilefile
-
-    - name:                            "PAS Install: Get schema name"
-      ansible.builtin.set_fact:
-        schema_name:                   "{{ profilefile['content'] | b64decode | split('\n') | select('search', 'dbs/hdb/schema') | first | split('=') | last | trim | default('{{ hana_schema }}') }}"
-
-    - name:                            "PAS Install: Show schema name"
-      ansible.builtin.debug:
-        msg:                           "Schema name {{ schema_name }}"
+- name:                               "PAS Install: Set Schema Name"
+  when:
+    - platform == "HANA"
+  ansible.builtin.include_role:
+    name:                             "roles-db/4.0.4-hdb-schema"
+    public:                           true
 
 - name:                                "PAS Install"
   block:
@@ -247,7 +247,7 @@
       block:
         - name:                            "PAS Install: Get hdbuserstore path"
           ansible.builtin.find:
-            paths:                         "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64/hdbclient/"
+            paths:                         "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64/hdbclient/,/usr/sap/{{ sid_to_be_deployed.sid }}/hdbclient"
             file_type:                     file
             patterns:                      'hdbuserstore'
             recurse:                       true
@@ -276,6 +276,21 @@
           become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
           ansible.builtin.shell: |
                                            {{ hdbuserstore_path }} -H {{ pas_virtual_hostname }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}
+          environment:
+            SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
+            ssfs_connect:                  "1"
+          register:                        hdbuserstore
+          vars:
+            allow_world_readable_tmpfiles: true
+          when:
+            - database_high_availability
+            - platform == 'HANA'
+
+        - name:                            "PAS Install: Set DB Virtual Host name ({{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }})"
+          become:                          true
+          become_user:                     "{{ sid_to_be_deployed.sid | lower }}adm"
+          ansible.builtin.shell: |
+                                           {{ hdbuserstore_path }} SET DEFAULT {{ custom_db_virtual_hostname | default(db_lb_virtual_host, true) }}:3{{ db_instance_number }}13@{{ db_sid | upper }} {{ schema_name }} {{ main_password }}
           environment:
             SAPSYSTEMNAME:                 "{{ sid_to_be_deployed.sid | upper }}"
             ssfs_connect:                  "1"
@@ -437,7 +452,7 @@
 
     - name:                            "PAS Install: Get hdbuserstore path"
       ansible.builtin.find:
-        paths:                         "/usr/sap/{{ sap_sid | upper }}"
+        paths:                         "/usr/sap/{{ sid_to_be_deployed.sid | upper }}/SYS/exe/uc/linuxx86_64/hdbclient/,/usr/sap/{{ sid_to_be_deployed.sid }}/hdbclient"
         file_type:                     file
         patterns:                      'hdbuserstore'
         recurse:                       true
@@ -452,7 +467,7 @@
       when:
         - database_high_availability
         - platform == 'HANA'
-        - hdbuserstore_file | length > 0
+        - hdbuserstore_file.matched > 0
 
     - name:                            "PAS Install: show hdbuserstore path"
       ansible.builtin.debug:

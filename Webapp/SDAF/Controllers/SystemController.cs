@@ -3,11 +3,13 @@ using AutomationForm.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,7 +22,7 @@ namespace AutomationForm.Controllers
     private readonly ITableStorageService<AppFile> _appFileService;
     private FormViewModel<SystemModel> systemView;
     private readonly IConfiguration _configuration;
-    private RestHelper restHelper;
+    private readonly RestHelper restHelper;
 
     private ImageDropdown[] imagesOffered;
     private List<SelectListItem> imageOptions;
@@ -87,7 +89,15 @@ namespace AutomationForm.Controllers
       if (id == null || partitionKey == null) throw new ArgumentNullException();
       var systemEntity = await _systemService.GetByIdAsync(id, partitionKey);
       if (systemEntity == null || systemEntity.System == null) throw new KeyNotFoundException();
-      SystemModel s = JsonConvert.DeserializeObject<SystemModel>(systemEntity.System);
+      SystemModel s = null;
+      try
+      {
+        s = JsonConvert.DeserializeObject<SystemModel>(systemEntity.System);
+      }
+      catch
+      {
+
+      }
       AppFile file = null;
       try
       {
@@ -104,6 +114,7 @@ namespace AutomationForm.Controllers
       {
         file = await _appFileService.GetByIdAsync(id + "_custom_sizes.json", partitionKey);
         s.custom_disk_sizes_filename = id + "_custom_sizes.json";
+        s.database_size = "Custom";
       }
       catch
       {
@@ -257,6 +268,7 @@ namespace AutomationForm.Controllers
           var stream = new MemoryStream(file.Content);
 
           system.custom_disk_sizes_filename = id + "_custom_sizes.json";
+          system.database_size = "Custom";
 
           string thisContent = System.Text.Encoding.UTF8.GetString(stream.ToArray());
           string pathForNaming = $"/SYSTEM/{id}/{id}_custom_sizes.json";
@@ -419,7 +431,36 @@ namespace AutomationForm.Controllers
           if (system.Id == null) system.Id = newId;
           if (newId != system.Id)
           {
-            return SubmitNewAsync(system).Result;
+            if (String.IsNullOrEmpty(system.Description))
+            {
+              if ((bool)system.database_high_availability || (bool)system.scs_high_availability)
+              {
+                system.Description = system.database_platform + " high availability system on " + system.scs_server_image.publisher + " " + system.scs_server_image.offer + " " + system.scs_server_image.sku;
+              }
+              else
+              {
+                system.Description = system.database_platform + " distributed system on " + system.scs_server_image.publisher + " " + system.scs_server_image.offer + " " + system.scs_server_image.sku;
+              }
+            }
+            await SubmitNewAsync(system);
+            string id = system.Id;
+            string path = $"/SYSTEM/{id}/{id}.tfvars";
+            string content = Helper.ConvertToTerraform(system);
+            byte[] bytes = Encoding.UTF8.GetBytes(content);
+
+            AppFile file = new()
+            {
+              Id = WebUtility.HtmlEncode(path),
+              Content = bytes,
+              UntrustedName = path,
+              Size = bytes.Length,
+              UploadDT = DateTime.UtcNow
+            };
+
+            await _systemService.CreateTFVarsAsync(file);
+            return RedirectToAction("Edit", "System", new { @id = system.Id, @partitionKey = system.environment });  //RedirectToAction("Index");
+
+
           }
           else
           {
@@ -427,9 +468,35 @@ namespace AutomationForm.Controllers
             {
               await UnsetDefault(system.Id);
             }
+            if (String.IsNullOrEmpty(system.Description))
+            {
+              if ((bool)system.database_high_availability || (bool)system.scs_high_availability)
+              {
+                system.Description = system.database_platform + " high availability system on " + system.scs_server_image.publisher + " " + system.scs_server_image.offer + " " + system.scs_server_image.sku;
+              }
+              else
+              {
+                system.Description = system.database_platform + " distributed system on " + system.scs_server_image.publisher + " " + system.scs_server_image.offer + " " + system.scs_server_image.sku;
+              }
+            }
             await _systemService.UpdateAsync(new SystemEntity(system));
             TempData["success"] = "Successfully updated system " + system.Id;
-            return RedirectToAction("Index");
+            string id = system.Id;
+            string path = $"/SYSTEM/{id}/{id}.tfvars";
+            string content = Helper.ConvertToTerraform(system);
+            byte[] bytes = Encoding.UTF8.GetBytes(content);
+
+            AppFile file = new()
+            {
+              Id = WebUtility.HtmlEncode(path),
+              Content = bytes,
+              UntrustedName = path,
+              Size = bytes.Length,
+              UploadDT = DateTime.UtcNow
+            };
+
+            await _systemService.CreateTFVarsAsync(file);
+            return RedirectToAction("Edit", "System", new { @id = system.Id, @partitionKey = system.environment });  //RedirectToAction("Index");
           }
         }
         catch (Exception e)

@@ -1,5 +1,12 @@
 #######################################4#######################################8
 #                                                                              #
+# This file contains the output variables for the SAP landscape module         #
+#                                                                              #
+#######################################4#######################################8
+
+
+#######################################4#######################################8
+#                                                                              #
 #                             Resource Group                                   #
 #                                                                              #
 #######################################4#######################################8
@@ -96,6 +103,15 @@ output "web_subnet_id"                          {
                                                                  )
                                                 }
 
+output "storage_subnet_id"                      {
+                                                  description = "Azure resource identifier for the storage subnet"
+                                                  value       = local.storage_subnet_defined ? (
+                                                                  local.storage_subnet_existing ? (
+                                                                    var.infrastructure.vnets.sap.subnet_storage.arm_id) : (
+                                                                    try(azurerm_subnet.storage[0].id, ""))) : (
+                                                                  ""
+                                                                 )
+                                                }
 
 output "anf_subnet_id"                          {
                                                   description = "Azure resource identifier for the anf subnet"
@@ -105,6 +121,16 @@ output "anf_subnet_id"                          {
                                                                     try(azurerm_subnet.anf[0].id, ""))) : (
                                                                   ""
                                                                 )
+                                                }
+
+output "ams_subnet_id"                          {
+                                                  description = "Azure resource identifier for the ams subnet"
+                                                  value       = local.ams_subnet_defined ? (
+                                                                  local.ams_subnet_existing ? (
+                                                                    var.infrastructure.vnets.sap.subnet_ams.arm_id) : (
+                                                                    try(azurerm_subnet.ams[0].id, ""))) : (
+                                                                  ""
+                                                                  )
                                                 }
 
 output "admin_nsg_id"                           {
@@ -143,6 +169,16 @@ output "web_nsg_id"                             {
                                                                   local.web_subnet_nsg_exists ? (
                                                                     var.infrastructure.vnets.sap.subnet_web.nsg.arm_id) : (
                                                                     try(azurerm_network_security_group.web[0].id, ""))) : (
+                                                                  ""
+                                                                )
+                                                }
+
+output "storage_nsg_id"                         {
+                                                  description = "Azure resource identifier for the storage subnet network security group"
+                                                  value       = local.storage_subnet_defined ? (
+                                                                  local.storage_subnet_nsg_exists ? (
+                                                                    var.infrastructure.vnets.sap.subnet_storage.nsg.arm_id) : (
+                                                                    try(azurerm_network_security_group.storage[0].id, ""))) : (
                                                                   ""
                                                                 )
                                                 }
@@ -301,6 +337,8 @@ output "ANF_pool_settings"                      {
                                                                        var.ANF_settings.pool_name
                                                                      )
 
+                                                                     qos_type = var.ANF_settings.qos_type
+
                                                                      service_level = var.ANF_settings.use_existing_pool ? (
                                                                        data.azurerm_netapp_pool.workload_netapp_pool[0].service_level
                                                                        ) : (
@@ -353,7 +391,9 @@ output "saptransport_path"                     {
                                                  description = "Path to the SAP transport volume"
                                                  value       = var.create_transport_storage && var.NFS_provider == "AFS" ? (
                                                               length(var.transport_private_endpoint_id) == 0 ? (
-                                                                format("%s:/%s/%s", try(azurerm_private_endpoint.transport[0].private_dns_zone_configs[0].record_sets[0].fqdn,
+                                                                var.use_private_endpoint ?
+                                                                (
+                                                                  format("%s:/%s/%s", try(azurerm_private_endpoint.transport[0].private_dns_zone_configs[0].record_sets[0].fqdn,
                                                                   try(azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address, "")),
                                                                   length(var.transport_storage_account_id) > 0 ? split("/", var.transport_storage_account_id)[8] : replace(
                                                                     lower(
@@ -362,7 +402,18 @@ output "saptransport_path"                     {
                                                                     "/[^a-z0-9]/",
                                                                   ""),
                                                                   local.resource_suffixes.transport_volume
-                                                                )) : (
+                                                                )) :
+                                                                (
+                                                                  format("%s.file.core.windows.net:/%s/%s", local.landscape_shared_transport_storage_account_name,
+                                                                  length(var.transport_storage_account_id) > 0 ? split("/", var.transport_storage_account_id)[8] : replace(
+                                                                    lower(
+                                                                      format("%s", local.landscape_shared_transport_storage_account_name)
+                                                                    ),
+                                                                    "/[^a-z0-9]/",
+                                                                  ""),
+                                                                  local.resource_suffixes.transport_volume
+                                                                ))
+                                                                ) : (
                                                                 format("%s:/%s/%s", trimsuffix(data.azurerm_private_dns_a_record.transport[0].fqdn, "."),
                                                                   length(var.transport_storage_account_id) > 0 ? split("/", var.transport_storage_account_id)[8] : replace(
                                                                     lower(
@@ -392,8 +443,9 @@ output "saptransport_path"                     {
 
 output "install_path"                           {
                                                  description = "Path to the SAP installation volume"
-                                                 value       = try(local.use_AFS_for_install ? (
+                                                 value       = local.use_AFS_for_shared ? (
                                                                  length(var.install_private_endpoint_id) == 0 ? (
+                                                                   var.use_private_endpoint ?
                                                                    format("%s:/%s/%s", try(azurerm_private_endpoint.install[0].private_dns_zone_configs[0].record_sets[0].fqdn,
                                                                      try(azurerm_private_endpoint.install[0].private_service_connection[0].private_ip_address, "")),
                                                                      length(var.install_storage_account_id) > 0 ? split("/", var.install_storage_account_id)[8] : replace(
@@ -404,8 +456,19 @@ output "install_path"                           {
                                                                        ""
                                                                      ),
                                                                      local.resource_suffixes.install_volume
-                                                                   )
-                                                                   ) : (
+                                                                     ) : (
+                                                                     format("%s.file.core.windows.net:/%s/%s", local.landscape_shared_install_storage_account_name,
+                                                                       length(var.install_storage_account_id) > 0 ? split("/", var.install_storage_account_id)[8] : replace(
+                                                                         lower(
+                                                                           format("%s", local.landscape_shared_install_storage_account_name)
+                                                                         ),
+                                                                         "/[^a-z0-9]/",
+                                                                         ""
+                                                                       ),
+                                                                       local.resource_suffixes.install_volume
+                                                                     )
+
+                                                                   )) : (
                                                                    format("%s:/%s/%s",
                                                                      trimsuffix(data.azurerm_private_dns_a_record.install[0].fqdn, "."),
                                                                      length(var.install_storage_account_id) > 0 ? split("/", var.install_storage_account_id)[8] : replace(
@@ -416,7 +479,8 @@ output "install_path"                           {
                                                                        ""
                                                                      ),
                                                                    local.resource_suffixes.install_volume)
-                                                                 )) : (
+                                                                 )
+                                                                 ) : (
                                                                  var.NFS_provider == "ANF" ? (
                                                                    format("%s:/%s",
                                                                      var.ANF_settings.use_existing_install_volume ? (
@@ -429,9 +493,8 @@ output "install_path"                           {
                                                                      )
                                                                    )
                                                                    ) : (
-                                                                   ""
-                                                                 )
-                                                               ), "")
+                                                                 "")
+                                                               )
                                                 }
 
 ###############################################################################
@@ -477,4 +540,26 @@ output "iSCSI_servers"                          {
                                                           ])) : (
                                                             []
                                                           )
+                                                }
+
+###############################################################################
+#                                                                             #
+#                            AMS resource properties                          #
+#                                                                             #
+###############################################################################
+
+output "ams_resource_id"                        {
+                                                  description = "Azure resource identifier for the AMS resource"
+                                                  value       = local.create_ams_instance ? azapi_resource.ams_instance[0].id : ""
+                                                }
+
+###############################################################################
+#                                                                             #
+#                        NAT Gateway resource properties                      #
+#                                                                             #
+###############################################################################
+
+output "ng_resource_id"                        {
+                                                  description = "Azure resource identifier for the NAT Gateway"
+                                                  value       = local.create_nat_gateway ? azurerm_nat_gateway.ng[0].id : ""
                                                 }

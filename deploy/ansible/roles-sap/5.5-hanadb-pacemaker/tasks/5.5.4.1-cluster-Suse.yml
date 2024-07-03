@@ -15,7 +15,6 @@
                                          (database_cluster_type == "ISCSI")
       ansible.builtin.command: >
                                        crm configure property \$id="cib-bootstrap-options"
-                                         no-quorum-policy="ignore"
                                          stonith-enabled="true"
                                          stonith-action="reboot"
                                          stonith-timeout="144s"
@@ -24,7 +23,6 @@
       when:                            database_cluster_type not in ["ISCSI", "ASD"]
       ansible.builtin.command: >
                                        crm configure property \$id="cib-bootstrap-options"
-                                         no-quorum-policy="ignore"
                                          stonith-enabled="true"
                                          stonith-action="reboot"
                                          stonith-timeout="900s"
@@ -86,13 +84,16 @@
       register:                        sap_hana_msl
       failed_when:                     sap_hana_msl.rc > 1
 
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Set priority for SAP HANA ms resource"
+      ansible.builtin.shell:           crm resource meta msl_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }} set priority 100
+
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure SAP HANA Virtual IP resource is configured"
       ansible.builtin.shell: >
                                        crm configure primitive rsc_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }} ocf:heartbeat:IPaddr2
                                        meta target-role="Started"
                                        operations \$id="rsc_ip_{{ db_sid | upper }}_HDB{{ db_instance_number }}-operations"
                                        op monitor interval="10s" timeout="20s"
-                                       params ip="{{ db_lb_ip }}"
+                                       params ip="{{ database_loadbalancer_ip }}"
       register:                        sap_hana_rsc_ip
       failed_when:                     sap_hana_rsc_ip.rc > 1
     # socat is recommended in place of netcat on Azure: https://www.suse.com/support/kb/doc/?id=000019536
@@ -138,8 +139,18 @@
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure any required cluster resources are cleaned up"
       ansible.builtin.command:         "crm resource cleanup rsc_SAPHana_{{ db_sid | upper }}_HDB{{ db_instance_number }}"
 
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - cleanup cluster resources"
+      ansible.builtin.command:         "crm resource cleanup"
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Set the priority fencing delay"
+      ansible.builtin.shell:           crm configure property priority-fencing-delay=30
+
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure maintenance mode is disabled"
       ansible.builtin.command:         crm configure property maintenance-mode=false
+
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Wait for a few minutes for the cluster to stabilize"
+      ansible.builtin.wait_for:
+        timeout:                       120
 
   when:                                inventory_hostname == primary_instance_name
 

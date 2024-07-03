@@ -59,7 +59,7 @@ output "deployer_id" {
 // Details of the user assigned identity for deployer(s)
 output "deployer_uai" {
   description                          = "Deployer User Assigned Identity"
-  value                                = azurerm_user_assigned_identity.deployer
+  value                                = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0] : data.azurerm_user_assigned_identity.deployer[0]
 }
 
 output "deployer_public_ip_address" {
@@ -77,7 +77,10 @@ output "deployer_system_assigned_identity" {
   value                                = azurerm_linux_virtual_machine.deployer[*].identity[0].principal_id
 }
 
-
+output "deployer_user_assigned_identity" {
+  description                          = "Deployer System Assigned Identity"
+  value                                = length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].principal_id : azurerm_user_assigned_identity.deployer[0].principal_id
+}
 ###############################################################################
 #                                                                             #
 #                                  Network                                    #

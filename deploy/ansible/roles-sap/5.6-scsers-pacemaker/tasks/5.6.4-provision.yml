@@ -15,13 +15,13 @@
   register:                            scs_installed
   when:                                ansible_hostname == primary_instance_name
 
-- name:                                "Wait for SCS check on first node to finish"
-  when:                                ansible_hostname == secondary_instance_name
-  ansible.builtin.set_fact:
-    is_scs_check_complete:             "{{ hostvars[primary_instance_name].scs_installed is defined }}"
-  retries:                             30
-  delay:                               60
-  until:                               is_scs_check_complete
+# - name:                                "Wait for SCS check on first node to finish"
+#   when:                                ansible_hostname == secondary_instance_name
+#   ansible.builtin.set_fact:
+#     is_scs_check_complete:             "{{ hostvars[primary_instance_name].scs_installed is defined }}"
+#   retries:                             30
+#   delay:                               60
+#   until:                               is_scs_check_complete
 
 - name:                                "5.6 SCSERS: ERS Install: check if installed"
   ansible.builtin.stat:
@@ -29,18 +29,23 @@
   register:                            ers_installed
   when:                                ansible_hostname == secondary_instance_name
 
-- name:                                "Wait for ERS check on second node to finish"
-  when:                                ansible_hostname == primary_instance_name
-  ansible.builtin.set_fact:
-    is_ers_check_complete:             "{{ hostvars[secondary_instance_name].ers_installed is defined }}"
-  retries:                             30
-  delay:                               60
-  until:                               is_ers_check_complete
+- name:                                "5.6 SCSERS: SCS HA Install: check if SAP resources are installed"
+  ansible.builtin.stat:
+    path:                              /etc/sap_deployment_automation//{{ sap_sid | upper }}/sap_resources_deployment.txt
+  register:                            sap_resources_installed
+
+# - name:                                "Wait for ERS check on second node to finish"
+#   when:                                ansible_hostname == primary_instance_name
+#   ansible.builtin.set_fact:
+#     is_ers_check_complete:             "{{ hostvars[secondary_instance_name].ers_installed is defined }}"
+#   retries:                             30
+#   delay:                               60
+#   until:                               is_ers_check_complete
 
 - name:                                "5.6 SCSERS: SCS HA Install: check if installed"
   ansible.builtin.set_fact:
-    scs_is_installed:                  "{{ hostvars[primary_instance_name].scs_installed.stat.exists }}"
-    ers_is_installed:                  "{{ hostvars[secondary_instance_name].ers_installed.stat.exists }}"
+    scs_is_installed:                  "{{ hostvars[primary_instance_name].scs_installed.stat.exists | default(false) }}"
+    ers_is_installed:                  "{{ hostvars[secondary_instance_name].ers_installed.stat.exists | default(false) }}"
 
 - name:                                "5.6 SCSERS: Cluster based on OS in VM"
   ansible.builtin.include_tasks:
@@ -90,6 +95,7 @@
 # registered post_[scs/ers] vars are empty not dictionaries
 - name:                                "5.6 SCSERS: Adapt the ASCS/SCS and ERS instance profiles"
   throttle:                            1
+  when:                                not sap_resources_installed.stat.exists
   block:
 
     - name:                            "5.6 SCSERS: SCS cluster group validation"
@@ -131,6 +137,7 @@
             - "5.6.4.2-sap-resources-simplemount"
       when:
         - use_simple_mount
+
     # - name:                            "5.6 SCSERS - SAP resources"
     #   ansible.builtin.include_tasks:
     #     file:                          "5.6.4.2-sap-resources-{{ ansible_os_family }}.yml"

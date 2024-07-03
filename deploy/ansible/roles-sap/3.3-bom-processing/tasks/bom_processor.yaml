@@ -101,11 +101,7 @@
 - name:                                "3.3 BoM Processing: - Set Python version {{ distribution_id }}"
   ansible.builtin.set_fact:
     python_version:                    'python2'
-
-- name:                                "3.3 BoM Processing: - Set Python version {{ distribution_id }}"
-  ansible.builtin.set_fact:
-    python_version:                    'python3'
-  when:                                distribution_id in ['suse15', 'redhat8', 'redhat9', 'sles_sap15']
+  when: (ansible_distribution | lower ~ ansible_distribution_major_version) in ['sles_sap12']
 
 #   04) Download media from bom
 # Loop through BOM media files and download to correct location
@@ -125,7 +121,7 @@
 - name:                                "3.3 BoM Processing: - Download Files on {{ distribution_id }}"
   ansible.builtin.get_url:
     url:                               "{{ sapbits_location_base_path }}/{{ sapbits_bom_files }}/archives/{{ item.archive | string | trim }}\
-                                       {% if sapbits_sas_token is not undefined %}?{{ sapbits_sas_token }}{% endif %}"
+                                       {% if sapbits_sas_token is defined %}?{{ sapbits_sas_token }}{% endif %}"
     dest:                              "{{ target_media_location }}/{% if item.path is undefined %}downloads{% else %}{{ item.path }}{% endif %}/\
                                        {% if item.filename is undefined %}{{ item.archive }}{% else %}{{ item.filename }}{% endif %}"
     mode:                              "{% if item.permissions is undefined %}0644{% else %}{{ item.permissions }}{% endif %}"

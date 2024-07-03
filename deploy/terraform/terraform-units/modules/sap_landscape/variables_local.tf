@@ -50,6 +50,38 @@ locals {
                                                         )
                                                       )
                                                     )
+  // AMS instance
+  create_ams_instance                             = var.infrastructure.ams_instance.create_ams_instance
+  ams_instance_name                               = length(var.infrastructure.ams_instance.name) > 0 ? (
+                                                      var.infrastructure.ams_instance.name) : (
+                                                        format("%s%s%s%s",
+                                                          var.naming.resource_prefixes.vnet_rg,
+                                                          local.prefix,
+                                                          local.resource_suffixes.vnet_rg,
+                                                          local.resource_suffixes.ams_instance
+                                                        )
+                                                      )
+  ams_laws_arm_id                                 = length(var.infrastructure.ams_instance.ams_laws_arm_id) > 0 ? (
+                                                      var.infrastructure.ams_instance.ams_laws_arm_id) : ""
+
+  // NAT Gateway
+  create_nat_gateway                              = var.infrastructure.nat_gateway.create_nat_gateway
+  nat_gateway_name                                = length(var.infrastructure.nat_gateway.name) > 0 ? (
+                                                      var.infrastructure.nat_gateway.name) : (
+                                                      format("%s%s%s",
+                                                        var.naming.resource_prefixes.nat_gateway,
+                                                        local.prefix,
+                                                        local.resource_suffixes.nat_gateway
+                                                      )
+                                                    )
+  nat_gateway_arm_id                              = length(var.infrastructure.nat_gateway.arm_id) > 0 ? (
+                                                      var.infrastructure.nat_gateway.arm_id) : ""
+  nat_gateway_public_ip_arm_id                    = length(var.infrastructure.nat_gateway.public_ip_arm_id) > 0 ? (
+                                                      var.infrastructure.nat_gateway.public_ip_arm_id) : ""
+  nat_gateway_public_ip_zones                     = length(var.infrastructure.nat_gateway.public_ip_zones) > 0 ? (
+                                                      var.infrastructure.nat_gateway.public_ip_zones) : []
+  nat_gateway_idle_timeout_in_minutes             = var.infrastructure.nat_gateway.idle_timeout_in_minutes
+  nat_gateway_public_ip_tags                      = var.infrastructure.nat_gateway.ip_tags
 
   // SAP vnet
   SAP_virtualnetwork_id                           = try(var.infrastructure.vnets.sap.arm_id, "")
@@ -425,6 +457,69 @@ locals {
 
   ##############################################################################################
   #
+  #  storage subnet - Check if locally provided
+  #
+  ##############################################################################################
+
+  storage_subnet_defined                          = (
+                                                      length(try(var.infrastructure.vnets.sap.subnet_storage.arm_id, "")) +
+                                                      length(try(var.infrastructure.vnets.sap.subnet_storage.prefix, ""))
+                                                    ) > 0
+  storage_subnet_arm_id                           = local.storage_subnet_defined ? (
+                                                       try(var.infrastructure.vnets.sap.subnet_storage.arm_id, "")) : (
+                                                       ""
+                                                     )
+  storage_subnet_existing                         = length(local.storage_subnet_arm_id) > 0
+  storage_subnet_name                             = local.storage_subnet_existing ? (
+                                                      try(split("/", local.storage_subnet_arm_id)[10], "")) : (
+                                                      length(try(var.infrastructure.vnets.sap.subnet_storage.name, "")) > 0 ? (
+                                                        var.infrastructure.vnets.sap.subnet_storage.name) : (
+                                                        format("%s%s%s%s",
+                                                          var.naming.resource_prefixes.storage_subnet,
+                                                          length(local.prefix) > 0 ? (
+                                                            local.prefix) : (
+                                                            var.infrastructure.environment
+                                                          ),
+                                                          var.naming.separator,
+                                                          local.resource_suffixes.storage_subnet
+                                                        )
+                                                      )
+                                                    )
+  subnet_cidr_storage                           = local.storage_subnet_defined ? (
+                                                       try(var.infrastructure.vnets.sap.subnet_storage.prefix, "")) : (
+                                                       ""
+                                                     )
+
+  ##############################################################################################
+  #
+  #  storage subnet NSG - Check if locally provided
+  #
+  ##############################################################################################
+
+  storage_subnet_nsg_arm_id                       = local.storage_subnet_defined ? (
+                                                      try(var.infrastructure.vnets.sap.subnet_storage.nsg.arm_id, "")) : (
+                                                      ""
+                                                    )
+  storage_subnet_nsg_exists                       = length(local.storage_subnet_nsg_arm_id) > 0
+
+  storage_subnet_nsg_name                         = local.storage_subnet_nsg_exists ? (
+                                                      try(split("/", local.storage_subnet_nsg_arm_id)[8], "")) : (
+                                                      length(try(var.infrastructure.vnets.sap.subnet_storage.nsg.name, "")) > 0 ? (
+                                                        var.infrastructure.vnets.sap.subnet_storage.nsg.name) : (
+                                                        format("%s%s%s%s",
+                                                          var.naming.resource_prefixes.storage_subnet_nsg,
+                                                          length(local.prefix) > 0 ? (
+                                                            local.prefix) : (
+                                                            var.infrastructure.environment
+                                                          ),
+                                                          var.naming.separator,
+                                                          local.resource_suffixes.storage_subnet_nsg
+                                                        )
+                                                      )
+                                                    )
+
+  ##############################################################################################
+  #
   #  ANF subnet - Check if locally provided
   #
   ##############################################################################################
@@ -456,6 +551,63 @@ locals {
                                                     )
   ANF_subnet_prefix                               = local.ANF_subnet_defined ? (
                                                       try(var.infrastructure.vnets.sap.subnet_anf.prefix, "")) : (
+                                                      ""
+                                                    )
+  ANF_subnet_nsg_arm_id                           = local.ANF_subnet_defined ? (
+                                                       try(var.infrastructure.vnets.sap.subnet_anf.nsg.arm_id, "")) : (
+                                                       ""
+                                                     )
+  ANF_subnet_nsg_exists                           = length(local.ANF_subnet_nsg_arm_id) > 0
+
+  ANF_subnet_nsg_name                             = local.ANF_subnet_nsg_exists ? (
+                                                      try(split("/", local.ANF_subnet_nsg_arm_id)[8], "")) : (
+                                                      length(try(var.infrastructure.vnets.sap.subnet_anf.nsg.name, "")) > 0 ? (
+                                                        var.infrastructure.vnets.sap.subnet_anf.nsg.name) : (
+                                                        format("%s%s%s%s",
+                                                          var.naming.resource_prefixes.anf_subnet_nsg,
+                                                          length(local.prefix) > 0 ? (
+                                                            local.prefix) : (
+                                                            var.infrastructure.environment
+                                                          ),
+                                                          var.naming.separator,
+                                                          local.resource_suffixes.anf_subnet_nsg
+                                                        )
+                                                      )
+                                                    )
+
+  ##############################################################################################
+  #
+  #  AMS subnet - Check if locally provided
+  #
+  ##############################################################################################
+
+
+  ams_subnet_defined                              = (
+                                                      length(try(var.infrastructure.vnets.sap.subnet_ams.arm_id, "")) +
+                                                      length(try(var.infrastructure.vnets.sap.subnet_ams.prefix, ""))
+                                                    ) > 0
+  ams_subnet_arm_id                               = local.ams_subnet_defined ? (
+                                                       try(var.infrastructure.vnets.sap.subnet_ams.arm_id, "")) : (
+                                                       ""
+                                                     )
+  ams_subnet_existing                             = length(local.ams_subnet_arm_id) > 0
+  ams_subnet_name                                 = local.ams_subnet_existing ? (
+                                                      try(split("/", local.ams_subnet_arm_id)[10], "")) : (
+                                                      length(try(var.infrastructure.vnets.sap.subnet_ams.name, "")) > 0 ? (
+                                                        var.infrastructure.vnets.sap.subnet_ams.name) : (
+                                                        format("%s%s%s%s",
+                                                          var.naming.resource_prefixes.ams_subnet,
+                                                          length(local.prefix) > 0 ? (
+                                                            local.prefix) : (
+                                                            var.infrastructure.environment
+                                                          ),
+                                                          var.naming.separator,
+                                                          local.resource_suffixes.ams_subnet
+                                                        )
+                                                      )
+                                                    )
+  ams_subnet_prefix                               = local.ams_subnet_defined ? (
+                                                      try(var.infrastructure.vnets.sap.subnet_ams.prefix, "")) : (
                                                       ""
                                                     )
 
@@ -561,12 +713,13 @@ locals {
   sub_iscsi_prefix                                = local.sub_iscsi_exists ? "" : try(var.infrastructure.vnets.sap.subnet_iscsi.prefix, "")
 
   // iSCSI NSG
-  var_sub_iscsi_nsg                               = try(var.infrastructure.vnets.sap.subnet_iscsi.nsg, {})
-  sub_iscsi_nsg_arm_id                            = try(var.infrastructure.vnets.sap.subnet_iscsi_nsg.arm_id, "")
+  var_sub_iscsi_nsg                               = try(var.infrastructure.vnets.sap.subnet_iscsi.nsg, {arm_id=""})
+  sub_iscsi_nsg_arm_id                            = try(var.infrastructure.vnets.sap.subnet_iscsi.nsg.arm_id, "")
   sub_iscsi_nsg_exists                            = length(local.sub_iscsi_nsg_arm_id) > 0
   sub_iscsi_nsg_name                              = local.sub_iscsi_nsg_exists ? (
                                                       try(split("/", local.sub_iscsi_nsg_arm_id)[8], "")) : (
-                                                      try(var.infrastructure.vnets.sap.subnet_iscsi_nsg.name,
+                                                      length(try(var.infrastructure.vnets.sap.subnet_iscsi.nsg.name, "")) > 0 ? (
+                                                        var.infrastructure.vnets.sap.subnet_iscsi.nsg.name ) : (
                                                         format("%s%s%s%s",
                                                           var.naming.resource_prefixes.iscsi_subnet_nsg,
                                                           length(local.prefix) > 0 ? (
@@ -576,9 +729,7 @@ locals {
                                                           var.naming.separator,
                                                         local.resource_suffixes.iscsi_subnet_nsg)
                                                       )
-
                                                     )
-
 
   input_iscsi_public_key_secret_name              = try(var.key_vault.kv_iscsi_sshkey_pub, "")
   input_iscsi_private_key_secret_name             = try(var.key_vault.kv_iscsi_sshkey_prvt, "")
@@ -654,6 +805,10 @@ locals {
   use_Azure_native_DNS                            = length(var.dns_label) > 0 && !var.use_custom_dns_a_registration && !local.SAP_virtualnetwork_exists
 
 
-  use_AFS_for_install                             = (var.NFS_provider == "ANF" && var.use_AFS_for_installation_media) || var.NFS_provider == "AFS"
+  use_AFS_for_shared                             = (var.NFS_provider == "ANF" && var.use_AFS_for_shared_storage) || var.NFS_provider == "AFS"
+
+
+  deploy_monitoring_extension                    = var.infrastructure.deploy_monitoring_extension && length(try(var.infrastructure.user_assigned_identity_id,"")) > 0
 
 }
+

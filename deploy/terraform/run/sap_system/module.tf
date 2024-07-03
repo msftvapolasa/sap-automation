@@ -19,8 +19,7 @@ module "sap_namegenerator" {
   app_ostype                                    = upper(try(local.application_tier.app_os.os_type, "LINUX"))
   anchor_ostype                                 = upper(try(local.anchor_vms.os.os_type, "LINUX"))
   db_ostype                                     = upper(try(local.database.os.os_type, "LINUX"))
-
-  db_server_count                               = var.database_server_count
+  db_server_count                               = var.database_server_count + var.stand_by_node_count
   app_server_count                              = local.enable_app_tier_deployment ? try(local.application_tier.application_server_count, 0) : 0
   web_server_count                              = local.enable_app_tier_deployment ? try(local.application_tier.webdispatcher_count, 0) : 0
   scs_server_count                              = local.enable_app_tier_deployment ? local.application_tier.scs_high_availability ? (
@@ -55,7 +54,7 @@ module "common_infrastructure" {
                                                     azurerm.main           = azurerm.system
                                                     azurerm.dnsmanagement  = azurerm.dnsmanagement
                                                   }
-  Agent_IP                                      = var.Agent_IP
+  Agent_IP                                      = var.add_Agent_IP ? var.Agent_IP : ""
   application_tier                              = local.application_tier
   application_tier_ppg_names                    = module.sap_namegenerator.naming_new.app_ppg_names
   authentication                                = local.authentication
@@ -95,7 +94,7 @@ module "common_infrastructure" {
   use_private_endpoint                          = var.use_private_endpoint
   use_random_id_for_storageaccounts             = var.use_random_id_for_storageaccounts
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
-  use_service_endpoint                          = var.use_service_endpoint
+  register_endpoints_with_dns                   = var.register_endpoints_with_dns
 }
 
 #-------------------------------------------------------------------------------
@@ -118,13 +117,11 @@ module "hdb_node" {
   cloudinit_growpart_config                     = null # This needs more consideration module.common_infrastructure.cloudinit_growpart_config
   custom_disk_sizes_filename                    = try(coalesce(var.custom_disk_sizes_filename, var.db_disk_sizes_filename), "")
   database                                      = local.database
-  database_cluster_disk_lun                     = var.database_cluster_disk_lun
-  database_cluster_disk_size                    = var.database_cluster_disk_size
   database_dual_nics                            = try(module.common_infrastructure.admin_subnet, null) == null ? false : var.database_dual_nics
   database_server_count                         = upper(try(local.database.platform, "HANA")) == "HANA" ? (
                                                     local.database.high_availability ? (
-                                                      2 * var.database_server_count) : (
-                                                      var.database_server_count
+                                                      2 * (var.database_server_count + var.stand_by_node_count)) : (
+                                                      var.database_server_count + var.stand_by_node_count
                                                     )) : (
                                                     0
                                                   )
@@ -165,6 +162,7 @@ module "hdb_node" {
   use_msi_for_clusters                          = var.use_msi_for_clusters
   use_scalesets_for_deployment                  = var.use_scalesets_for_deployment
   use_secondary_ips                             = var.use_secondary_ips
+  register_endpoints_with_dns                   = var.register_endpoints_with_dns
 }
 
 #########################################################################################
@@ -204,12 +202,11 @@ module "app_tier" {
   order_deployment                              = null
   ppg                                           = var.use_app_proximityplacementgroups ? module.common_infrastructure.app_ppg : module.common_infrastructure.ppg
   register_virtual_network_to_dns               = try(data.terraform_remote_state.landscape.outputs.register_virtual_network_to_dns, true)
+  register_endpoints_with_dns                   = var.register_endpoints_with_dns
   resource_group                                = module.common_infrastructure.resource_group
   route_table_id                                = module.common_infrastructure.route_table_id
   sap_sid                                       = local.sap_sid
   scale_set_id                                  = try(module.common_infrastructure.scale_set_id, null)
-  scs_cluster_disk_lun                          = var.scs_cluster_disk_lun
-  scs_cluster_disk_size                         = var.scs_cluster_disk_size
   sdu_public_key                                = module.common_infrastructure.sdu_public_key
   sid_keyvault_user_id                          = module.common_infrastructure.sid_keyvault_user_id
   sid_password                                  = module.common_infrastructure.sid_password
@@ -253,8 +250,6 @@ module "anydb_node" {
                                                   0) : (
                                                     local.database.high_availability ? 2 * var.database_server_count : var.database_server_count
                                                   )
-  database_cluster_disk_lun                     = var.database_cluster_disk_lun
-  database_cluster_disk_size                    = var.database_cluster_disk_size
   db_asg_id                                     = module.common_infrastructure.db_asg_id
   db_subnet                                     = module.common_infrastructure.db_subnet
   deploy_application_security_groups            = var.deploy_application_security_groups
@@ -274,6 +269,7 @@ module "anydb_node" {
                                                   ) : (null)
   ppg                                           = module.common_infrastructure.ppg
   register_virtual_network_to_dns               = try(data.terraform_remote_state.landscape.outputs.register_virtual_network_to_dns, true)
+  register_endpoints_with_dns                   = var.register_endpoints_with_dns
   resource_group                                = module.common_infrastructure.resource_group
   sap_sid                                       = local.sap_sid
   scale_set_id                                  = try(module.common_infrastructure.scale_set_id, null)
@@ -315,6 +311,7 @@ module "output_files" {
                                                     module.hdb_node.database_shared_disks) : (
                                                     module.anydb_node.database_shared_disks
                                                   )
+  is_use_fence_kdump                            = var.use_fence_kdump
   infrastructure                                = local.infrastructure
   landscape_tfstate                             = data.terraform_remote_state.landscape.outputs
   naming                                        = length(var.name_override_file) > 0 ? (
@@ -343,15 +340,29 @@ module "output_files" {
   database_server_ips                           = upper(try(local.database.platform, "HANA")) == "HANA" ? (module.hdb_node.database_server_ips
                                                   ) : (module.anydb_node.database_server_ips
                                                   )
+  database_server_vm_names                      = upper(try(local.database.platform, "HANA")) == "HANA" ? (
+                                                    module.hdb_node.database_server_vm_names) : (
+                                                    module.anydb_node.database_server_vm_names
+                                                  )
   database_server_secondary_ips                 = upper(try(local.database.platform, "HANA")) == "HANA" ? (module.hdb_node.database_server_secondary_ips
                                                   ) : (module.anydb_node.database_server_secondary_ips
                                                   )
   database_subnet_netmask                       = module.common_infrastructure.db_subnet_netmask
   disks                                         = distinct(compact(concat(module.hdb_node.database_disks,
                                                     module.anydb_node.database_disks,
-                                                    module.app_tier.apptier_disks
+                                                    module.app_tier.apptier_disks,
+                                                    module.hdb_node.database_kdump_disks,
+                                                    module.anydb_node.database_kdump_disks,
+                                                    module.app_tier.scs_kdump_disks
                                                   )))
   loadbalancers                                 = module.hdb_node.loadbalancers
+
+  subnet_cidr_anf                             = module.hdb_node.ANF_subnet_prefix
+  subnet_cidr_app                             = module.app_tier.subnet_cidr_app
+  subnet_cidr_client                          = module.common_infrastructure.subnet_cidr_client
+  subnet_cidr_db                              = module.common_infrastructure.subnet_cidr_db
+  subnet_cidr_storage                         = module.common_infrastructure.subnet_cidr_storage
+
 
   #########################################################################################
   #  SAP Application information                                                          #
@@ -373,6 +384,7 @@ module "output_files" {
   app_tier_os_types                             = module.app_tier.app_tier_os_types
   application_server_ips                        = module.app_tier.application_server_ips
   application_server_secondary_ips              = module.app_tier.application_server_secondary_ips
+  app_vm_names                                  = module.app_tier.app_vm_names
   ers_instance_number                           = var.ers_instance_number
   ers_server_loadbalancer_ip                    = module.app_tier.ers_server_loadbalancer_ip
   pas_instance_number                           = var.pas_instance_number
@@ -385,11 +397,13 @@ module "output_files" {
   scs_server_loadbalancer_ip                    = module.app_tier.scs_server_loadbalancer_ip
   scs_server_ips                                = module.app_tier.scs_server_ips
   scs_server_secondary_ips                      = module.app_tier.scs_server_secondary_ips
+  scs_vm_names                                  = module.app_tier.scs_vm_names
   use_local_credentials                         = module.common_infrastructure.use_local_credentials
   use_msi_for_clusters                          = var.use_msi_for_clusters
   use_secondary_ips                             = var.use_secondary_ips
   webdispatcher_server_ips                      = module.app_tier.webdispatcher_server_ips
   webdispatcher_server_secondary_ips            = module.app_tier.webdispatcher_server_secondary_ips
+  webdispatcher_server_vm_names                 = module.app_tier.webdispatcher_server_vm_names
 
   #########################################################################################
   #  Mounting information                                                                 #
@@ -399,9 +413,9 @@ module "output_files" {
   sap_transport                                 = try(data.terraform_remote_state.landscape.outputs.saptransport_path, "")
   install_path                                  = try(data.terraform_remote_state.landscape.outputs.install_path, "")
   shared_home                                   = var.shared_home
-  hana_data                                     = [module.hdb_node.hana_data_primary, module.hdb_node.hana_data_secondary]
-  hana_log                                      = [module.hdb_node.hana_log_primary, module.hdb_node.hana_log_secondary]
-  hana_shared                                   = [module.hdb_node.hana_shared_primary, module.hdb_node.hana_shared_secondary]
+  hana_data                                     = module.hdb_node.hana_data_ANF_volumes
+  hana_log                                      = module.hdb_node.hana_log_ANF_volumes
+  hana_shared                                   = [module.hdb_node.hana_shared]
   usr_sap                                       = module.common_infrastructure.usrsap_path
 
   #########################################################################################
@@ -412,20 +426,26 @@ module "output_files" {
   management_dns_subscription_id                = try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id, null)
   management_dns_resourcegroup_name             = try(data.terraform_remote_state.landscape.outputs.management_dns_resourcegroup_name, local.saplib_resource_group_name)
   dns_zone_names                                = var.dns_zone_names
-
+  dns_a_records_for_secondary_names             = var.dns_a_records_for_secondary_names
 
   #########################################################################################
   #  Server counts                                                                        #
   #########################################################################################
   app_server_count                              = try(local.application_tier.application_server_count, 0)
-  db_server_count                               = var.database_server_count
+  db_server_count                               = var.database_server_count + var.stand_by_node_count
   scs_server_count                              = local.application_tier.scs_high_availability ? (
                                                   2 * local.application_tier.scs_server_count) : (
                                                   local.application_tier.scs_server_count
                                                   )
   web_server_count                              = try(local.application_tier.webdispatcher_count, 0)
+
+  #########################################################################################
+  #  Miscallaneous                                                                        #
+  #########################################################################################
   use_simple_mount                              = local.validated_use_simple_mount
   upgrade_packages                              = var.upgrade_packages
+  scale_out                                     = var.database_HANA_use_ANF_scaleout_scenario
+  scale_out_no_standby_role                     = var.database_HANA_no_standby_role
 
   #########################################################################################
   #  iSCSI                                                                                #
@@ -433,4 +453,11 @@ module "output_files" {
   iSCSI_server_ips                              = var.database_cluster_type == "ISCSI" || var.scs_cluster_type == "ISCSI" ? data.terraform_remote_state.landscape.outputs.iSCSI_server_ips : []
   iSCSI_server_names                            = var.database_cluster_type == "ISCSI" || var.scs_cluster_type == "ISCSI" ? data.terraform_remote_state.landscape.outputs.iSCSI_server_names : []
   iSCSI_servers                                 = var.database_cluster_type == "ISCSI" || var.scs_cluster_type == "ISCSI" ? data.terraform_remote_state.landscape.outputs.iSCSI_servers : []
+
+  #########################################################################################
+  #  AMS                                                                                  #
+  #########################################################################################
+  ams_resource_id                               = try(coalesce(var.ams_resource_id, try(data.terraform_remote_state.landscape.outputs.ams_resource_id, "")),"")
+  enable_ha_monitoring                          = var.enable_ha_monitoring
+  enable_os_monitoring                          = var.enable_os_monitoring
 }

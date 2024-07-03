@@ -76,6 +76,25 @@ locals {
                                            length(try(var.infrastructure.vnets.sap.subnet_web.nsg.arm_id, ""))
                                          ) > 0
 
+  subnet_storage_defined                 = (
+                                           length(var.storage_subnet_address_prefix) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.prefix, "")) +
+                                           length(var.storage_subnet_arm_id) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.arm_id, ""))
+                                         ) > 0
+
+  subnet_storage_arm_id_defined          = (
+                                           length(var.storage_subnet_arm_id) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.arm_id, ""))
+                                         ) > 0
+
+  subnet_storage_nsg_defined             = (
+                                           length(var.storage_subnet_nsg_name) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.nsg.name, "")) +
+                                           length(var.web_subnet_nsg_arm_id) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_storage.nsg.arm_id, ""))
+                                         ) > 0
+
   subnet_iscsi_defined                 = (
                                            length(var.iscsi_subnet_address_prefix) +
                                            length(try(var.infrastructure.vnets.sap.subnet_iscsi.prefix, "")) +
@@ -114,6 +133,25 @@ locals {
                                            length(try(var.infrastructure.vnets.sap.subnet_anf.nsg.arm_id, ""))
                                          ) > 0
 
+  subnet_ams_defined                   = (
+                                           length(var.ams_subnet_address_prefix) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_ams.prefix, "")) +
+                                           length(var.ams_subnet_arm_id) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_ams.arm_id, ""))
+                                         ) > 0
+
+  subnet_ams_arm_id_defined            = (
+                                           length(var.ams_subnet_arm_id) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_ams.arm_id, ""))
+                                         ) > 0
+
+  subnet_ams_nsg_defined               = (
+                                           length(var.ams_subnet_nsg_name) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_ams.nsg.name, "")) +
+                                           length(var.ams_subnet_nsg_arm_id) +
+                                           length(try(var.infrastructure.vnets.sap.subnet_ams.nsg.arm_id, ""))
+                                         ) > 0
+
   resource_group                       = {
                                             name   = try(var.infrastructure.resource_group.name, var.resourcegroup_name)
                                             arm_id = try(var.infrastructure.resource_group.arm_id, var.resourcegroup_arm_id)
@@ -123,11 +161,31 @@ locals {
                                            length(local.resource_group.arm_id)
                                          ) > 0
 
+  ams_instance                        = {
+                                           name                    = var.ams_instance_name
+                                           create_ams_instance     = var.create_ams_instance
+                                           ams_laws_arm_id         = var.ams_laws_arm_id
+                                        }
+
+  nat_gateway                         = {
+                                           create_nat_gateway      = var.deploy_nat_gateway
+                                           name                    = var.nat_gateway_name
+                                           arm_id                  = try(var.nat_gateway_arm_id, "")
+                                           region                  = lower(coalesce(var.location, try(var.infrastructure.region, "")))
+                                           public_ip_zones         = try(var.nat_gateway_public_ip_zones, ["1", "2", "3"])
+                                           public_ip_arm_id        = try(var.nat_gateway_public_ip_arm_id, "")
+                                           idle_timeout_in_minutes = var.nat_gateway_idle_timeout_in_minutes
+                                           ip_tags                 = try(var.nat_gateway_public_ip_tags, {})
+                                         }
+
   temp_infrastructure                  = {
-                                           environment = coalesce(var.environment, try(var.infrastructure.environment, ""))
-                                           region      = lower(coalesce(var.location, try(var.infrastructure.region, "")))
-                                           codename    = try(var.infrastructure.codename, var.codename)
-                                           tags        = try(merge(var.resourcegroup_tags, try(var.infrastructure.tags, {})), {})
+                                           environment                  = coalesce(var.environment, try(var.infrastructure.environment, ""))
+                                           region                       = lower(coalesce(var.location, try(var.infrastructure.region, "")))
+                                           codename                     = try(var.infrastructure.codename, var.codename)
+                                           tags                         = try(merge(var.resourcegroup_tags, try(var.infrastructure.tags, {})), {})
+                                           deploy_monitoring_extension  = var.deploy_monitoring_extension
+                                           deploy_defender_extension    = var.deploy_defender_extension
+                                           user_assigned_identity_id    = var.user_assigned_identity_id
                                          }
 
   authentication                       = {
@@ -303,6 +361,34 @@ locals {
                                            )
                                          )
 
+  subnet_storage                       = merge(
+                                           (
+                                             {
+                                               "name" = try(var.infrastructure.vnets.sap.subnet_storage.name, var.storage_subnet_name)
+                                             }
+                                             ), (
+                                             local.subnet_storage_arm_id_defined ? (
+                                               {
+                                                 "arm_id" = try(var.infrastructure.vnets.sap.subnet_storage.arm_id, var.storage_subnet_arm_id)
+                                               }
+                                               ) : (
+                                               null
+                                             )), (
+                                             {
+                                               "prefix" = try(var.infrastructure.vnets.sap.subnet_storage.prefix, var.storage_subnet_address_prefix)
+                                             }
+                                             ), (
+                                             local.subnet_storage_nsg_defined ? (
+                                               {
+                                                 "nsg" = {
+                                                   "name"   = try(var.infrastructure.vnets.sap.subnet_storage.nsg.name, var.storage_subnet_nsg_name)
+                                                   "arm_id" = try(var.infrastructure.vnets.sap.subnet_storage.nsg.arm_id, var.storage_subnet_nsg_arm_id)
+                                                 }
+                                               }
+                                             ) : null
+                                           )
+                                         )
+
   subnet_anf                           = merge(
                                           (
                                             {
@@ -350,11 +436,41 @@ locals {
                                               "prefix" = try(var.infrastructure.vnets.sap.subnet_iscsi.prefix, var.iscsi_subnet_address_prefix)
                                             }
                                             ), (
-                                            local.subnet_web_nsg_defined ? (
+                                            local.subnet_iscsi_nsg_defined ? (
                                               {
                                                 "nsg" = {
                                                   "name"   = try(var.infrastructure.vnets.sap.subnet_iscsi.nsg.name, var.iscsi_subnet_nsg_name)
                                                   "arm_id" = try(var.infrastructure.vnets.sap.subnet_iscsi.nsg.arm_id, var.iscsi_subnet_nsg_arm_id)
+                                                }
+                                              }
+                                              ) : (
+                                              null
+                                            )
+                                          )
+                                        )
+
+  subnet_ams                         = merge(
+                                          (
+                                            {
+                                              "name" = try(var.infrastructure.vnets.sap.subnet_ams.name, var.ams_subnet_name)
+                                            }
+                                            ), (
+                                            local.subnet_ams_arm_id_defined ? (
+                                              {
+                                                "arm_id" = try(var.infrastructure.vnets.sap.subnet_ams.arm_id, var.ams_subnet_arm_id)
+                                              }
+                                              ) : (
+                                              null
+                                            )), (
+                                            {
+                                              "prefix" = try(var.infrastructure.vnets.sap.subnet_ams.prefix, var.ams_subnet_address_prefix)
+                                            }
+                                            ), (
+                                            local.subnet_web_nsg_defined ? (
+                                              {
+                                                "nsg" = {
+                                                  "name"   = try(var.infrastructure.vnets.sap.subnet_ams.nsg.name, var.ams_subnet_nsg_name)
+                                                  "arm_id" = try(var.infrastructure.vnets.sap.subnet_ams.nsg.arm_id, var.ams_subnet_nsg_arm_id)
                                                 }
                                               }
                                               ) : (
@@ -392,9 +508,23 @@ locals {
                                            ) : (
                                            null
                                          )), (
+                                         local.subnet_storage_defined ? (
+                                           {
+                                             "subnet_storage" = local.subnet_storage
+                                           }
+                                           ) : (
+                                           null
+                                         )), (
                                          local.subnet_anf_defined ? (
                                            {
                                              "subnet_anf" = local.subnet_anf
+                                           }
+                                           ) : (
+                                           null
+                                         )), (
+                                         local.subnet_ams_defined ? (
+                                           {
+                                             "subnet_ams" = local.subnet_ams
                                            }
                                            ) : (
                                            null
@@ -446,6 +576,14 @@ locals {
                                             "vnets" = local.temp_vnet
                                           }
                                           ), (
+                                          {
+                                            "ams_instance" = local.ams_instance
+                                          }
+                                          ), (
+                                          {
+                                            "nat_gateway" = local.nat_gateway
+                                          }
+                                          ),(
                                           local.iscsi.iscsi_count > 0 ? (
                                             {
                                               "iscsi" = local.iscsi
@@ -461,6 +599,29 @@ locals {
                                            private_ip_address = var.utility_vm_nic_ips
                                            disk_size          = var.utility_vm_os_disk_size
                                            disk_type          = var.utility_vm_os_disk_type
+                                         }
+
+  ANF_settings                         = {
+                                          use               = var.NFS_provider == "ANF"
+                                          name              = var.ANF_account_name
+                                          arm_id            = var.ANF_account_arm_id
+                                          pool_name         = var.ANF_pool_name
+                                          use_existing_pool = var.ANF_use_existing_pool
+                                          service_level     = var.ANF_service_level
+                                          size_in_tb        = var.ANF_pool_size
+                                          qos_type          = var.ANF_qos_type
+
+                                          use_existing_transport_volume = var.ANF_transport_volume_use_existing
+                                          transport_volume_name         = var.ANF_transport_volume_name
+                                          transport_volume_size         = var.ANF_transport_volume_size
+                                          transport_volume_throughput   = var.ANF_transport_volume_throughput
+                                          transport_volume_zone         = var.ANF_transport_volume_zone[0]
+
+                                          use_existing_install_volume = var.ANF_install_volume_use_existing
+                                          install_volume_name         = var.ANF_install_volume_name
+                                          install_volume_size         = var.ANF_install_volume_size
+                                          install_volume_throughput   = var.ANF_install_volume_throughput
+                                          install_volume_zone         = var.ANF_install_volume_zone[0]
 
                                          }
 

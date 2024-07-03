@@ -57,7 +57,7 @@ data "azurerm_subnet" "webapp" {
 # Create the Windows App Service Plan
 resource "azurerm_service_plan" "appserviceplan" {
   count                                         = var.use_webapp ? 1 : 0
-  name                                          = lower(format("%s%s%s%s", var.naming.resource_prefixes.app_service_plan, var.naming.prefix.LIBRARY, var.naming.resource_suffixes.app_service_plan, substr(random_id.deployer.hex, 0, 3)))
+  name                                          = lower(format("%s%s%s%s", var.naming.resource_prefixes.app_service_plan, var.naming.prefix.DEPLOYER, var.naming.resource_suffixes.app_service_plan, substr(random_id.deployer.hex, 0, 3)))
   resource_group_name                           = local.resourcegroup_name
   location                                      = local.rg_appservice_location
   os_type                                       = "Windows"
@@ -67,12 +67,14 @@ resource "azurerm_service_plan" "appserviceplan" {
 
 # Create the app service with AD authentication and storage account connection string
 resource "azurerm_windows_web_app" "webapp" {
-  count               = var.use_webapp ? 1 : 0
-  name                = lower(format("%s%s%s%s", var.naming.resource_prefixes.app_service_plan, var.naming.prefix.LIBRARY, var.naming.resource_suffixes.webapp_url, substr(random_id.deployer.hex, 0, 3)))
-  resource_group_name = local.resourcegroup_name
-  location            = local.rg_appservice_location
-  service_plan_id     = azurerm_service_plan.appserviceplan[0].id
-  https_only          = true
+  count                                          = var.use_webapp ? 1 : 0
+  name                                           = lower(format("%s%s%s%s", var.naming.resource_prefixes.app_service_plan, var.naming.prefix.LIBRARY, var.naming.resource_suffixes.webapp_url, substr(random_id.deployer.hex, 0, 3)))
+  resource_group_name                            = local.resourcegroup_name
+  location                                       = local.rg_appservice_location
+  service_plan_id                                = azurerm_service_plan.appserviceplan[0].id
+  https_only                                     = true
+  webdeploy_publish_basic_authentication_enabled = false
+  ftp_publish_basic_authentication_enabled       = false
 
   # auth_settings {
   #   enabled          = true
@@ -85,32 +87,37 @@ resource "azurerm_windows_web_app" "webapp" {
   #   unauthenticated_client_action = "RedirectToLoginPage"
   # }
 
+
+
   app_settings = {
-    "PAT"                                      = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/PAT/)", local.keyvault_names.user_access) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
     "CollectionUri"                            = var.agent_ado_url
     "IS_PIPELINE_DEPLOYMENT"                   = false
-    "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET" = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/WEB-PWD/)", local.keyvault_names.user_access) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/WEB-PWD/)", local.keyvault_names.user_access)
+    "OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"   = length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].client_id : azurerm_user_assigned_identity.deployer[0].client_id
     "WEBSITE_AUTH_CUSTOM_AUTHORIZATION"        = true
+    "WHICH_ENV"                                = length(var.deployer.user_assigned_identity_id) > 0 ? "DATA" : "LOCAL"
+    "AZURE_TENANT_ID"                          = data.azurerm_client_config.deployer.tenant_id
+    "AUTHENTICATION_TYPE"                      = var.deployer.devops_authentication_type
+    "PAT"                                      = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/PAT/)", local.keyvault_names.user_access) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
   }
 
   sticky_settings {
-    app_setting_names       = ["MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"]
-    connection_string_names = ["sa_tfstate_conn_str"]
+    app_setting_names                          = ["OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"]
+    connection_string_names                    = ["sa_tfstate_conn_str"]
   }
 
   auth_settings_v2 {
-    auth_enabled           = true
-    unauthenticated_action = "RedirectToLoginPage"
-    default_provider       = "AzureActiveDirectory"
+    auth_enabled                               = true
+    unauthenticated_action                     = "RedirectToLoginPage"
+    default_provider                           = "AzureActiveDirectory"
     active_directory_v2 {
-      client_id                   = var.app_registration_app_id
-      tenant_auth_endpoint        = "https://sts.windows.net/${data.azurerm_client_config.deployer.tenant_id}/v2.0"
-      www_authentication_disabled = false
-      client_secret_setting_name  = "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
-      allowed_applications        = [var.app_registration_app_id]
-      allowed_audiences           = []
-      allowed_groups              = []
-      allowed_identities          = []
+      client_id                                = var.app_registration_app_id
+      tenant_auth_endpoint                     = "https://login.microsoftonline.com/${data.azurerm_client_config.deployer.tenant_id}/v2.0"
+      www_authentication_disabled              = false
+      client_secret_setting_name               = "OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"
+      allowed_applications                     = [var.app_registration_app_id]
+      allowed_audiences                        = []
+      allowed_groups                           = []
+      allowed_identities                       = []
     }
     login {
       token_store_enabled = false
@@ -133,26 +140,30 @@ resource "azurerm_windows_web_app" "webapp" {
     # scm_use_main_ip_restriction = true
   }
 
-  key_vault_reference_identity_id = azurerm_user_assigned_identity.deployer.id
+  key_vault_reference_identity_id = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].id : data.azurerm_user_assigned_identity.deployer[0].id
 
-  identity {
-    type         = "SystemAssigned, UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.deployer.id]
-  }
-  connection_string {
-    name  = "sa_tfstate_conn_str"
-    type  = "Custom"
-    value = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/sa-connection-string/)", local.user_keyvault_name) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/sa-connection-string/)", local.user_keyvault_name)
-  }
+  identity                                   {
+    # type                                        = length(var.deployer.user_assigned_identity_id) == 0 ? (
+    #                                                 "SystemAssigned") : (
+    #                                                 "SystemAssigned, UserAssigned"
+    #                                               )
+    # for now set the identity type to "SystemAssigned, UserAssigned" as assigning identities
+    # is not supported by the provider when type is "SystemAssigned"
+    type                                        = "SystemAssigned, UserAssigned"
+    identity_ids                                = [length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].id : data.azurerm_user_assigned_identity.deployer[0].id ]
+                                             }
+  connection_string                          {
+    name                                        = "tfstate"
+    type                                        = "Custom"
+    value                                       = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/tfstate/)", local.user_keyvault_name) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/tfstate/)", local.user_keyvault_name)
+                                             }
 
-  lifecycle {
-    ignore_changes = [
-      app_settings,
-      connection_string,
-      zip_deploy_file,
-      tags
-    ]
-  }
+  lifecycle                                  {
+    ignore_changes                              = [
+                                                    zip_deploy_file,
+                                                    tags
+                                                  ]
+                                             }
 
 }
 

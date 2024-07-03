@@ -66,6 +66,11 @@ output "db_nsg_id"                               {
                                                    value       = module.sap_landscape.db_nsg_id
                                                  }
 
+output "ams_subnet_id"                           {
+                                                   description = "Azure resource identifier for the AMS subnet"
+                                                   value       = length(var.ams_subnet_arm_id) > 0 ? var.ams_subnet_arm_id : module.sap_landscape.ams_subnet_id
+                                                 }
+
 output "route_table_id"                          {
                                                    description = "Azure resource identifier for the route table"
                                                    value       = module.sap_landscape.route_table_id
@@ -89,6 +94,15 @@ output "web_subnet_id"                           {
 output "web_nsg_id"                              {
                                                    description = "Azure resource identifier for the web subnet network security group"
                                                    value       = module.sap_landscape.web_nsg_id
+                                                 }
+output "storage_subnet_id"                       {
+                                                   description = "Azure resource identifier for the storage subnet"
+                                                   value       = length(var.storage_subnet_arm_id) > 0 ? var.storage_subnet_arm_id : module.sap_landscape.storage_subnet_id
+                                                 }
+
+output "storage_nsg_id"                          {
+                                                   description = "Azure resource identifier for the storage subnet network security group"
+                                                   value       = module.sap_landscape.storage_nsg_id
                                                  }
 
 ###############################################################################
@@ -280,6 +294,12 @@ output "controlplane_environment"                {
                                                    description = "Control plane environment"
                                                    value       = try(data.terraform_remote_state.deployer[0].outputs.environment, "")
                                                  }
+
+output "use_spn"                                 {
+                                                   description = "Perform deployments using a service principal"
+                                                   value       = var.use_spn
+                                                 }
+
 ###############################################################################
 #                                                                             #
 #                                 iSCSI                                       #
@@ -305,4 +325,24 @@ output "iSCSI_servers"                          {
                                                     module.sap_landscape.iSCSI_servers) : (
                                                     []
                                                   )
+                                                }
+
+###############################################################################
+#                                                                             #
+#                                 AMS Resource                                #
+#                                                                             #
+###############################################################################
+output ams_resource_id                          {
+                                                  description = "AMS resource ID"
+                                                  value       = module.sap_landscape.ams_resource_id
+                                                }
+
+###############################################################################
+#                                                                             #
+#                            NAT Gateway Resource                             #
+#                                                                             #
+###############################################################################
+output ng_resource_id                           {
+                                                  description = "NAT Gateway resource ID"
+                                                  value       = module.sap_landscape.ng_resource_id
                                                 }

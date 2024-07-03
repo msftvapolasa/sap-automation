@@ -12,7 +12,13 @@ variable "environment"                           {
                                                  }
 
 variable "codename"                              {
-                                                   description = "This is the code name name for the deployment"
+                                                   description = "This is the code name for the deployment"
+                                                   type        = string
+                                                   default     = ""
+                                                 }
+
+variable "Description"                           {
+                                                   description = "This is the description for the deployment"
                                                    type        = string
                                                    default     = ""
                                                  }
@@ -110,12 +116,6 @@ variable "app_proximityplacementgroup_arm_ids"  {
                                                   default     = []
                                                 }
 
-
-variable "use_service_endpoint"                 {
-                                                  description = "Boolean value indicating if service endpoints should be used for the deployment"
-                                                  default     = false
-                                                  type        = bool
-                                                }
 
 variable "use_private_endpoint"                 {
                                                   description = "Boolean value indicating if private endpoint should be used for the deployment"
@@ -269,6 +269,37 @@ variable "web_subnet_nsg_arm_id"                {
                                                 }
 
 
+#########################################################################################
+#                                                                                       #
+#  Storage Subnet variables - Only valid for scale-out configuration                    #
+#                                                                                       #
+#########################################################################################
+
+variable "storage_subnet_name"                  {
+                                                  description = "If provided, the name of the storage subnet"
+                                                  default     = ""
+                                                }
+
+variable "storage_subnet_arm_id"                {
+                                                  description = "If provided, Azure resource id for the storage subnet"
+                                                  default     = ""
+                                                }
+
+variable "storage_subnet_address_prefix"        {
+                                                  description = "The address prefix for the storage subnet"
+                                                  default     = ""
+                                                }
+
+variable "storage_subnet_nsg_name"              {
+                                                  description = "If provided, the name of the storage subnet NSG"
+                                                  default     = ""
+                                                }
+
+variable "storage_subnet_nsg_arm_id"            {
+                                                  description = "If provided, Azure resource id for the storage subnet NSG"
+                                                  default     = ""
+                                                }
+
 
 #########################################################################################
 #                                                                                       #
@@ -341,10 +372,34 @@ variable "fencing_role_name"                    {
                                                 }
 
 variable "use_simple_mount"                     {
-                                                  description = "If specified use Simple mount"
-                                                  default     = true
+                                                  description = "Determine if simple mount needs to be added for SCS and DB clusters"
+                                                  default     = false
                                                 }
 
+variable "use_fence_kdump"                      {
+                                                  description = "Configure fencing device based on the fence agent fence_kdump for both SCS and DB clusters"
+                                                  default     = false
+                                                }
+
+variable "use_fence_kdump_size_gb_db"           {
+                                                  description = "Default size of the kdump disk which will be attached to the VMs which are part DB cluster"
+                                                  default     = 128
+                                                }
+
+variable "use_fence_kdump_size_gb_scs"          {
+                                                  description = "Default size of the kdump disk which will be attached to the VMs which are part of SCS cluster"
+                                                  default     = 64
+                                                }
+
+variable "use_fence_kdump_lun_db"               {
+                                                  description = "Default lun number of the kdump disk which will be attached to the VMs which are part of DB cluster"
+                                                  default     = 8
+                                                }
+
+variable "use_fence_kdump_lun_scs"              {
+                                                  description = "Default lun number of the kdump disk which will be attached to the VMs which are part of SCS cluster"
+                                                  default     = 4
+                                                }
 
 #########################################################################################
 #                                                                                       #
@@ -361,6 +416,12 @@ variable "database_cluster_disk_size"           {
                                                   description = "The size of the shared disk for the Database cluster"
                                                   default     = 128
                                                 }
+
+variable "database_cluster_disk_type"           {
+                                                  description = "The storage_account_type of the shared disk for the Database cluster"
+                                                  default     = "Premium_ZRS"
+                                                }
+
 
 variable "database_platform"                    {
                                                   description = "Database platform, supported values are HANA, DB2, ORACLE, ORACLE-ASM, ASE, SQLSERVER or NONE (in this case no database tier is deployed)"
@@ -517,10 +578,6 @@ variable "database_vm_storage_nic_ips"          {
                                                   default     = [""]
                                                 }
 
-variable "database_HANA_use_ANF_scaleout_scenario" {
-                                                  description = "Not implemented yet"
-                                                  default = false
-                                                }
 
 variable "database_use_premium_v2_storage"      {
                                                   description = "If true, the database tier will use premium storage v2"
@@ -693,6 +750,11 @@ variable "scs_cluster_disk_lun"                 {
 variable "scs_cluster_disk_size"                {
                                                   description = "The size of the shared disk for the SAP Central Services cluster"
                                                   default     = 128
+                                                }
+
+variable "scs_cluster_disk_type"                {
+                                                  description = "The storage_account_type of the shared disk for the SAP Central Services cluster"
+                                                  default     = "Premium_ZRS"
                                                 }
 
 #########################################################################################
@@ -935,6 +997,11 @@ variable "Agent_IP"                             {
                                                   type        = string
                                                   default     = ""
                                                 }
+variable "add_Agent_IP"                         {
+                                                  description = "Boolean value indicating if the Agent IP should be added to the storage and key vault firewalls"
+                                                  default     = true
+                                                  type        = bool
+                                                }
 
 variable "shared_home"                          {
                                                   description = "If defined provides shared-home support"
@@ -983,11 +1050,6 @@ variable "management_dns_resourcegroup_name"    {
                                                   type        = string
                                                 }
 
-variable "create_storage_dns_a_records"         {
-                                                  description = "Boolean value indicating if dns a records should be created for the storage accounts"
-                                                  default     = false
-                                                  type        = bool
-                                                }
 
 variable "dns_zone_names"                       {
                                                   description = "Private DNS zone names"
@@ -998,6 +1060,18 @@ variable "dns_zone_names"                       {
                                                               "blob_dns_zone_name"  = "privatelink.blob.core.windows.net"
                                                               "vault_dns_zone_name" = "privatelink.vaultcore.azure.net"
                                                             }
+                                                }
+
+variable "dns_a_records_for_secondary_names"    {
+                                                  description = "Boolean value indicating if dns a records should be created for the secondary DNS names"
+                                                  default     = true
+                                                  type        = bool
+                                                }
+
+variable "register_endpoints_with_dns"          {
+                                                  description = "Boolean value indicating if endpoints should be registered to the dns zone"
+                                                  default     = true
+                                                  type        = bool
                                                 }
 
 #########################################################################################
@@ -1033,17 +1107,24 @@ variable "sapmnt_private_endpoint_id"           {
                                                   default     = ""
                                                 }
 
-variable "Use_AFS_for_Installation"             {
-                                                  description = "If true, will use AFS for installation media."
-                                                  default     = false
-                                                }
-
 #########################################################################################
 #                                                                                       #
 #  ANF settings                                                                         #
 #                                                                                       #
 #########################################################################################
 
+variable "ANF_HANA_use_AVG"                     {
+                                                  description = "Use Application Volume Group for data volume"
+                                                  default     = false
+                                                }
+
+variable "ANF_HANA_use_Zones"                   {
+                                                  description = "Use zonal ANF deployments"
+                                                  default     = false
+                                                }
+
+
+# Data volume
 
 variable "ANF_HANA_data"                        {
                                                   description = "If defined, will create ANF volumes for HANA data"
@@ -1070,15 +1151,12 @@ variable "ANF_HANA_data_volume_throughput"      {
                                                   default     = 128
                                                 }
 
-variable "ANF_HANA_use_AVG"                     {
-                                                  description = "Use Application Volume Group for data volume"
-                                                  default     = false
+variable "ANF_HANA_data_volume_count"          {
+                                                  description = "If defined provides the number of data volumes"
+                                                  default     = 1
                                                 }
 
-variable "ANF_HANA_use_Zones"                   {
-                                                  description = "Use zonal ANF deployments"
-                                                  default     = false
-                                                }
+# Log volume
 
 variable "ANF_HANA_log"                         {
                                                   description = "If defined, will create ANF volumes for HANA log"
@@ -1105,6 +1183,13 @@ variable "ANF_HANA_log_volume_throughput"       {
                                                   default     = 128
                                                 }
 
+variable "ANF_HANA_log_volume_count"            {
+                                                  description = "If defined provides the number of data volumes"
+                                                  default     = 1
+                                                }
+
+# Shared volume
+
 variable "ANF_HANA_shared"                      {
                                                   description = "If defined, will create ANF volumes for HANA shared"
                                                   default     = false
@@ -1130,6 +1215,7 @@ variable "ANF_HANA_shared_volume_throughput"    {
                                                   default     = 128
                                                 }
 
+# /usr/sap
 
 variable "ANF_usr_sap"                          {
                                                   description = "If defined, will create ANF volumes for /usr/sap"
@@ -1155,6 +1241,10 @@ variable "ANF_usr_sap_throughput"               {
                                                   description = "If defined provides the throughput of the /usr/sap volume"
                                                   default     = 128
                                                 }
+
+
+# /sapmnt
+
 
 variable "ANF_sapmnt_use_existing"              {
                                                   description = "Use existing sapmnt volume"
@@ -1248,6 +1338,27 @@ variable "subscription"                         {
 
 #########################################################################################
 #                                                                                       #
+#  Azure Monitor for SAP variables                                                      #
+#                                                                                       #
+#########################################################################################
+
+variable "ams_resource_id"                      {
+                                                  description = "[optional] If defined, will use the specified Azure Monitor for SAP instance, else will use the AMS instance in the workload zone."
+                                                  default     = ""
+                                                }
+
+variable "enable_ha_monitoring"                 {
+                                                  description = "If defined, will enable prometheus high availability cluster monitoring"
+                                                  default     = false
+                                                }
+
+variable "enable_os_monitoring"                 {
+                                                  description = "If defined, will enable prometheus os monitoring"
+                                                  default     = false
+                                                }
+
+#########################################################################################
+#                                                                                       #
 #  Configuration values                                                                 #
 #                                                                                       #
 #########################################################################################
@@ -1265,4 +1376,40 @@ variable "upgrade_packages"                     {
 variable "tags"                                 {
                                                   description = "If provided, tags for all resources"
                                                   default     = {}
+                                                }
+
+variable "deploy_monitoring_extension"          {
+                                                  description = "If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines"
+                                                  default     = true
+                                                }
+
+variable "deploy_defender_extension"            {
+                                                  description = "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines"
+                                                  default     = false
+                                                }
+
+variable "patch_mode"                           {
+                                                  description = "If defined, define the patch mode for the virtual machines"
+                                                  default     = "ImageDefault"
+                                                }
+
+#########################################################################################
+#                                                                                       #
+#  Scaleout variables                                                                   #
+#                                                                                       #
+#########################################################################################
+
+variable "database_HANA_use_ANF_scaleout_scenario" {
+                                                  description = "If true, the database tier will be configured for scaleout scenario"
+                                                  default = false
+                                                }
+
+variable "database_HANA_no_standby_role"        {
+                                                  description = "If true, the database scale out tier will not have a standby role"
+                                                  default = false
+                                                }
+
+variable "stand_by_node_count"                  {
+                                                  description = "The number of standby nodes"
+                                                  default = 0
                                                 }

@@ -1,20 +1,35 @@
 ---
 
-- name:                               "Exports: Create SAP Directories"
+- name:                               "Exports: Create SAP Directories - {{ target_media_location }}"
   ansible.builtin.file:
-    path:                             "{{ item.path }}"
+    path:                             "{{ target_media_location }}"
     state:                            directory
     mode:                             0755
-  loop:
-    - { path: '{{ target_media_location }}' }
-    - { path: '/usr/sap/trans' }
-    - { path: '/sapmnt/{{ sap_sid | upper }}' }
+  when:
+    - node_tier == 'scs'
+    - MULTI_SIDS is undefined
+    - usr_sap_install_mountpoint is undefined
+
+- name:                               "Exports: Create SAP Directories - saptrans"
+  ansible.builtin.file:
+    path:                             "/usr/sap/trans"
+    state:                            directory
+    mode:                             0755
+  when:
+    - node_tier == 'scs'
+    - MULTI_SIDS is undefined
+    - sap_trans is undefined
+
+- name:                               "Exports: Create SAP Directories - saptrans"
+  ansible.builtin.file:
+    path:                             "/sapmnt/{{ sap_sid | upper }}"
+    state:                            directory
+    mode:                             0755
   when:
     - node_tier == 'scs'
     - MULTI_SIDS is undefined
     - sap_mnt is undefined
-    - sap_trans is undefined
-    - usr_sap_install_mountpoint is undefined
+
 
 - name:                               "Exports: Create SAP Directories for MSIDs"
   ansible.builtin.file:
@@ -264,7 +279,6 @@
   when:
     - custom_exports is defined
 
-
 - name:                                "2.3 Exports: - Local NFS"
   block:
     - name:                            "2.3 Exports: - Set the NFS Service name {{ distribution_id }}"
@@ -272,11 +286,10 @@
         nfs_service:                   'nfsserver'
       when:                            "'SUSE' == ansible_os_family | upper"
 
-
     - name:                            "2.3 Exports: - Set the NFS Service name {{ distribution_id }}"
       ansible.builtin.set_fact:
         nfs_service:                   "nfs-server"
-      when:                            "'redhat8' == distribution_id"
+      when:                            "'redhat8' == distribution_id or 'redhat9' == distribution_id"
 
     - name:                            "2.3 Exports: - Set the NFS Service name oracle {{ distribution_id }}"
       ansible.builtin.set_fact:

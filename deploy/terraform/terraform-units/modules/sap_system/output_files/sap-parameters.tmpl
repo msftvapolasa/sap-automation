@@ -34,7 +34,7 @@ scs_cluster_type:               ${scs_cluster_type}
 # SCS Instance Number
 scs_instance_number:           "${scs_instance_number}"
 
-# scs_server_loadbalancer_ip is the SCS IP address of the load balancer for
+# scs_lb_ip is the Virtual IP address of the load balancer for
 # the SAP Central Services virtual machines
 scs_lb_ip:                     ${scs_server_loadbalancer_ip}
 
@@ -45,8 +45,10 @@ ers_instance_number:           "${ers_instance_number}"
 # the SAP Central Services virtual machines
 ers_lb_ip:                     ${ers_server_loadbalancer_ip}
 
-# scs_clst_lb_ip is the IP address of the load balancer for the scs cluster in Windows
+%{~ if platform == "SQLSERVER" }
+# IP address of CNO in Windows and takes the form IPAddress/CIDR
 scs_clst_lb_ip:                 ${scs_cluster_loadbalancer_ip}
+%{~ endif }
 
 
 # PAS Instance Number
@@ -54,6 +56,10 @@ pas_instance_number:           "${pas_instance_number}"
 
 # APP Instance Number
 app_instance_number:           "${app_instance_number}"
+
+# Set to true to instruct Ansible to configure Pacemaker clusters using an managed identity
+use_msi_for_clusters:          ${use_msi_for_clusters}
+
 
 
 #############################################################################
@@ -74,7 +80,26 @@ db_instance_number:            "${db_instance_number}"
 # ORACLE
 # SQLSERVER
 
-platform:                      ${platform}
+platform:                       ${platform}
+
+%{~ if scale_out }
+
+#############################################################################
+#                                                                           #
+#                        Scale Out information                              #
+#                                                                           #
+#############################################################################
+
+# Scale out defines if the database is to be deployed in a scale out configuration
+db_scale_out:                   ${scale_out}
+db_no_standby:                  ${scale_out_no_standby_role}
+
+subnet_cidr_storage:          ${subnet_cidr_storage}
+%{~ endif }
+subnet_cidr_anf:              ${subnet_cidr_anf}
+subnet_cidr_app:              ${subnet_cidr_app}
+subnet_cidr_db:               ${subnet_cidr_db}
+subnet_cidr_client:           ${subnet_cidr_client}
 
 # db_high_availability is a boolean flag indicating if the
 # SAP database servers are deployed using high availability
@@ -82,6 +107,9 @@ db_high_availability:           ${database_high_availability}
 database_high_availability:     ${database_high_availability}
 database_cluster_type:          ${database_cluster_type}
 # database_loadbalancer_ip is the IP address of the load balancer for the database virtual machines
+database_loadbalancer_ip:       ${database_loadbalancer_ip}
+
+# Backwards compatibility
 db_lb_ip:                       ${database_loadbalancer_ip}
 
 # database_cluster_ip is the IP address of the load balancer for the database cluster in Windows
@@ -89,6 +117,10 @@ database_cluster_ip:                 ${database_cluster_ip}
 
 # use_simple_mount defines if simple mount is to be used
 use_simple_mount:              ${is_use_simple_mount}
+
+# use_fence_kdump defines if optional kdump stonith device needs to be added for RHEL clusters.
+use_fence_kdump:              ${is_use_fence_kdump}
+
 
 #############################################################################
 #                                                                           #
@@ -119,9 +151,6 @@ secret_prefix:                 ${secret_prefix}
 
 # Set to true to instruct Ansible to update all the packages on the virtual machines
 upgrade_packages:              ${upgrade_packages}
-
-# Set to true to instruct Ansible to configure Pacemaker clusters using an managed identity
-use_msi_for_clusters:          ${use_msi_for_clusters}
 
 ${settings}
 
@@ -170,5 +199,15 @@ iscsi_servers:
   - ${server}
 %{~ endfor }
 %{~ endif }
+
+#############################################################################
+#                                                                           #
+#                                AMS                                        #
+#                                                                           #
+#############################################################################
+# ams_resource_id is the AMS resource ID
+ams_resource_id:                      ${ams_resource_id}
+enable_os_monitoring:                 ${enable_os_monitoring}
+enable_ha_monitoring:                 ${enable_ha_monitoring}
 
 ...

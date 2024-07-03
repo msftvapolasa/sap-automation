@@ -48,7 +48,8 @@
             "Value": ""
           }
         ],
-        "Overrules": ""
+        "Overrules": "",
+        "Display": 1
       }
     ]
   },
@@ -101,6 +102,15 @@
             "Value": ""
           }
         ],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "Description",
+        "Required": false,
+        "Description": "System description.",
+        "Type": "textbox",
+        "Options": [],
         "Overrules": "",
         "Display": 1
       },
@@ -172,6 +182,15 @@
         "Required": false,
         "Description": "Defines a list of tags to be applied to all resources",
         "Type": "tag",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "use_spn",
+        "Required": false,
+        "Description": " If set, the deployment is performed using the Service Principal defined for the workload zone, otherwise the managed identity of the deployer is used",
+        "Type": "checkbox",
         "Options": [],
         "Overrules": "",
         "Display": 2
@@ -251,6 +270,24 @@
         "Display": 3
       },
       {
+        "Name": "deploy_monitoring_extension",
+        "Required": false,
+        "Description": "If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "deploy_defender_extension",
+        "Required": false,
+        "Description": "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "vm_disk_encryption_set_id",
         "Required": false,
         "Description": "Azure resource identifier for custom encryption key to use for disk encryption.",
@@ -281,6 +318,24 @@
         "Name": "use_secondary_ips",
         "Required": false,
         "Description": "Controls if the virtual machines should be deployed with two IP addresses. Required for SAP Virtual Hostname support",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "dns_a_records_for_secondary_names",
+        "Required": false,
+        "Description": "Defines if DNS records should be created for the virtual host names.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "register_endpoints_with_dns",
+        "Required": false,
+        "Description": "Defines if the Private Endpoints are registered with DNS",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
@@ -623,15 +678,6 @@
             "Value": ""
           }
         ],
-        "Overrules": "",
-        "Display": 3
-      },
-      {
-        "Name": "database_HANA_use_ANF_scaleout_scenario",
-        "Required": false,
-        "Description": "Not implemented yet.",
-        "Type": "checkbox",
-        "Options": [],
         "Overrules": "",
         "Display": 3
       },
@@ -1150,7 +1196,7 @@
         "Type": "field",
         "Options": [],
         "Overrules": "",
-        "Display": 2
+        "Display": 1
       },
 
       {
@@ -1354,6 +1400,78 @@
         "Display": 2
       },
       {
+        "Name": "scs_cluster_disk_lun",
+        "Required": false,
+        "Description": "The LUN of the shared disk for the SAP Central Services cluster",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "scs_cluster_disk_size",
+        "Required": false,
+        "Description": "The size of the shared disk for the SAP Central Services cluster",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "scs_cluster_disk_type",
+        "Required": false,
+        "Description": "The storage_account_type of the shared disk for the SAP Central Services cluster",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "Premium LRS",
+            "Value": "Premium_LRS"
+          },
+          {
+            "Text": "Premium ZRS",
+            "Value": "Premium_ZRS"
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "database_cluster_disk_lun",
+        "Required": false,
+        "Description": "The LUN of the shared disk for the Database cluster",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "database_cluster_disk_size",
+        "Required": false,
+        "Description": "The size of the shared disk for the Database cluster",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "database_cluster_disk_type",
+        "Required": false,
+        "Description": "The storage_account_type of the shared disk for the Database cluster",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "Premium LRS",
+            "Value": "Premium_LRS"
+          },
+          {
+            "Text": "Premium ZRS",
+            "Value": "Premium_ZRS"
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
         "Name": "use_msi_for_clusters",
         "Required": false,
         "Description": "If provided, defines that the fencing agent uses a managed identity",
@@ -1379,7 +1497,53 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "use_fence_kdump",
+        "Required": false,
+        "Description": "Configure fencing device based on the fence agent fence_kdump for both SCS and DB clusters",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "use_fence_kdump_size_gb_db",
+        "Required": false,
+        "Description": "Default size of the kdump disk which will be attached to the VMs which are part DB cluster.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "use_fence_kdump_lun_db",
+        "Required": false,
+        "Description": "Default LUN number of the kdump disk which will be attached to the VMs which are part of DB cluster.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "use_fence_kdump_size_gb_scs",
+        "Required": false,
+        "Description": "Default size of the kdump disk which will be attached to the VMs which are part of SCS cluster.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "use_fence_kdump_lun_scs",
+        "Required": false,
+        "Description": "Default LUN number of the kdump disk which will be attached to the VMs which are part of SCS cluster.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
+
     ]
   },
   {
@@ -1799,6 +1963,42 @@
         "Options": [],
         "Overrules": "",
         "Display": 2
+      },
+      {
+        "Name": "ANF_HANA_use_Zones",
+        "Required": false,
+        "Description": "defines if the ANF volume(s) will be deployed in availability zones",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "database_HANA_use_ANF_scaleout_scenario",
+        "Required": false,
+        "Description": "If true, the database tier will be configured for scaleout scenario.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "database_HANA_no_standby_role",
+        "Required": false,
+        "Description": "If true, the database scale out tier will not have a standby role.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "stand_by_node_count",
+        "Required": false,
+        "Description": "The number of standby nodes.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
       }
     ]
   },
@@ -1850,6 +2050,15 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "ANF_HANA_data_volume_count",
+        "Required": false,
+        "Description": "Number of ANF Data Volumes",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
       }
     ]
   },
@@ -1897,6 +2106,15 @@
         "Name": "ANF_HANA_log_volume_name",
         "Required": false,
         "Description": "Azure NetApp volumes name(s) for existing HANA log volume(s)",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "ANF_HANA_data_volume_count",
+        "Required": false,
+        "Description": "Number of ANF Data Volumes",
         "Type": "field",
         "Options": [],
         "Overrules": "",
@@ -2164,6 +2382,39 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "Azure Monitor support",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-system",
+    "Parameters": [
+      {
+        "Name": "ams_resource_id",
+        "Required": false,
+        "Description": "Defines the Azure resource id for the Log analytics workspace in AMS",
+        "Type": "lookup",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "enable_ha_monitoring",
+        "Required": false,
+        "Description": "Enables prometheus high availability cluster monitoring.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "enable_os_monitoring",
+        "Required": false,
+        "Description": "Enable prometheus operating system level monitoring.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
     ]
   },
