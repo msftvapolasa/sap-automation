@@ -74,10 +74,11 @@ resource "azurerm_network_interface" "deployer" {
                                           #                                    )
                                           #                                    )
                                           #                                  )
-                                           private_ip_address_allocation = length(try(var.deployer.private_ip_address[0], "")) > 0 ? (
-                                                                             "Static") : (
-                                                                             "Dynamic"
-                                                                           )
+                                           private_ip_address_allocation = var.deployer.use_DHCP || length(var.deployer.private_ip_address) <= count.index ? "Dynamic" : "Static"
+                                          #  private_ip_address_allocation = length(try(var.deployer.private_ip_address[0], "")) > 0 ? (
+                                          #                                    "Static") : (
+                                          #                                    "Dynamic"
+                                          #                                  )
 
                                                                                   public_ip_address_id          = local.enable_deployer_public_ip ? azurerm_public_ip.deployer[count.index].id : null
                                          }
