@@ -63,7 +63,7 @@ resource "azurerm_network_interface" "deployer" {
                                                                             azurerm_subnet.subnet_mgmt[0].id
                                                                           )
                                            private_ip_address            = try(var.deployer.private_ip_address[0],
-                                                                             !var.deployer.use_DHCP ? (
+                                                                             var.deployer.use_DHCP ? (
                                                                              null) : (
                                                                              cidrhost(
                                                                                local.management_subnet_deployed_prefixes[0],
