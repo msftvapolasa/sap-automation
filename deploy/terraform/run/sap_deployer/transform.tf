@@ -180,11 +180,10 @@ locals {
 
                                            plan = var.plan
 
-                                           private_ip_address = coalesce(
+                                           private_ip_address = try(coalesce(
                                                                   var.deployer_private_ip_address,
                                                                   try(var.deployers[0].private_ip_address, "")
-                                                                ),
-
+                                                                ), "")
 
                                            deployer_diagnostics_account_arm_id = var.deployer_diagnostics_account_arm_id
                                            app_service_SKU                     = var.app_service_SKU_name
