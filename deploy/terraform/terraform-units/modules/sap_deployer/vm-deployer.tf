@@ -62,7 +62,7 @@ resource "azurerm_network_interface" "deployer" {
                                                                             data.azurerm_subnet.subnet_mgmt[0].id) : (
                                                                             azurerm_subnet.subnet_mgmt[0].id
                                                                           )
-                                           private_ip_address            = try(var.deployer.private_ip_address[count.index],
+                                           private_ip_address            = try(var.deployer.private_ip_address[0],
                                                                              !var.deployer.use_DHCP ? (
                                                                              null) : (
                                                                              cidrhost(
@@ -71,7 +71,7 @@ resource "azurerm_network_interface" "deployer" {
                                                                              )
                                                                              )
                                                                            )
-                                           private_ip_address_allocation = length(try(var.deployer.private_ip_address[count.index], "")) > 0 ? (
+                                           private_ip_address_allocation = length(try(var.deployer.private_ip_address[0], "")) > 0 ? (
                                                                              "Static") : (
                                                                              "Dynamic"
                                                                            )
