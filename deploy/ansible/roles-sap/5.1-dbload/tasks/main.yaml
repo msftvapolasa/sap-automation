@@ -223,7 +223,7 @@
         sap_installSAPHostAgent:
         sap_profile_dir:               "/sapmnt/{{ sid_to_be_deployed.sid | upper }}/profile"
         sap_scs_hostname:              "{{ custom_scs_virtual_hostname | default(scs_server, true) }}"
-        sap_db_hostname:               "{{ default(db_virtual_hostname) }}"
+        sap_db_hostname:               "{{ db_virtual_hostname }}"
         sap_ciVirtualHostname:
         sap_appVirtualHostname:
         param_directory:               "{{ dir_params }}"
@@ -242,7 +242,7 @@
           - "PRODUCT ID: {{ product_id }}"
           - "INSTANCE:   {{ db_instance_number }}"
           - "SCSHOST:    {{ custom_scs_virtual_hostname | default(scs_server, true) }}"
-          - "DBHOST:     {{ default(db_virtual_hostname) }}"
+          - "DBHOST:     {{ db_virtual_hostname }}"
           - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
         # Import this task only if the tier is ora.
