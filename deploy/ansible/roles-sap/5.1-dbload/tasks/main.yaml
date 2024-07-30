@@ -242,7 +242,7 @@
           - "PRODUCT ID: {{ product_id }}"
           - "INSTANCE:   {{ db_instance_number }}"
           - "SCSHOST:    {{ custom_scs_virtual_hostname | default(scs_server, true) }}"
-          - "DBHOST:     {{ custom_db_virtual_hostname | default(db_virtual_hostname, true) }}"
+          - "DBHOST:     {{ default(db_virtual_hostname) }}"
           - "SID:        {{ sid_to_be_deployed.sid | upper }}"
 
         # Import this task only if the tier is ora.
