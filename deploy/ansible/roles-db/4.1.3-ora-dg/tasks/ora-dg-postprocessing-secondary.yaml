@@ -30,8 +30,6 @@
     mode:                             '0644'
     force:                            true
 
-
-
 - name: "Execute Block only if secondary DB restore is completed"
   block:
 
@@ -53,7 +51,7 @@
         var:                           secondary_log_apply_off_results.stdout_lines
         verbosity:                     2
 
-    - name:                            "Oracle Data Guard - Post Processing: log apply off(save output)"
+    - name:                            "Oracle Data Guard - Post Processing: Restart lsnrctl on Primary (save output)"
       ansible.builtin.copy:
         dest:                          /etc/sap_deployment_automation/secondary_log_apply_off.log
         content:                       "{{ secondary_log_apply_off_results.stdout }}"
@@ -69,14 +67,7 @@
         mode:                          '0755'
       when:                            secondary_log_apply_off_results.rc == 0
 
-    - name:                            "File update wait for 300 sec to avoid to complete the log apply on secondary"
-      ansible.builtin.wait_for:
-       timeout:                       300
-      # when:
-      #   - node_tier == "oracle-asm"
-
 # Enable Flashback on Secondary
-
     - name:                                "Oracle Data Guard - Enable Flashback on Oracle Secondary DB"
       become:                              true
       become_user:                         "{{ oracle_user_name }}"
@@ -90,9 +81,8 @@
 
     - name:                                "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Primary DB (debug)"
       ansible.builtin.debug:
-       var:                               turn_on_flashback_secondary_results.stdout_lines
-       verbosity:                         2
-
+        var:                               turn_on_flashback_secondary_results.stdout_lines
+        verbosity:                         2
     - name:                                "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Secondary DB (save output)"
       ansible.builtin.copy:
         dest:                              /etc/sap_deployment_automation/dgscripts/turn_on_flashback_secondary.log
@@ -109,14 +99,6 @@
         mode:                              '0755'
       when:
         - turn_on_flashback_secondary_results.rc == 0
-
-
-
-# # Fail here for debug
-    # - name:                                "Oracle Data Guard - Fail here for debug"
-    #   ansible.builtin.fail:
-    #     msg:                               "Fail here for debug"
-
 
 # Enable the log apply on secondary DB after enabling Flashback
     - name:                            "Oracle Data Guard - Post Processing: Set Log apply on on Standby"
@@ -265,8 +247,6 @@
         append:                            true
         shell:                             /bin/csh
       # when:                                node_tier == "oracle-asm"
-
-
 
    # Update the tnsnames.ora for SAP application servers
 

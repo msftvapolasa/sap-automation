@@ -605,7 +605,6 @@
         mopatch_path:                  "{{ mopatch_directory.files[0].path }}"
       when:                            mopatch_directory.matched == 1
 
-
     - name:                            "Oracle ASM: Check if 'OPatch.bck' exists"
       ansible.builtin.stat:
         path:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck

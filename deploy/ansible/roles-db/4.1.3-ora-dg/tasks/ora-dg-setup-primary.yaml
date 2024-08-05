@@ -148,7 +148,6 @@
   when:
     - current_host == ora_primary
     - standby_redo_log_results.rc == 0
-    - standby_redo_log_results.rc == 0
 
 - name:                                "Oracle Data Guard - Setup Primary: Enable Flashback on Oracle Primary DB"
   become:                              true
@@ -186,12 +185,8 @@
     - turn_on_flashback_results.rc == 0
 
 # - name:                            "Update the Local_Listener Value in primary"
-# - name:                            "Update the Local_Listener Value in primary"
 #   become:                              true
 #   become_user:                         "{{ oracle_user_name }}"
-#   ansible.builtin.shell:               sqlplus / as sysdba @listenerupdate.sql
-#   register:                            local_listener_on_secondary_results
-#   failed_when:                         local_listener_on_secondary_results.rc > 0
 #   ansible.builtin.shell:               sqlplus / as sysdba @listenerupdate.sql
 #   register:                            local_listener_on_secondary_results
 #   failed_when:                         local_listener_on_secondary_results.rc > 0
@@ -247,8 +242,6 @@
     - current_host == ora_primary
     - node_tier == "oracle-asm"
     - dbparametersfordg_results.rc == 0
-
-
 
 ...
 # /*---------------------------------------------------------------------------8
