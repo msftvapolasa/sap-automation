@@ -317,6 +317,7 @@ variable "resource_prefixes" {
     "sapbits"                        = ""
     "sapmnt"                         = ""
     "sapmnt_smb"                     = ""
+    "storage_privatelink_hanashared" = ""
     "storage_private_link_diag"      = ""
     "storage_private_svc_diag"       = ""
     "storage_private_link_install"   = ""
@@ -352,6 +353,7 @@ variable "resource_prefixes" {
     "scs_fs_rule"                    = ""
     "scs_scs_rule"                   = ""
     "sdu_rg"                         = ""
+    "sdu_secret"                     = ""
     "tfstate"                        = ""
     "transport_volume"               = ""
     "vm"                             = ""
@@ -430,6 +432,7 @@ variable "resource_suffixes" {
     "hanadata"                       = "hanadata"
     "hanalog"                        = "hanalog"
     "hanashared"                     = "hanashared"
+    "hanasharedafs"                  = "hanashared"
     "install_volume"                 = "install"
     "install_volume_smb"             = "install-smb"
     "iscsi_subnet"                   = "iscsi-subnet"
@@ -450,6 +453,7 @@ variable "resource_suffixes" {
     "sapbits"                        = "sapbits"
     "sapmnt"                         = "sapmnt"
     "sapmnt_smb"                     = "sapmnt-smb"
+    "storage_privatelink_hanashared" = "-hanashared-storage-private-endpoint"
     "storage_private_link_diag"      = "-diag-storage-private-endpoint"
     "storage_private_svc_diag"       = "-diag-storage-private-service"
     "storage_private_link_install"   = "-install-storage-private-endpoint"
@@ -465,8 +469,8 @@ variable "resource_suffixes" {
     "storage_private_link_witness"   = "-witness-storage-private-endpoint"
     "storage_private_svc_witness"    = "-witness-storage-private-service"
     "storage_nic"                    = "-storage-nic"
-    "storage_subnet"                 = "_storage-subnet"
-    "storage_subnet_nsg"             = "_storageSubnet-nsg"
+    "storage_subnet"                 = "storage-subnet"
+    "storage_subnet_nsg"             = "storageSubnet-nsg"
     "scs_alb"                        = "scs-alb"
     "scs_alb_bepool"                 = "scsAlb-bePool"
     "scs_alb_feip"                   = "scsAlb-feip"
@@ -485,6 +489,7 @@ variable "resource_suffixes" {
     "scs_fs_rule"                    = "scsFs-rule"
     "scs_scs_rule"                   = "scsScs-rule"
     "sdu_rg"                         = ""
+    "sdu_secret"                     = ""
     "tfstate"                        = "tfstate"
     "transport_volume"               = "transport"
     "usrsap"                         = "usrsap"
@@ -556,4 +561,9 @@ variable "deployer_location" {
 variable "utility_vm_count" {
   type    = number
   default = 0
+}
+
+variable "scale_out" {
+  type    = bool
+  default = false
 }

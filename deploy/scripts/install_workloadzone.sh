@@ -416,6 +416,17 @@ else
     fi
 fi
 
+useSAS=$(az storage account show  --name  "${REMOTE_STATE_SA}"   --query allowSharedKeyAccess --subscription "${STATE_SUBSCRIPTION}" --out tsv)
+
+if [ "$useSAS" = "true" ] ; then
+  echo "Authenticate storage using SAS"
+  export ARM_USE_AZUREAD=false
+else
+  echo "Authenticate storage using Entra ID"
+  export ARM_USE_AZUREAD=true
+fi
+
+
 if [ 1 = "${deploy_using_msi_only:-}" ]; then
   if [ -n "${keyvault}" ]
   then
@@ -558,7 +569,7 @@ new_deployment=false
 #Plugins
 if [ ! -d /opt/terraform/.terraform.d/plugin-cache ]
 then
-    mkdir /opt/terraform/.terraform.d/plugin-cache
+    mkdir -p /opt/terraform/.terraform.d/plugin-cache
 fi
 sudo chown -R $USER:$USER /opt/terraform
 export TF_PLUGIN_CACHE_DIR=/opt/terraform/.terraform.d/plugin-cache
@@ -722,6 +733,8 @@ fi
 #         fi
 #     fi
 # fi
+
+export TF_VAR_tfstate_resource_id="${tfstate_resource_id}"
 
 echo ""
 echo "#########################################################################################"

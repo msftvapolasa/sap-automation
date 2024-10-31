@@ -25,20 +25,21 @@ resource "azurerm_storage_account" "storage_bootdiag" {
 
   account_replication_type             = "LRS"
   account_tier                         = "Standard"
-  enable_https_traffic_only            = true
+  https_traffic_only_enabled            = true
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
-
+  cross_tenant_replication_enabled     = false
   tags                                 = var.tags
+  shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled
 
 }
 
 resource "azurerm_private_dns_a_record" "storage_bootdiag" {
-  provider                             = azurerm.dnsmanagement
-  count                                = var.use_custom_dns_a_registration ? 0 : 0
+  provider                             = azurerm.privatelinkdnsmanagement
+  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 0 : 0
   name                                 = lower(local.storageaccount_name)
 
-  zone_name                            = var.dns_zone_names.blob_dns_zone_name
+  zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
   resource_group_name                  = local.resource_group_exists ? (
                                            data.azurerm_resource_group.resource_group[0].name) : (
                                            azurerm_resource_group.resource_group[0].name
@@ -108,9 +109,9 @@ resource "azurerm_private_endpoint" "storage_bootdiag" {
             }
 
   dynamic "private_dns_zone_group" {
-                                     for_each = range(var.register_endpoints_with_dns ? 1 : 0)
+                                     for_each = range(var.dns_settings.register_endpoints_with_dns ? 1 : 0)
                                      content {
-                                       name                 = var.dns_zone_names.blob_dns_zone_name
+                                       name                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
                                      }
                                    }
@@ -142,11 +143,12 @@ resource "azurerm_storage_account" "witness_storage" {
 
   account_replication_type             = "LRS"
   account_tier                         = "Standard"
-  enable_https_traffic_only            = true
+  https_traffic_only_enabled            = true
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
-
+  cross_tenant_replication_enabled     = false
   public_network_access_enabled        = var.public_network_access_enabled
+  shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled
 
   tags                                 = var.tags
   network_rules {
@@ -172,11 +174,11 @@ resource "azurerm_storage_account" "witness_storage" {
 }
 
 resource "azurerm_private_dns_a_record" "witness_storage" {
-  provider                             = azurerm.dnsmanagement
-  count                                = var.use_custom_dns_a_registration ? 0 : 0
+  provider                             = azurerm.privatelinkdnsmanagement
+  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 0 : 0
   name                                 = lower(local.witness_storageaccount_name)
-  zone_name                            = var.dns_zone_names.blob_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
+  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
   ttl                                  = 3600
   records                              = [data.azurerm_network_interface.witness_storage[count.index].ip_configuration[0].private_ip_address]
 
@@ -250,9 +252,9 @@ resource "azurerm_private_endpoint" "witness_storage" {
             }
 
   dynamic "private_dns_zone_group" {
-                                     for_each = range(var.register_endpoints_with_dns ? 1 : 0)
+                                     for_each = range(var.dns_settings.register_endpoints_with_dns ? 1 : 0)
                                      content {
-                                       name                 = var.dns_zone_names.blob_dns_zone_name
+                                       name                 = var.dns_settings.dns_zone_names.blob_dns_zone_name
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.storage[0].id]
                                      }
                                    }
@@ -289,10 +291,13 @@ resource "azurerm_storage_account" "transport" {
   account_tier                         = "Premium"
   account_replication_type             = "ZRS"
   account_kind                         = "FileStorage"
-  enable_https_traffic_only            = false
+  https_traffic_only_enabled            = false
   min_tls_version                      = "TLS1_2"
   allow_nested_items_to_be_public      = false
 
+  shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled_nfs
+
+  cross_tenant_replication_enabled     = false
   public_network_access_enabled        = var.public_network_access_enabled
 
   network_rules {
@@ -320,8 +325,8 @@ resource "azurerm_storage_account" "transport" {
 
 
 resource "azurerm_private_dns_a_record" "transport" {
-  provider                             = azurerm.dnsmanagement
-  count                                = var.use_private_endpoint && var.create_transport_storage && local.use_Azure_native_DNS && local.use_AFS_for_shared && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
+  provider                             = azurerm.privatelinkdnsmanagement
+  count                                = var.create_transport_storage && local.use_Azure_native_DNS && local.use_AFS_for_shared && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
   name                                 = replace(
                                            lower(
                                              format("%s", local.landscape_shared_transport_storage_account_name)
@@ -329,8 +334,8 @@ resource "azurerm_private_dns_a_record" "transport" {
                                            "/[^a-z0-9]/",
                                            ""
                                          )
-  zone_name                            = var.dns_zone_names.file_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  zone_name                            = var.dns_settings.dns_zone_names.file_dns_zone_name
+  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
   ttl                                  = 10
   records                              = [
                                            length(var.transport_private_endpoint_id) > 0 ? (
@@ -341,7 +346,7 @@ resource "azurerm_private_dns_a_record" "transport" {
 }
 
 data "azurerm_private_dns_a_record" "transport" {
-  provider                             = azurerm.dnsmanagement
+  provider                             = azurerm.privatelinkdnsmanagement
   count                                = var.create_transport_storage && var.use_private_endpoint && length(var.transport_private_endpoint_id) > 0 ? 1 : 0
   name                                 = replace(
                                            lower(
@@ -350,8 +355,8 @@ data "azurerm_private_dns_a_record" "transport" {
                                            "/[^a-z0-9]/",
                                            ""
                                          )
-  zone_name                            = var.dns_zone_names.file_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  zone_name                            = var.dns_settings.dns_zone_names.file_dns_zone_name
+  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 }
 
 
@@ -447,9 +452,9 @@ resource "azurerm_private_endpoint" "transport" {
                                ]
                              }
   dynamic "private_dns_zone_group" {
-                                     for_each = range(var.register_endpoints_with_dns ? 1 : 0)
+                                     for_each = range(var.dns_settings.register_endpoints_with_dns ? 1 : 0)
                                      content {
-                                       name                 = var.dns_zone_names.file_dns_zone_name
+                                       name                 = var.dns_settings.dns_zone_names.file_dns_zone_name
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.file[0].id]
                                      }
                                    }
@@ -509,13 +514,33 @@ resource "azurerm_storage_account" "install" {
   account_replication_type             = var.storage_account_replication_type
   account_tier                         = "Premium"
   allow_nested_items_to_be_public      = false
-  enable_https_traffic_only            = false
+  https_traffic_only_enabled            = false
   min_tls_version                      = "TLS1_2"
+  cross_tenant_replication_enabled     = false
   public_network_access_enabled        = var.public_network_access_enabled
   tags                                 = var.tags
-  network_rules {
-                  default_action              = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
-                  virtual_network_subnet_ids  = compact([
+  shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled_nfs
+
+}
+
+resource "azurerm_storage_account_network_rules" "install" {
+  provider                             = azurerm.main
+  count                                = local.use_AFS_for_shared && length(var.install_storage_account_id) == 0 ? 1 : 0
+  depends_on                           = [
+                                            azurerm_storage_account.install,
+                                            azurerm_storage_share.install,
+                                            azurerm_storage_share.install_smb
+                                         ]
+
+  storage_account_id                   = azurerm_storage_account.install[0].id
+  default_action                       = var.enable_firewall_for_keyvaults_and_storage ? "Deny" : "Allow"
+
+  ip_rules                             = compact([
+                                                 length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
+                                                 length(var.Agent_IP) > 0 ? var.Agent_IP : ""
+                                                ])
+
+  virtual_network_subnet_ids           = compact([
                                                   local.database_subnet_defined ? (
                                                     local.database_subnet_existing ? var.infrastructure.vnets.sap.subnet_db.arm_id : azurerm_subnet.db[0].id) : (
                                                     null
@@ -526,18 +551,16 @@ resource "azurerm_storage_account" "install" {
                                                   length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null
                                                   ]
                                                 )
-                  ip_rules                   = compact([
-                                                 length(local.deployer_public_ip_address) > 0 ? local.deployer_public_ip_address : "",
-                                                 length(var.Agent_IP) > 0 ? var.Agent_IP : ""
-                                                ])
-                }
 
-
+  lifecycle {
+              ignore_changes = [virtual_network_subnet_ids]
+            }
 }
 
 
+
 resource "azurerm_private_dns_a_record" "install" {
-  provider                             = azurerm.dnsmanagement
+  provider                             = azurerm.privatelinkdnsmanagement
   count                                = var.use_private_endpoint && local.use_Azure_native_DNS && local.use_AFS_for_shared && length(var.install_private_endpoint_id) == 0 ? 1 : 0
   name                                 = replace(
                                            lower(
@@ -546,8 +569,8 @@ resource "azurerm_private_dns_a_record" "install" {
                                            "/[^a-z0-9]/",
                                            ""
                                          )
-  zone_name                            = var.dns_zone_names.file_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  zone_name                            = var.dns_settings.dns_zone_names.file_dns_zone_name
+  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
   ttl                                  = 10
   records                              = [
                                            length(var.install_private_endpoint_id) > 0 ? (
@@ -562,7 +585,7 @@ resource "azurerm_private_dns_a_record" "install" {
 
 
 data "azurerm_private_dns_a_record" "install" {
-  provider                             = azurerm.dnsmanagement
+  provider                             = azurerm.privatelinkdnsmanagement
   count                                = var.use_private_endpoint && length(var.install_private_endpoint_id) > 0 ? 1 : 0
   name                                 = replace(
                                           lower(
@@ -571,8 +594,8 @@ data "azurerm_private_dns_a_record" "install" {
                                           "/[^a-z0-9]/",
                                           ""
                                         )
-  zone_name                            = var.dns_zone_names.file_dns_zone_name
-  resource_group_name                  = var.management_dns_resourcegroup_name
+  zone_name                            = var.dns_settings.dns_zone_names.file_dns_zone_name
+  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 }
 
 
@@ -657,9 +680,9 @@ resource "azurerm_private_endpoint" "install" {
                              }
 
   dynamic "private_dns_zone_group" {
-                                     for_each = range(var.register_endpoints_with_dns ? 1 : 0)
+                                     for_each = range(var.dns_settings.register_endpoints_with_dns ? 1 : 0)
                                      content {
-                                       name                 = var.dns_zone_names.file_dns_zone_name
+                                       name                 = var.dns_settings.dns_zone_names.file_dns_zone_name
                                        private_dns_zone_ids = [data.azurerm_private_dns_zone.file[0].id]
                                      }
                                    }
@@ -696,7 +719,7 @@ resource "azurerm_storage_share" "install" {
 
 resource "azurerm_storage_share" "install_smb" {
   provider                             = azurerm.main
-  count                                = local.use_AFS_for_shared ? (
+  count                                = local.use_AFS_for_shared && var.install_create_smb_shares ? (
                                            length(var.install_storage_account_id) > 0 ? (
                                              var.install_always_create_fileshares ? 1 : 0) : (
                                              1

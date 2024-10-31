@@ -52,7 +52,7 @@ locals {
   db_os = {
     "source_image_id"                  = local.db_custom_image ? var.database.os.source_image_id : ""
     "publisher"                        = try(var.database.os.publisher, local.db_custom_image ? "" : "SUSE")
-    "offer"                            = try(var.database.os.offer, local.db_custom_image ? "" : "sles-sap-15-sp3")
+    "offer"                            = try(var.database.os.offer, local.db_custom_image ? "" : "sles-sap-15-sp5")
     "sku"                              = try(var.database.os.sku, local.db_custom_image ? "" : "gen1")
     "version"                          = try(var.database.os.version, local.db_custom_image ? "" : "latest")
   }
@@ -468,7 +468,7 @@ locals {
   sid_private_key                      = local.use_local_credentials ? (
                                            try(
                                              file(var.authentication.path_to_private_key),
-                                             tls_private_key.sdu[0].private_key_pem
+                                             try(tls_private_key.sdu[0].private_key_pem, "")
                                            )) : (
                                            ""
                                          )

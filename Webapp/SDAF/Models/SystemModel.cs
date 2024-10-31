@@ -18,6 +18,7 @@ namespace AutomationForm.Models
 
     [DisplayName("System ID")]
     public string Id { get; set; }
+    public string LastModified { get; set; }
 
     // BASIC
 
@@ -203,18 +204,24 @@ namespace AutomationForm.Models
     public Tag[] configuration_settings { get; set; }
 
     public bool? dns_a_records_for_secondary_names { get; set; } = true;
-    public bool? use_private_endpoint { get; set; }
+
+    public bool? use_private_endpoint { get; set; } = true;
 
     public bool? use_service_endpoint { get; set; }
 
     public bool? register_endpoints_with_dns { get; set; } = true;
 
+    public bool? shared_access_key_enabled { get; set; } = false;
 
-    /*---------------------------------------------------------------------------8
-    |                                                                            |
-    |                       Cluster information                                  |
-    |                                                                            |
-    +------------------------------------4--------------------------------------*/
+    public bool? shared_access_key_enabled_nfs { get; set; } = true;
+  
+
+
+/*---------------------------------------------------------------------------8
+|                                                                            |
+|                       Cluster information                                  |
+|                                                                            |
++------------------------------------4--------------------------------------*/
 
     public string fencing_role_name { get; set; }
 
@@ -483,6 +490,7 @@ namespace AutomationForm.Models
 
     public int? sapmnt_volume_size { get; set; }
 
+    [StorageAccountIdValidator]
     public string azure_files_sapmnt_id { get; set; }
 
     public bool? use_random_id_for_storageaccounts { get; set; } = true;
@@ -575,6 +583,8 @@ namespace AutomationForm.Models
 
     public string ANF_sapmnt_volume_name { get; set; }
 
+    public bool? ANF_sapmnt_use_existing { get; set; }
+
     public int? ANF_sapmnt_volume_size { get; set; }
 
     public int? ANF_sapmnt_volume_throughput { get; set; }
@@ -632,12 +642,17 @@ namespace AutomationForm.Models
     |                                                                            |
     +------------------------------------4--------------------------------------*/
 
-    public bool? database_HANA_use_ANF_scaleout_scenario { get; set; } = false;
+    public bool? database_HANA_use_scaleout_scenario { get; set; } = false;
 
     public bool? database_HANA_no_standby_role { get; set; } = false;
 
     public int? stand_by_node_count { get; set; } = 0;
 
+    [StorageAccountIdValidator]
+    public string[] hanashared_id { get; set; }
+
+    [PrivateEndpointIdValidator]
+    public string[] hanashared_private_endpoint_id { get; set; }
 
     /*---------------------------------------------------------------------------8
     |                                                                            |
@@ -667,6 +682,18 @@ namespace AutomationForm.Models
     public int? use_fence_kdump_size_gb_scs { get; set; } = 64;
 
     public int? use_fence_kdump_lun_scs { get; set; } = 4;
+
+
+    /*---------------------------------------------------------------------------8
+    |                                                                            |
+    |                             VM patch information                           |
+    |                                                                            |
+    +------------------------------------4--------------------------------------*/
+
+    public string patch_mode { get; set; } = "ImageDefault";
+    public string patch_assessment_mode { get; set; } = "ImageDefault";
+
+
 
   }
 

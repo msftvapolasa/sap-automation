@@ -165,12 +165,9 @@
   when:
     - database_high_availability
     - NFS_provider == "ANF"
-    - hana_data_mountpoint is defined
-    - hana_data_mountpoint | length > 1
-    - hana_log_mountpoint is defined
-    - hana_log_mountpoint | length > 1
-    - hana_shared_mountpoint is defined
-    - hana_shared_mountpoint | length > 1
+    - hana_data_mountpoint | default("") | length > 1 or
+      hana_log_mountpoint  | default("") | length > 1 or
+      hana_shared_mountpoint  | default("") | length > 1
     - inventory_hostname == primary_instance_name
   block:
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Stop HANA System on both nodes"
@@ -216,9 +213,9 @@
       changed_when:                    false
       register:                        hana_system_started
 
-    - name:                            "5.5.4.1 HANA Pacemaker configuration - Wait 5 minutes for SAP system to start"
+    - name:                            "5.5.4.1 HANA Pacemaker configuration - Wait {{ hana_wait_for_start_in_sec }} seconds for SAP system to start"
       ansible.builtin.pause:
-        seconds:                       300
+        seconds:                       "{{ hana_wait_for_start_in_sec }}"
 
     - name:                            "5.5.4.1 HANA Pacemaker configuration - Ensure maintenance mode is disabled"
       ansible.builtin.command:         crm configure property maintenance-mode=false

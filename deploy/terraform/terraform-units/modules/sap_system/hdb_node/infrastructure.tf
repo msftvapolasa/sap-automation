@@ -60,13 +60,13 @@ resource "azurerm_lb" "hdb" {
                                 var.naming.separator,
                                 local.resource_suffixes.db_alb_feip
                               )
-                              subnet_id = var.db_subnet.id
+                              subnet_id = var.database.scale_out ? var.admin_subnet.id :  var.db_subnet.id
                               private_ip_address = length(try(var.database.loadbalancer.frontend_ips[0], "")) > 0 ? (
                                 var.database.loadbalancer.frontend_ips[0]) : (
                                 var.database.use_DHCP ? (
                                   null) : (
                                   cidrhost(
-                                    var.db_subnet.address_prefixes[0],
+                                    var.database.scale_out ? var.admin_subnet.address_prefixes[0] :  var.db_subnet.address_prefixes[0],
                                     tonumber(count.index) + local.hdb_ip_offsets.hdb_lb
                                 ))
                               )
@@ -112,8 +112,8 @@ resource "azurerm_lb_probe" "hdb" {
 resource "azurerm_network_interface_backend_address_pool_association" "hdb" {
   provider                             = azurerm.main
   count                                = local.enable_db_lb_deployment ? var.database_server_count : 0
-  network_interface_id                 = azurerm_network_interface.nics_dbnodes_db[count.index].id
-  ip_configuration_name                = azurerm_network_interface.nics_dbnodes_db[count.index].ip_configuration[0].name
+  network_interface_id                 = var.database.scale_out ? azurerm_network_interface.nics_dbnodes_admin[count.index].id : azurerm_network_interface.nics_dbnodes_db[count.index].id
+  ip_configuration_name                = var.database.scale_out ? azurerm_network_interface.nics_dbnodes_admin[count.index].ip_configuration[0].name : azurerm_network_interface.nics_dbnodes_db[count.index].ip_configuration[0].name
   backend_address_pool_id              = azurerm_lb_backend_address_pool.hdb[0].id
 }
 
@@ -145,9 +145,9 @@ resource "azurerm_lb_rule" "hdb" {
 
 resource "azurerm_private_dns_a_record" "db" {
   provider                             = azurerm.dnsmanagement
-  count                                = local.enable_db_lb_deployment && length(local.dns_label) > 0 && var.register_virtual_network_to_dns ? 1 : 0
+  count                                = local.enable_db_lb_deployment && length(local.dns_label) > 0 && var.dns_settings.register_virtual_network_to_dns ? 1 : 0
   name                                 = lower(format("%s%sdb%scl", var.sap_sid, local.database_sid, local.database_instance))
-  resource_group_name                  = coalesce(var.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
+  resource_group_name                  = coalesce(var.dns_settings.management_dns_resourcegroup_name, var.landscape_tfstate.dns_resource_group_name)
   zone_name                            = local.dns_label
   ttl                                  = 300
   records                              = [try(azurerm_lb.hdb[0].frontend_ip_configuration[0].private_ip_address, "")]

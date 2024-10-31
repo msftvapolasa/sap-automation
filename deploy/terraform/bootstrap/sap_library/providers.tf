@@ -24,7 +24,7 @@ provider "azurerm"                     {
                                                                    }
 
                                                   }
-                                         skip_provider_registration = true
+
                                          storage_use_azuread        = true
                                        }
 
@@ -42,7 +42,7 @@ provider "azurerm"                     {
                                          tenant_id                  = local.use_spn ? local.spn.tenant_id : null
 
                                          alias                      = "main"
-                                         skip_provider_registration = true
+
                                          storage_use_azuread        = true
                                        }
 
@@ -51,7 +51,7 @@ provider "azurerm"                     {
                                          features {
                                                   }
                                          alias                      = "deployer"
-                                         skip_provider_registration = true
+
                                          storage_use_azuread        = true
                                        }
 
@@ -62,7 +62,18 @@ provider "azurerm"                     {
                                          client_secret              = local.use_spn ? local.spn.client_secret : null
                                          tenant_id                  = local.use_spn ? local.spn.tenant_id : null
                                          alias                      = "dnsmanagement"
-                                         skip_provider_registration = true
+
+                                         storage_use_azuread        = true
+                                       }
+
+provider "azurerm"                     {
+                                         features {}
+                                         subscription_id            = try(coalesce(var.privatelink_dns_subscription_id, local.spn.subscription_id), null)
+                                         client_id                  = local.use_spn ? local.spn.client_id : null
+                                         client_secret              = local.use_spn ? local.spn.client_secret : null
+                                         tenant_id                  = local.use_spn ? local.spn.tenant_id : null
+                                         alias                      = "privatelinkdnsmanagement"
+
                                          storage_use_azuread        = true
                                        }
 
@@ -89,11 +100,11 @@ terraform                              {
                                                                          }
                                                               azuread =  {
                                                                            source  = "hashicorp/azuread"
-                                                                           version = ">=2.2"
+                                                                           version = "3.0.2"
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = ">=3.3"
+                                                                           version = "4.4.0"
                                                                          }
                                                             }
                                        }

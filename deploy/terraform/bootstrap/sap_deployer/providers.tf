@@ -29,7 +29,7 @@ provider "azurerm"                     {
                                                                      purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
                                                                    }
                                                   }
-                                         skip_provider_registration = true
+
                                        }
 
 provider "azurerm"                     {
@@ -44,7 +44,7 @@ provider "azurerm"                     {
                                                                      purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
                                                                    }
                                                   }
-                                         skip_provider_registration = true
+
                                          partner_id                 = "f94f50f2-2539-42f8-9c8e-c65b28c681f7"
                                          alias                      = "main"
                                        }
@@ -52,10 +52,18 @@ provider "azurerm"                     {
 provider "azurerm"                     {
                                          features {}
                                          subscription_id            = try(var.management_dns_subscription_id, null)
-                                         skip_provider_registration = true
+
                                          partner_id                 = "f94f50f2-2539-42f8-9c8e-c65b28c681f7"
                                          alias                      = "dnsmanagement"
                                        }
+
+provider "azurerm"                     {
+                                         features {}
+                                         subscription_id            = try(coalesce(var.privatelink_dns_subscription_id, var.management_dns_subscription_id), null)
+                                         alias                      = "privatelinkdnsmanagement"
+                                         storage_use_azuread        = true
+                                       }
+
 
 terraform                              {
                                          required_version = ">= 1.0"
@@ -74,11 +82,11 @@ terraform                              {
                                                                          }
                                                               azuread =  {
                                                                            source  = "hashicorp/azuread"
-                                                                           version = ">=2.2"
+                                                                           version = "3.0.2"
                                                                          }
                                                               azurerm =  {
                                                                            source  = "hashicorp/azurerm"
-                                                                           version = ">=3.3"
+                                                                           version = "4.4.0"
                                                                          }
                                                             }
                                        }

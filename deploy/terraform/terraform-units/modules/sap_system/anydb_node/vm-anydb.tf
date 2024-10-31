@@ -161,14 +161,17 @@ resource "azurerm_linux_virtual_machine" "dbserver" {
   size                                 = local.anydb_sku
   source_image_id                      = var.database.os.type == "custom" ? var.database.os.source_image_id : null
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
-  # ToDo Add back later
-# patch_mode                           = var.infrastructure.patch_mode
 
   admin_username                       = var.sid_username
   admin_password                       = local.enable_auth_key ? null : var.sid_password
   disable_password_authentication      = !local.enable_auth_password
 
   custom_data                          = var.deployment == "new" ? var.cloudinit_growpart_config : null
+
+  patch_mode                                             = var.infrastructure.patch_mode
+  patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
+  bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
+  vm_agent_platform_updates_enabled                      = true
 
   tags                                 = merge(local.tags, var.tags)
 
@@ -301,9 +304,14 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   size                                 = local.anydb_sku
   source_image_id                      = var.database.os.type == "custom" ? var.database.os.source_image_id : null
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
-  # ToDo Add back later
-# patch_mode                           = var.infrastructure.patch_mode
 
+  // ImageDefault = Manual on Windows
+  // https://learn.microsoft.com/en-us/azure/virtual-machines/automatic-vm-guest-patching#patch-orchestration-modes
+  patch_mode                                             = var.infrastructure.patch_mode == "ImageDefault" ? "Manual" : var.infrastructure.patch_mode
+  patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
+  bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
+  vm_agent_platform_updates_enabled                      = true
+  enable_automatic_updates                               = !(var.infrastructure.patch_mode == "ImageDefault")
 
   admin_username                       = var.sid_username
   admin_password                       = var.sid_password
@@ -354,13 +362,13 @@ resource "azurerm_windows_virtual_machine" "dbserver" {
   boot_diagnostics {
                      storage_account_uri = var.storage_bootdiag_endpoint
                    }
-  dynamic "identity"   {
-                         for_each = range(length(var.database.user_assigned_identity_id) > 0 ? 1 : 0)
-                         content {
-                                   type         = "UserAssigned"
-                                   identity_ids = [var.database.user_assigned_identity_id]
-                                 }
+  dynamic "identity" {
+                       for_each = range((var.use_msi_for_clusters && var.database.high_availability) || length(var.database.user_assigned_identity_id) > 0 ? 1 : 0)
+                       content {
+                         type         = var.use_msi_for_clusters && length(var.database.user_assigned_identity_id) > 0 ? "SystemAssigned, UserAssigned" : var.use_msi_for_clusters ? "SystemAssigned" : "UserAssigned"
+                         identity_ids = length(var.database.user_assigned_identity_id) > 0 ? [var.database.user_assigned_identity_id] : null
                        }
+                     }
 
   lifecycle {
     ignore_changes = [
@@ -498,7 +506,7 @@ resource "azurerm_virtual_machine_extension" "anydb_win_aem_extension" {
 
 resource "azurerm_virtual_machine_extension" "configure_ansible" {
   provider                             = azurerm.main
-  count                                = local.enable_deployment && var.database.deploy_v1_monitoring_extension ? (
+  count                                = local.enable_deployment ? (
                                            upper(local.anydb_ostype) == "WINDOWS" ? (
                                              var.database_server_count) : (
                                              0
@@ -615,9 +623,29 @@ resource "azurerm_role_assignment" "role_assignment_msi" {
                                            ) : (
                                            0
                                          )
-  scope                                = azurerm_linux_virtual_machine.dbserver[count.index].id
+  scope                                = (upper(var.database.os.os_type) == "LINUX"                                # If Linux
+                                         ) ? (
+                                           azurerm_linux_virtual_machine.dbserver[count.index].id
+                                         ) : (
+                                           (upper(var.database.os.os_type) == "WINDOWS"                            # If Windows
+                                           ) ? (
+                                             azurerm_windows_virtual_machine.dbserver[count.index].id
+                                           ) : (
+                                             null                                                                  # If Other
+                                           )
+                                         )
   role_definition_name                 = var.fencing_role_name
-  principal_id                         = azurerm_linux_virtual_machine.dbserver[count.index].identity[0].principal_id
+  principal_id                         = (upper(var.database.os.os_type) == "LINUX"                                # If Linux
+                                         ) ? (
+                                           azurerm_linux_virtual_machine.dbserver[count.index].identity[0].principal_id
+                                         ) : (
+                                           (upper(var.database.os.os_type) == "WINDOWS"                            # If Windows
+                                           ) ? (
+                                             azurerm_windows_virtual_machine.dbserver[count.index].identity[0].principal_id
+                                           ) : (
+                                             null                                                                  # If Other
+                                           )
+                                         )
 }
 
 resource "azurerm_role_assignment" "role_assignment_msi_ha" {
@@ -631,9 +659,30 @@ resource "azurerm_role_assignment" "role_assignment_msi_ha" {
                                           ) : (
                                           0
                                         )
-  scope                                = azurerm_linux_virtual_machine.dbserver[count.index].id
+  scope                                = (upper(var.database.os.os_type) == "LINUX"                                # If Linux
+                                         ) ? (
+                                           azurerm_linux_virtual_machine.dbserver[count.index].id
+                                         ) : (
+                                           (upper(var.database.os.os_type) == "WINDOWS"                            # If Windows
+                                           ) ? (
+                                             azurerm_windows_virtual_machine.dbserver[count.index].id
+                                           ) : (
+                                             null                                                                  # If Other
+                                           )
+                                         )
   role_definition_name                 = var.fencing_role_name
-  principal_id                         = azurerm_linux_virtual_machine.dbserver[(count.index +1) % var.database_server_count].identity[0].principal_id
+  principal_id                         = (upper(var.database.os.os_type) == "LINUX"                                # If Linux
+                                         ) ? (
+                                           azurerm_linux_virtual_machine.dbserver[(count.index +1) % var.database_server_count].identity[0].principal_id
+                                         ) : (
+                                           (upper(var.database.os.os_type) == "WINDOWS"                            # If Windows
+                                           ) ? (
+                                             azurerm_windows_virtual_machine.dbserver[(count.index +1) % var.database_server_count].identity[0].principal_id
+                                           ) : (
+                                             null                                                                  # If Other
+                                           )
+                                         )
+
 }
 
 
@@ -714,6 +763,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_db_lnx" {
   type                                 = "AzureMonitorLinuxAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 
 }
 
@@ -729,6 +779,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_db_win" {
   type                                 = "AzureMonitorWindowsAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 
 }
 
@@ -745,6 +796,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_db_lnx" {
   type                                 = "AzureSecurityLinuxAgent"
   type_handler_version                 = "2.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 
   settings                             = jsonencode(
                                             {
@@ -767,6 +819,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_db_win" {
   type                                 = "AzureSecurityWindowsAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 
   settings                             = jsonencode(
                                             {

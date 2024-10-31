@@ -185,7 +185,12 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
   admin_username                       = var.sid_username
   admin_password                       = local.enable_auth_key ? null : var.sid_password
   disable_password_authentication      = !local.enable_auth_password
-  tags                                 = merge(var.tags, local.tags)
+  tags                                 = merge(var.tags, local.tags, var.database.scale_out ?  { "SITE" = count.index %2 == 0 ? "SITE1" : "SITE2" } : null)
+
+  patch_mode                                             = var.infrastructure.patch_mode
+  patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode
+  bypass_platform_safety_checks_on_user_schedule_enabled = var.infrastructure.patch_mode != "AutomaticByPlatform" ? false : true
+  vm_agent_platform_updates_enabled                      = true
 
   zone                                 = local.use_avset ? null : try(local.zones[count.index % max(local.db_zone_count, 1)], null)
 
@@ -206,19 +211,12 @@ resource "azurerm_linux_virtual_machine" "vm_dbnode" {
                                          ) : null
 
   network_interface_ids                = local.enable_storage_subnet ? (
-                                           var.options.legacy_nic_order ? (
-                                             compact([
+                                           compact([
                                                var.database_dual_nics ? azurerm_network_interface.nics_dbnodes_admin[count.index].id : null,
                                                azurerm_network_interface.nics_dbnodes_db[count.index].id,
                                                azurerm_network_interface.nics_dbnodes_storage[count.index].id
                                              ])
-                                             ) : (
-                                             compact([
-                                               azurerm_network_interface.nics_dbnodes_db[count.index].id,
-                                               var.database_dual_nics ? azurerm_network_interface.nics_dbnodes_admin[count.index].id : null,
-                                               azurerm_network_interface.nics_dbnodes_storage[count.index].id
-                                             ])
-                                           )
+
                                            ) : (
                                            var.database_dual_nics ? (
                                              var.options.legacy_nic_order ? (
@@ -567,6 +565,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_extension_db_lnx" {
   type                                 = "AzureMonitorLinuxAgent"
   type_handler_version                 = "1.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 
 }
 
@@ -583,6 +582,7 @@ resource "azurerm_virtual_machine_extension" "monitoring_defender_db_lnx" {
   type                                 = "AzureSecurityLinuxAgent"
   type_handler_version                 = "2.0"
   auto_upgrade_minor_version           = true
+  automatic_upgrade_enabled            = true
 
   settings                             = jsonencode(
                                             {

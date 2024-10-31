@@ -7,6 +7,7 @@
 # |  Begin: configuration for SAPHanaSR python hook                            |
 # |                                                                            |
 # +------------------------------------4--------------------------------------*/
+# Note: Refer to https://access.redhat.com/articles/3004101 for RHEL hook installation for HSR ( scale up and scale out ) setups
 
 - name:                                HANA 2.0 only - Implement the Python system replication hook SAPHanaSR
   when:
@@ -174,10 +175,6 @@
       changed_when:                    false
       register:                        hana_system_started
 
-    - name:                            Wait 5 minutes for SAP system to start
-      ansible.builtin.pause:
-        seconds:                       300
-
     - name:                           Start HANA Database
       ansible.builtin.import_tasks:   ../../../roles-misc/0.4-helpers/tasks/04.01-start_hana.yml
 
@@ -197,7 +194,7 @@
           ansible.builtin.shell: |
                                        set -o pipefail
                                        awk '/ha_dr_SAPHanaSR.*crm_attribute/ \
-                                       { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_* | tail -n 1
+                                       { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_*
           args:
             chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name]['virtual_host'] }}/trace
           register:                    saphanasr
@@ -216,7 +213,7 @@
           ansible.builtin.shell: |
                                        set -o pipefail
                                        awk '/ha_dr_SAPHanaSR.*crm_attribute/ \
-                                       { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_* | tail -n 1
+                                       { printf "%s %s %s %s\n",$2,$3,$5,$16 }' nameserver_*
           args:
             chdir:                     /usr/sap/{{ db_sid | upper }}/HDB{{ db_instance_number }}/{{ hostvars[primary_instance_name]['virtual_host'] }}/trace
           register:                    saphanasr

@@ -6,7 +6,7 @@
 
 resource "local_file" "ansible_inventory_new_yml" {
   content       = templatefile(format("%s%s", path.module, "/ansible_inventory.tmpl"), {
-                    ips_dbnodes         = var.database_server_ips
+                    ips_dbnodes         = var.scale_out ? var.database_admin_ips : var.database_server_ips
                     dbnodes             = var.platform == "HANA" ? var.naming.virtualmachine_names.HANA_COMPUTERNAME : var.naming.virtualmachine_names.ANYDB_COMPUTERNAME
                     db_vmnodes          = var.database_server_vm_names
                     virt_dbnodes        = var.use_secondary_ips ? (
@@ -158,6 +158,9 @@ resource "local_file" "ansible_inventory_new_yml" {
                     iscsi_servers       = var.iSCSI_server_names
                     iscsi_server_list   = var.iSCSI_servers
 
+                    site                = var.site_information
+                    scale_out           = var.scale_out
+
     }
   )
   filename             = format("%s/%s_hosts.yaml", path.cwd, var.sap_sid)
@@ -234,11 +237,11 @@ resource "local_file" "sap-parameters_yml" {
               secret_prefix               = local.secret_prefix,
               settings                    = local.settings
               sid                         = var.sap_sid,
-              subnet_cidr_anf           = var.subnet_cidr_anf,
-              subnet_cidr_app           = var.subnet_cidr_app,
-              subnet_cidr_client        = var.subnet_cidr_client
-              subnet_cidr_db            = var.subnet_cidr_db
-              subnet_cidr_storage       = var.subnet_cidr_storage,
+              subnet_cidr_anf             = var.subnet_cidr_anf,
+              subnet_cidr_app             = var.subnet_cidr_app,
+              subnet_cidr_client          = var.subnet_cidr_client
+              subnet_cidr_db              = var.subnet_cidr_db
+              subnet_cidr_storage         = var.subnet_cidr_storage,
               upgrade_packages            = var.upgrade_packages ? "true" : "false"
               use_msi_for_clusters        = var.use_msi_for_clusters
               usr_sap                     = length(var.usr_sap) > 1 ? (
@@ -250,6 +253,9 @@ resource "local_file" "sap-parameters_yml" {
               ams_resource_id             = var.ams_resource_id
               enable_os_monitoring        = var.enable_os_monitoring
               enable_ha_monitoring        = var.enable_ha_monitoring
+              enable_sap_cal              = var.enable_sap_cal
+              calapi_kv                   = var.calapi_kv
+              sap_cal_product_name        = var.sap_cal_product_name
 
     }
   )
@@ -345,4 +351,15 @@ resource "local_file" "sap_inventory_for_wiki_md" {
   filename             = format("%s/%s_inventory.md", path.cwd, var.sap_sid)
   file_permission      = "0660"
   directory_permission = "0770"
+}
+
+
+resource "local_file" "sap_vms_resource_id" {
+  content = templatefile(format("%s/sap-vm-resources.tmpl", path.module), {
+      scs_server_vms          = length(var.scs_server_vm_resource_ids) > 0 ? element(var.scs_server_vm_resource_ids, 0) : ""
+    }
+  )
+  filename                  = format("%s/%s_virtual_machines.json", path.cwd, var.sap_sid)
+  file_permission           = "0660"
+  directory_permission      = "0770"
 }
