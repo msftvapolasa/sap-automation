@@ -542,7 +542,7 @@ packages:
     - { tier: 'os',     package: 'libSM-devel',                                  node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'libICE-devel',                                 node_tier: 'all',     state: 'present' }
     - { tier: 'os',     package: 'tuned-profiles-oracle.noarch',                 node_tier: 'all',     state: 'present' }
-
+    - { tier: 'os',     package: 'libbpf',                                       node_tier: 'all',     state: 'present' }
 
   oraclelinux8.1:
 
