@@ -543,21 +543,6 @@
 
 # Using Opatchauto for GRID SBP Patching
 
-# Block to clear up any oracle process which are using /oracle/GRID/{{ ora_version }}
-    - name: "Cleanup all the process using the GRID HOME"
-      become: true
-      become_user: root
-      ansible.builtin.shell: |
-        set -o errexit
-        set -o pipefail
-        fuser -k -m /oracle/GRID/{{ ora_version }}
-      register: cleanup_grid_home
-      failed_when: cleanup_grid_home.rc > 0
-
-    - name: "Wait for 30 seconds to clear up the GRID HOME"
-      ansible.builtin.wait_for:
-        timeout: 30
-
 # Block to find the latest unzipped GRID Patch from the SBP folder
     - name: "Find the latest unzipped GRID Patch from the SBP folder"
       ansible.builtin.find:
@@ -581,6 +566,23 @@
     - name: "Print the GRID Patch path"
       ansible.builtin.debug:
         var: grid_patch
+
+# Block to clear up any oracle process which are using /oracle/GRID/{{ ora_version }}
+    - name: "Cleanup all the process using the GRID HOME"
+      become: true
+      become_user: root
+      ansible.builtin.shell: |
+        set -o errexit
+        set -o pipefail
+        fuser -k -m /oracle/GRID/{{ ora_version }}
+      register: cleanup_grid_home
+      failed_when: cleanup_grid_home.rc > 0
+
+    - name: "Wait for 30 seconds to clear up the GRID HOME"
+      ansible.builtin.wait_for:
+        timeout: 30
+
+
 
 # Faile here for debugging
     - name: "Fail here for manual GRID SBP installation"
