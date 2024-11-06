@@ -574,9 +574,9 @@
       ansible.builtin.shell: |
         set -o errexit
         set -o pipefail
-        fuser -k -m /oracle/GRID/{{ ora_version }}
+        fuser -k  /oracle/GRID/{{ ora_version }}
       register: cleanup_grid_home
-      failed_when: cleanup_grid_home.rc > 0
+      failed_when: cleanup_grid_home.rc > 2
 
     - name: "Wait for 30 seconds to clear up the GRID HOME"
       ansible.builtin.wait_for:
