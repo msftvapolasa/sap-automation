@@ -604,7 +604,7 @@
          failed_when:                      gridsbpscript_results.rc >= 1
          args:
            creates:                        "/etc/sap_deployment_automation/{{ sap_sid | upper }}/gridsbp_installed.txt"
-          #  chdir:                          "{{ target_media_location }}/SBP/GSBP"
+           chdir:                          "{{ target_media_location }}/SBP/GSBP"
           #  executable:                     /bin/csh
 
       rescue:
@@ -712,7 +712,7 @@
         path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/grid_sbp_installed.txt"
         state:                         touch
         mode:                          '0755'
-      when:                            sbpscript_results.rc < 2
+      when:                            gridsbpscript_results.rc < 2
 
 
 # /*---------------------------------------------------------------------------8
@@ -840,6 +840,7 @@
         mode:                          '0755'
         owner:                         oracle
         group:                         oinstall
+      when:                            sbpscript_results.rc < 2
 
     - name:                            "Oracle ASM: Permissions"
       ansible.builtin.file:
