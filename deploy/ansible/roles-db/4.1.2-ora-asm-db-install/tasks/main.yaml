@@ -857,7 +857,7 @@
         path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/grid_sbp_installed.txt"
         state:                         touch
         mode:                          '0755'
-      when:                            gridsbpscript_results.rc < 2
+      when:                            sbppostpro_results.rc <= 2
 
 
 
