@@ -584,10 +584,10 @@
 
 
 
-# Faile here for debugging
-    - name: "Fail here for manual GRID SBP installation"
-      fail:
-        msg: "Fail here for manual GRID SBP installation"
+# # Faile here for debugging
+#     - name: "Fail here for manual GRID SBP installation"
+#       fail:
+#         msg: "Fail here for manual GRID SBP installation"
 
     # Use Opatchauto for apply for GRID
     - name:                            "Oracle GRID Patching Error Handling Block"
