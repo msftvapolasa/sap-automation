@@ -364,6 +364,9 @@
     #     path:                              "{{ mopatch_path }}"
     #     state:                             absent
 
+    - name:                           "debug 2311 Patching"
+      fail:
+        msg:                          "fail here for manual GRID SBP installation"
 
 # /*---------------------------------------------------------------------------8
 # |                                                                            |
