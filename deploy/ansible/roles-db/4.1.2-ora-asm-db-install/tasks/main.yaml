@@ -698,7 +698,7 @@
         chdir:                         /oracle/GRID/{{ ora_version }}
         creates:                       /etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp-grid-postprocess.txt
       when:
-        - gridsbpscript_results.rc >= 1
+        - sbppostpro_results.rc >= 2
 
     - name:                            "Oracle ASM: Create flag after a successful change"
       ansible.builtin.file:
