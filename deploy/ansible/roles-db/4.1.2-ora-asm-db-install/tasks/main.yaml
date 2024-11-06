@@ -505,6 +505,11 @@
       become_user:                     "root"
       ansible.builtin.shell:           /oracle/GRID/{{ ora_version }}/crs/install/roothas.sh -prepatch |tee /etc/sap_deployment_automation/{{ sap_sid | upper }}/grid-pre-processing.log
       register:                        gridpreinstall
+      environment:
+           OHGRID:                         /oracle/GRID/{{ ora_version }}
+           ORACLE_HOME:                    /oracle/GRID/{{ ora_version }}
+           IHRDBMS:                        /oracle/{{ db_sid | upper}}/{{ ora_release }}
+           SBPFUSER:                       /usr/sbin/fuser
       args:
         creates:                       /etc/sap_deployment_automation/{{ sap_sid | upper }}/gridpreinstall.txt
 
@@ -574,17 +579,27 @@
     #     owner:                         oracle
     #     group:                         oinstall
     #     mode:                          '0775'
+# commenting it and adding new block
+    # - name:                            "Oracle ASM: Pre Processing set permissions GRID"
+    #   become:                          true
+    #   become_user:                     "root"
+    #   ansible.builtin.file:
+    #     path:                          "/oracle/GRID/{{ ora_version }}/bin/oradism"
+    #     state:                         file
+    #     owner:                         root
+    #     group:                         oinstall
+    #     mode:                          u+rw
 
-    - name:                            "Oracle ASM: Pre Processing set permissions GRID"
-      become:                          true
-      become_user:                     "root"
-      ansible.builtin.file:
-        path:                          "/oracle/GRID/{{ ora_version }}/bin/oradism"
-        state:                         file
-        owner:                         root
-        group:                         oinstall
-        mode:                          u+rw
+    - name:                            "Oracle ASM: Pre Processing set permissions oradism"
+      block:
+       - name:                            "Oracle ASM: Post Processing - GRID SBP Patching"
+         become:                          true
+         become_user:                     root
+         ansible.builtin.shell:          su root -c "chown `id -u` $OHGRID/bin/oradism && chmod u+rw $OHGRID/bin/oradism"
+         environment:
+           OHGRID:                         /oracle/GRID/{{ ora_version }}
 
+          #  OPATCH_DEBUG:                   "TRUE"
 
     # - name:                           "debug 2311 Patching"
     #   fail:
@@ -604,10 +619,10 @@
          environment:
            OHGRID:                         /oracle/GRID/{{ ora_version }}
            ORACLE_HOME:                    /oracle/GRID/{{ ora_version }}
-           IHRDBMS:                        /oracle/{{ db_sid | upper}}/{{ ora_version }}
+          #  IHRDBMS:                        /oracle/{{ db_sid | upper}}/{{ ora_version }}
            OHRDBMS:                        /oracle/{{ db_sid | upper}}/{{ ora_version }}
            SBPFUSER:                       /usr/sbin/fuser
-           OPATCH_DEBUG:                   "TRUE"
+          #  OPATCH_DEBUG:                   "TRUE"
          register:                         gridsbpscript_results
          failed_when:                      gridsbpscript_results.rc >= 1
          args:
