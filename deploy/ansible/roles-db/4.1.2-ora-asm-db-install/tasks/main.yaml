@@ -564,7 +564,7 @@
         paths: "{{ target_media_location }}/SBP/GSBP/GIRU/"
         # patterns: ["p*.zip"]
         file_type: directory
-        recurse: yes
+        recurse: no
       register: grid_patch
 
     - name: "Fail if more than one GRID Patch found"
