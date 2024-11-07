@@ -738,26 +738,19 @@
            creates:                       /etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp-grid-postprocess.txt
          when:
            - gridsbpscript_results.rc >= 2
-      # Display the vaule of sbppostpro_results
-
+      # check stat if the file exists for post processing is completed for GRID SBP
        - name:                            "Oracle ASM: Post processing installer output"
-         ansible.builtin.debug:
-            var:                           sbppostpro_results.stdout_lines
-            verbosity:                     2
-
-       - name:                            "Oracle ASM: Create flag after a successful change"
-         ansible.builtin.file:
-           path:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp-grid-postprocess-completed.txt
-           state:                         touch
-           mode:                          '0755'
-         when:                               sbppostpro_results.rc >= 2
+         ansible.builtin.stat:
+          path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp-grid-postprocess.txt"
+          register:                           grid_sbp_postscript_completed
 
        - name:                            "Oracle ASM: Create sbp_installed.txt"
          ansible.builtin.file:
            path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/grid_sbp_installed.txt"
            state:                         touch
            mode:                          '0755'
-         when:                            sbppostpro_results.rc <= 2
+         when:                               
+           grid_sbp_postscript_completed.stat.exists
       when:
         - not grid_sbp_completed.stat.exists
 
