@@ -738,6 +738,12 @@
            creates:                       /etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp-grid-postprocess.txt
          when:
            - gridsbpscript_results.rc >= 2
+      # Display the vaule of sbppostpro_results
+
+       - name:                            "Oracle ASM: Post processing installer output"
+         ansible.builtin.debug:
+            var:                           sbppostpro_results.stdout_lines
+            verbosity:                     2
 
        - name:                            "Oracle ASM: Create flag after a successful change"
          ansible.builtin.file:
