@@ -744,7 +744,7 @@
            path:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp-grid-postprocess-completed.txt
            state:                         touch
            mode:                          '0755'
-           when:                               sbppostpro_results.rc >= 2
+         when:                               sbppostpro_results.rc >= 2
 
        - name:                            "Oracle ASM: Create sbp_installed.txt"
          ansible.builtin.file:
