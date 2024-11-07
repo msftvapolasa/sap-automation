@@ -742,14 +742,14 @@
        - name:                            "Oracle ASM: Post processing installer output"
          ansible.builtin.stat:
           path:                              "/etc/sap_deployment_automation/{{ sap_sid | upper }}/sbp-grid-postprocess.txt"
-          register:                           grid_sbp_postscript_completed
+         register:                           grid_sbp_postscript_completed
 
        - name:                            "Oracle ASM: Create sbp_installed.txt"
          ansible.builtin.file:
            path:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/grid_sbp_installed.txt"
            state:                         touch
            mode:                          '0755'
-         when:                               
+         when:
            grid_sbp_postscript_completed.stat.exists
       when:
         - not grid_sbp_completed.stat.exists
