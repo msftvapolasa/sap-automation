@@ -9,6 +9,10 @@
     state:                             directory
     mode:                              '0755'
 
+# Display ansible_distibution
+- name:                                "1.4 Packages: - Display ansible_distribution"
+  ansible.builtin.debug:
+    var:                               ansible_distribution
 
 - name:                                "1.4 Packages: - check if {{ sap_sid }} is updated"
   ansible.builtin.stat:
