@@ -340,8 +340,8 @@
   become_user:                         oracle
   ansible.builtin.shell: |
                                        set -o errexit
-                                       ./asmca -silent -createDiskGroup -diskGroupName RECO -diskList '{{ asm_recodisklist }}'
-                                       ./asmca -silent -createDiskGroup -diskGroupName ARCH -diskList '{{ asm_archdisklist }}'
+                                       ./asmca -silent -createDiskGroup -diskGroupName RECO -diskList '{{ asm_recodisklist }}' -redundancy EXTERNAL
+                                       ./asmca -silent -createDiskGroup -diskGroupName ARCH -diskList '{{ asm_archdisklist }}' -redundancy EXTERNAL
   register:                            diskgroup_creation_results
   environment:
     DB_SID:                            "{{ db_sid | upper }}"
