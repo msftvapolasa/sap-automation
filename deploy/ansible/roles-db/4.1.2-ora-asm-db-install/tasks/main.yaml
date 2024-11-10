@@ -675,6 +675,11 @@
        - name: "Wait for 30 seconds to clear up the GRID HOME"
          ansible.builtin.wait_for:
            timeout: 30
+
+       - name:                           "debug 2311 Patching"
+         fail:
+           msg:                          "fail here for manual GRID SBP installation"
+
        # Use Opatchauto for apply for GRID
        - name:                            "Oracle ASM: Post Processing - GRID SBP Patching"
          become:                          true
