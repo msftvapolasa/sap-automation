@@ -508,43 +508,47 @@
            owner:                         oracle
            group:                         oinstall
 
+      #  - name:                           "debug 2311 Patching"
+      #    fail:
+      #      msg:                          "fail here for manual GRID SBP installation"
 
-       - name:                            "Oracle ASM: Prepare for GRID SBP Patching"
-         become:                          true
-         become_user:                     "root"
-         ansible.builtin.shell:           /oracle/GRID/{{ ora_version }}/crs/install/roothas.sh -prepatch |tee /etc/sap_deployment_automation/{{ sap_sid | upper }}/grid-pre-processing.log
-         register:                        gridpreinstall
-         environment:
-              OHGRID:                         /oracle/GRID/{{ ora_version }}
-              ORACLE_HOME:                    /oracle/GRID/{{ ora_version }}
-              IHRDBMS:                        /oracle/{{ db_sid | upper}}/{{ ora_release }}
-              SBPFUSER:                       /usr/sbin/fuser
-         args:
-           creates:                       /etc/sap_deployment_automation/{{ sap_sid | upper }}/gridpreinstall.txt
 
-       - name:                            "Wait to shutdown of Oracle processes for 30 sec"
-         ansible.builtin.wait_for:
-           timeout:                       30
+      #  - name:                            "Oracle ASM: Prepare for GRID SBP Patching"
+      #    become:                          true
+      #    become_user:                     "root"
+      #    ansible.builtin.shell:           /oracle/GRID/{{ ora_version }}/crs/install/roothas.sh -prepatch |tee /etc/sap_deployment_automation/{{ sap_sid | upper }}/grid-pre-processing.log
+      #    register:                        gridpreinstall
+      #    environment:
+      #         OHGRID:                         /oracle/GRID/{{ ora_version }}
+      #         ORACLE_HOME:                    /oracle/GRID/{{ ora_version }}
+      #         IHRDBMS:                        /oracle/{{ db_sid | upper}}/{{ ora_release }}
+      #         usfu:                       /usr/sbin/fuser
+      #    args:
+      #      creates:                       /etc/sap_deployment_automation/{{ sap_sid | upper }}/gridpreinstall.txt
+
+      #  - name:                            "Wait to shutdown of Oracle processes for 30 sec"
+      #    ansible.builtin.wait_for:
+      #      timeout:                       30
 
        # Debug for testing
-       - name:                            "Oracle ASM: Prepare for GRID SBP Patching print output"
-         ansible.builtin.debug:
-           var:                           gridpreinstall.stdout_lines
-           verbosity:                     2
+      #  - name:                            "Oracle ASM: Prepare for GRID SBP Patching print output"
+      #    ansible.builtin.debug:
+      #      var:                           gridpreinstall.stdout_lines
+      #      verbosity:                     2
 
-       - name:                            "Oracle ASM: Prepare for GRID SBP Patching"
-         ansible.builtin.copy:
-           dest:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/pre-patchcmd.log"
-           content:                       "{{ gridpreinstall.stdout }}"
-           mode:                          0777
-         when:                            gridpreinstall.stdout is defined
+      #  - name:                            "Oracle ASM: Prepare for GRID SBP Patching"
+      #    ansible.builtin.copy:
+      #      dest:                          "/etc/sap_deployment_automation/{{ sap_sid | upper }}/pre-patchcmd.log"
+      #      content:                       "{{ gridpreinstall.stdout }}"
+      #      mode:                          0777
+      #    when:                            gridpreinstall.stdout is defined
 
-       - name:                            "Oracle ASM: Create flag after a successful preparation"
-         ansible.builtin.file:
-           path:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/gridpreinstall.txt
-           state:                         touch
-           mode:                          '0755'
-         when:                            gridpreinstall.rc == 0
+      #  - name:                            "Oracle ASM: Create flag after a successful preparation"
+      #    ansible.builtin.file:
+      #      path:                          /etc/sap_deployment_automation/{{ sap_sid | upper }}/gridpreinstall.txt
+      #      state:                         touch
+      #      mode:                          '0755'
+      #    when:                            gridpreinstall.rc == 0
 
        # Adding Block for Preventing orachk problems as per SBP Guidelines for patching 2308.
 
@@ -613,9 +617,9 @@
     #   fail:
     #     msg:                          "fail here for manual GRID SBP installation"
 
-       - name:                            "File update wait for 30 sec to avoid multiple locks"
-         ansible.builtin.wait_for:
-           timeout:                       30
+      #  - name:                            "File update wait for 30 sec to avoid multiple locks"
+      #    ansible.builtin.wait_for:
+      #      timeout:                       30
 
 
        # - name:                            "Oracle GRID Patching Error Handling Block"
@@ -675,6 +679,11 @@
        - name: "Wait for 30 seconds to clear up the GRID HOME"
          ansible.builtin.wait_for:
            timeout: 30
+
+      #  - name:                           "debug 2311 Patching"
+      #    fail:
+      #      msg:                          "fail here for manual GRID SBP installation"
+
        # Use Opatchauto for apply for GRID
        - name:                            "Oracle ASM: Post Processing - GRID SBP Patching"
          become:                          true
@@ -730,7 +739,7 @@
          ansible.builtin.shell: |
                                           set -o errexit
                                           set -o pipefail
-                                          /oracle/GRID/{{ ora_version }}/rdbms/install/rootadd_rdbms.sh
+                                          in
                                           /oracle/GRID/{{ ora_version }}/crs/install/roothas.sh -postpatch |tee /etc/sap_deployment_automation/{{ sap_sid | upper }}/grid-post-processing.log
          register:                        sbppostpro_results
          args:
@@ -750,7 +759,7 @@
            state:                         touch
            mode:                          '0755'
          when:
-           grid_sbp_postscript_completed.stat.exists
+           gridsbpscript_results.rc >= 1
       when:
         - not grid_sbp_completed.stat.exists
 
