@@ -26,7 +26,7 @@ target_media_location:                  "/usr/sap/install"
 download_directory:                     "{% if ansible_env.HOME is defined %}{{ ansible_env.HOME }}{% else %}/mnt/downloads{% endif %}/tmp/downloads"
 check_storage_account:                  true
 bom_processing_become:                  true                                    # BOM processing as root user
-deployer_free_temp_disk_space:          100                                     # Free disk space requirement on deployer
+deployer_free_temp_disk_space:          20                                     # Free disk space requirement on deployer
 is_run_with_infraCreate_only:           false                                   # For situations when you want to run the playbooks 01 & 02 without a BOM
 is_executed_by_acss:                    false                                   # For situations when code is executed by acss
 BOM_directory:                         "{{ playbook_dir }}/BOM-catalog"
