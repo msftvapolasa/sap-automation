@@ -28,7 +28,7 @@
 - name:                                "0.1 Password: - Get SAP password from key vault"
   ansible.builtin.command: >-
     az keyvault secret list
-      --vault-name {{ kv_name }}
+      --id  "https://{{ kv_name |lower }}.vault.azure.net"
       --query [].name
       --output yaml
   changed_when:                        false
