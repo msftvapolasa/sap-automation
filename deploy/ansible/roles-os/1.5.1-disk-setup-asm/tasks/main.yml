@@ -198,8 +198,8 @@
     - name:                            "ORACLE ASM: Install RPM Packages"
       ansible.builtin.dnf:
         name:
-          - "{{ target_media_location }}/downloads/oracleasmlib-2.0.17-1.el8.x86_64.rpm"
-          - "{{ target_media_location }}/downloads/oracleasm-support-2.1.12-1.el8.x86_64.rpm"
+          - "{{ target_media_location }}/downloads/{{ oraasm_lib_rpm }}"
+          - "{{ target_media_location }}/downloads/{{ oraasm_support_rpm }}"
           - "{{ target_media_location }}/downloads/compat-libcap1-1.10-7.el7.x86_64.rpm"
         state:                         present
         disable_gpg_check:             true

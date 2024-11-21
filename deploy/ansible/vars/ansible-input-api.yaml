@@ -159,7 +159,8 @@ ora_release:                           19
 ora_version:                           19.0.0
 ora_supported_version:                 19
 ora_compatible:                        19.0.0.0.0
-
+oraasm_lib_rpm:                        "oracleasmlib-3.0.0-13.el9.x86_64.rpm"
+oraasm_support_rpm:                    "oracleasm-support-3.0.0-6.el8.x86_64.rpm"
 PLATFORM:                              ""
 platform:                              ""
 password_cockpit_admin:                ""
