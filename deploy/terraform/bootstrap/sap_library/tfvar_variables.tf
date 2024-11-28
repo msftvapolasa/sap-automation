@@ -335,3 +335,9 @@ variable "enable_firewall_for_keyvaults_and_storage" {
                                                        default     = true
                                                        type        = bool
                                                      }
+
+variable "create_privatelink_dns_zones"              {
+                                                       description = "Boolean value indicating if PrivateLink DNS Zones should be created"
+                                                       default     = true
+                                                       type        = bool
+                                                     }
