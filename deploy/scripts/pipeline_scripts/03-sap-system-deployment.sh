@@ -81,11 +81,6 @@ if [ "$USE_MSI" != "true" ]; then
     echo "##vso[task.logissue type=error]Variable ARM_TENANT_ID was not defined in the $VARIABLE_GROUP variable group."
     exit 2
   fi
-
-  if [ -z "$CP_ARM_SUBSCRIPTION_ID" ]; then
-    echo "##vso[task.logissue type=error]Variable CP_ARM_SUBSCRIPTION_ID was not defined in the $(parent_variable_group) variable group."
-    exit 2
-  fi
 fi
 
 # Set logon variables
