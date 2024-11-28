@@ -1,8 +1,8 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using static AutomationForm.Models.CustomValidators;
+using static SDAFWebApp.Models.CustomValidators;
 
-namespace AutomationForm.Models
+namespace SDAFWebApp.Models
 {
   public class SystemModel
   {

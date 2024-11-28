@@ -1,4 +1,4 @@
-using AutomationForm.Models;
+using SDAFWebApp.Models;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +22,7 @@ using System.Threading.Tasks;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 #pragma warning disable SYSLIB0020
-namespace AutomationForm.Controllers
+namespace SDAFWebApp.Controllers
 {
   public class RestHelper : Controller
   {
