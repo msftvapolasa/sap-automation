@@ -38,6 +38,8 @@ namespace SDAFWebApp.Controllers
 
     private HttpClient client;
 
+    private JsonSerializerOptions jsonSerializerOptions;
+
     public RestHelper(IConfiguration configuration, string type = "ADO")
     {
       collectionUri = configuration["CollectionUri"];
@@ -51,6 +53,8 @@ namespace SDAFWebApp.Controllers
       sdafControlPlaneLocation = configuration["CONTROLPLANE_LOC"];
       tenantId = configuration["AZURE_TENANT_ID"];
       managedIdentityClientId = configuration["OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"];
+
+      jsonSerializerOptions = new JsonSerializerOptions() { IgnoreNullValues = true };
 
       if (type == "ADO")
       {
@@ -163,7 +167,7 @@ namespace SDAFWebApp.Controllers
 
       string postUri = $"{collectionUri}{project}/_apis/pipelines/{pipelineId}/runs?api-version=6.0-preview.1";
 
-      string requestJson = JsonSerializer.Serialize(requestBody, typeof(PipelineRequestBody), new JsonSerializerOptions() { IgnoreNullValues = true });
+      string requestJson = JsonSerializer.Serialize(requestBody, typeof(PipelineRequestBody), jsonSerializerOptions);
       StringContent content = new(requestJson, Encoding.ASCII, "application/json");
 
       HttpResponseMessage response = await client.PostAsync(postUri, content);
@@ -336,7 +340,7 @@ namespace SDAFWebApp.Controllers
 
         JsonElement variables = JsonDocument.Parse(responseBody).RootElement.GetProperty("variables");
         string value = variables.GetProperty(variableName).GetProperty("value").GetString();
-        if (value.EndsWith("/"))
+        if (value.EndsWith('/'))
         {
           value = value.Remove(value.Length - 1);
         }
@@ -371,7 +375,7 @@ namespace SDAFWebApp.Controllers
                     }
           };
 
-      string requestJson = JsonSerializer.Serialize(environment, typeof(EnvironmentModel), new JsonSerializerOptions() { IgnoreNullValues = true });
+      string requestJson = JsonSerializer.Serialize(environment, typeof(EnvironmentModel), jsonSerializerOptions);
       StringContent content = new(requestJson, Encoding.ASCII, "application/json");
 
       HttpResponseMessage response = await client.PostAsync(postUri, content);
@@ -430,7 +434,7 @@ namespace SDAFWebApp.Controllers
       HandleResponse(putResponse, putResponseBody);
     }
 
-    private void HandleResponse(HttpResponseMessage response, string responseBody)
+    static private void HandleResponse(HttpResponseMessage response, string responseBody)
     {
       if (!response.IsSuccessStatusCode)
       {
@@ -446,10 +450,8 @@ namespace SDAFWebApp.Controllers
           default:
             errorMessage = JsonDocument.Parse(responseBody).RootElement.GetProperty("message").ToString();
             break;
-
         }
         throw new HttpRequestException(errorMessage);
-
       }
     }
 
