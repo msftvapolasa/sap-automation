@@ -34,7 +34,7 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
   depends_on                           = [ azurerm_storage_account.storage_tfstate, azurerm_private_dns_zone.vault ]
   count                                = length(try(var.key_vault.kv_spn_id, "")) > 0 ? 1 : 0
   name                                 = "sapbits-location-base-path"
-  value                                = format("https://%s%s.blob.core.windows.net/%s", (var.dns_settings.register_storage_accounts_keyvaults_with_dns ? ".privatelink" : ""), length(var.storage_account_sapbits.arm_id) > 0 ?
+  value                                = format("https://%s%s.blob.core.windows.net/%s", length(var.storage_account_sapbits.arm_id) > 0 ?
                                               split("/", var.storage_account_sapbits.arm_id)[8] : replace(
                                               lower(
                                                 format("%s", local.sa_sapbits_name)
@@ -42,6 +42,7 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
                                               "/[^a-z0-9]/",
                                               ""
                                             ),
+                                            (var.dns_settings.register_storage_accounts_keyvaults_with_dns ? ".privatelink" : ""),
                                             var.storage_account_sapbits.sapbits_blob_container.name
                                           )
 
@@ -76,7 +77,7 @@ resource "azurerm_key_vault_secret" "tfstate" {
   count                                = length(try(var.key_vault.kv_spn_id, "")) > 0 ? 1 : 0
   name                                 = "tfstate"
   value                                = var.use_private_endpoint ? (
-                                          format("https://privatelink.%s.blob.core.windows.net", local.sa_tfstate_exists ? (data.azurerm_storage_account.storage_tfstate[0].name) : (azurerm_storage_account.storage_tfstate[0].name))) : (
+                                          format("https://%s.privatelink.blob.core.windows.net", local.sa_tfstate_exists ? (data.azurerm_storage_account.storage_tfstate[0].name) : (azurerm_storage_account.storage_tfstate[0].name))) : (
                                           format("https://%s.blob.core.windows.net", local.sa_tfstate_exists ? (data.azurerm_storage_account.storage_tfstate[0].name) : (azurerm_storage_account.storage_tfstate[0].name))
                                           )
   key_vault_id                         = var.key_vault.kv_spn_id

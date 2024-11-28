@@ -42,6 +42,7 @@ resource "azurerm_virtual_network" "vnet_mgmt" {
   resource_group_name                  = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location                             = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
   address_space                        = [local.vnet_mgmt_addr]
+  flow_timeout_in_minutes              = var.infrastructure.vnets.management.flow_timeout_in_minutes
 }
 
 data "azurerm_virtual_network" "vnet_mgmt" {
@@ -67,7 +68,6 @@ resource "azurerm_subnet" "subnet_mgmt" {
                                            )) : (
                                          null)
 
-  flow_timeout_in_minutes              = var.infrastructure.vnets.management.flow_timeout_in_minutes
 
 }
 
