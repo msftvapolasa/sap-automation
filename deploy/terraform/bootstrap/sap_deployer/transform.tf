@@ -53,6 +53,7 @@ locals {
                                                 ),
                                                 ""
                                               )
+                                              flow_timeout_in_minutes=var.network_flow_timeout_in_minutes
 
                                               subnet_mgmt = {
                                                 name = try(

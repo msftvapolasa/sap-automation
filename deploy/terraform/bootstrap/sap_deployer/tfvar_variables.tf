@@ -79,6 +79,17 @@ variable "management_network_address_space"     {
                                                   default     = ""
                                                 }
 
+variable "network_flow_timeout_in_minutes"      {
+                                                  description = "The flow timeout in minutes of the virtual network"
+                                                  type = number
+                                                  nullable = true
+                                                  default = null
+                                                  validation {
+                                                    condition     = var.network_flow_timeout_in_minutes == null ? true : (var.network_flow_timeout_in_minutes >= 4 && var.network_flow_timeout_in_minutes <= 30)
+                                                    error_message = "The flow timeout in minutes must be between 4 and 30 if set."
+                                                  }
+                                                }
+
 #######################################4#######################################8
 #                                                                              #
 #                          Management Subnet variables                         #
