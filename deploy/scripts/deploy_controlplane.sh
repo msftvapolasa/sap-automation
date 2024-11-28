@@ -77,7 +77,7 @@ while :; do
     shift 2
     ;;
   -p | --spn_secret)
-    spn_secret="$2"
+    client_secret="$2"
     shift 2
     ;;
   -s | --subscription)
@@ -302,7 +302,7 @@ echo "Step:                                $step"
 if [ 0 = "${deploy_using_msi_only:-}" ]; then
   echo "Identity to use:                     Service Principal"
   unset ARM_USE_MSI
-  set_executing_user_environment_variables "${spn_secret}"
+  set_executing_user_environment_variables "${client_secret}"
 else
   echo "Identity to use:                     Managed Identity"
   set_executing_user_environment_variables "none"
@@ -479,7 +479,7 @@ if [ 1 == $step ] || [ 3 == $step ]; then
   fi
 
   if [ -n "$spn_secret" ]; then
-    allParams=$(printf " -e %s -r %s -v %s --spn_secret %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}" "${client_id}" "${tenant_id}")
+    allParams=$(printf " -e %s -r %s -v %s --spn_secret %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}" "${client_secret}" "${client_id}" "${tenant_id}")
 
     if "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh "$allParams"	; then
 			echo "Secrets set successfully"
