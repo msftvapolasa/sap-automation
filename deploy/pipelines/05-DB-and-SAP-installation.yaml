@@ -165,8 +165,9 @@ stages:
                 set -x
                 set -o errexit
                 DEBUG=True
-                export DEBUG
+
               fi
+              export DEBUG
               set -eu
 
               echo -e "$green--- Convert config file to UX format ---$reset"

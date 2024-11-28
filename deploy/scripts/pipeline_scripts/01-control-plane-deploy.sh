@@ -18,8 +18,8 @@ debug=False
 if [ "$SYSTEM_DEBUG" = True ]; then
   set -x
   DEBUG=True
-  export DEBUG
 fi
+export DEBUG
 set -eu
 
 ENVIRONMENT=$(echo "$DEPLOYER_FOLDERNAME" | awk -F'-' '{print $1}' | xargs)
