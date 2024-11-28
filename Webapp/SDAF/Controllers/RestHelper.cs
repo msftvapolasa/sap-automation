@@ -1,16 +1,11 @@
-using SDAFWebApp.Models;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
-using Microsoft.VisualStudio.Services.Client;
-using Microsoft.VisualStudio.Services.Common;
-using Microsoft.VisualStudio.Services.TenantPolicy;
-using Microsoft.VisualStudio.Services.WebApi;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SDAFWebApp.Models;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -24,7 +19,7 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 #pragma warning disable SYSLIB0020
 namespace SDAFWebApp.Controllers
 {
-  public class RestHelper : Controller
+    public class RestHelper : Controller
   {
     private readonly string collectionUri;
     private readonly string project;
@@ -77,12 +72,11 @@ namespace SDAFWebApp.Controllers
             }); ;
 
 
-          var tokenRequestContext = new TokenRequestContext(VssAadSettings.DefaultScopes);
+          var tokenRequestContext = new TokenRequestContext();
           var token = credential.GetToken(tokenRequestContext, CancellationToken.None);
 
           var accessToken = token.Token;
-          var vssToken = new VssAadToken("Bearer", accessToken);
-
+          
           client = new HttpClient();
           client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
               accessToken);
