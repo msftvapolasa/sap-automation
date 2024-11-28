@@ -477,6 +477,18 @@ if [ 1 == $step ] || [ 3 == $step ]; then
       exit 10
     fi
   fi
+
+  if [ -n "$spn_secret" ]; then
+    allParams=$(printf " -e %s -r %s -v %s --spn_secret %s --spn_id %s --tenant_id %s " "${environment}" "${region_code}" "${keyvault}" "${spn_secret}" "${client_id}" "${tenant_id}")
+
+    if "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh "$allParams"	; then
+			echo "Secrets set successfully"
+		else
+			echo "Secrets set failed"
+			exit 10
+		fi
+  fi
+
 fi
 
 unset TF_DATA_DIR
