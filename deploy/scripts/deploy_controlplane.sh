@@ -483,6 +483,8 @@ unset TF_DATA_DIR
 
 cd "$root_dirname" || exit
 
+az account set --subscription $ARM_SUBSCRIPTION_ID
+
 if validate_key_vault "$keyvault"; then
   echo "Key vault:                           ${keyvault}"
   save_config_var "keyvault" "${deployer_config_information}"
