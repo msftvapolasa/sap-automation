@@ -716,7 +716,7 @@ if [ 0 == $new_deployment ]; then
       unset TF_DATA_DIR
       exit 1
     fi
-    read -r "Do you want to continue Y/N? " ans
+    read -r -p "Do you want to continue Y/N? " ans
     answer=${ans^^}
     if [ "$answer" != 'Y' ]; then
       unset TF_DATA_DIR
