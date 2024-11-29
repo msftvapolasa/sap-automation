@@ -332,7 +332,7 @@
 
 - name:                                 "(pre_checks.yaml) - {{ task_prefix }} - Get account information"
   ansible.builtin.command: >-
-                                        az account show
+                                        az account show --query user --output yaml
   vars:
     task_prefix:                        Storage Account validation
   delegate_to:                          localhost
