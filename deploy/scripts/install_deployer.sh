@@ -177,7 +177,7 @@ if [ ! -d ./.terraform/ ]; then
   echo "#                                   New deployment                                      #"
   echo "#                                                                                       #"
   echo "#########################################################################################"
-  terraform -chdir="${terraform_module_directory}" init -backend-config "path=${param_dirname}/terraform.tfstate"
+  terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
 else
   if [ -f ./.terraform/terraform.tfstate ]; then
     azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
@@ -204,7 +204,7 @@ else
 
         terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/sap_deployer"/
 
-        if terraform -chdir="${terraform_module_directory}" init \
+        if terraform -chdir="${terraform_module_directory}" init -upgrade=true \
           --backend-config "subscription_id=$REINSTALL_SUBSCRIPTION" \
           --backend-config "resource_group_name=$REINSTALL_RESOURCE_GROUP" \
           --backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME" \
@@ -215,7 +215,7 @@ else
           return 10
         fi
       else
-        terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
+        terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"
         terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
       fi
     fi
