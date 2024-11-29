@@ -457,6 +457,12 @@
                                         sa_enabled:       {{ sa_enabled }}
   failed_when:                         false
 
+- name:                                "Storage account information"
+  ansible.builtin.debug:
+    msg:                               # Best method for formatting output with Azure Devops Logs
+                                       - "Storage account_name:            {{ account_name }}"
+                                       - "allowSharedKeyAccess:            {{ allowSharedKeyAccess }}"
+
 - name:                                "(pre_checks.yaml) - Informational check of Storage Account parameters"
   when:                                 allowSharedKeyAccess
   ansible.builtin.assert:

@@ -398,6 +398,7 @@
       #
         - name:                            "BOM: {{ bom_name }} Upload File {{ bom_media_entry.archive }} using SAS keys"
           when:
+            - allowSharedKeyAccess
             - sapbits_sas_token is defined
           ansible.builtin.command: >-
                                           az storage blob upload
