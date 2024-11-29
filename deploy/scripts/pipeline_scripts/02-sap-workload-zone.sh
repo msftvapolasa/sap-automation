@@ -263,11 +263,11 @@ az account set --subscription $STATE_SUBSCRIPTION
 echo -e "$green --- Set secrets ---$reset"
 
 if [ "$USE_MSI" != "true" ]; then
-  "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh" --workload --vault "${key_vault}.vault.azure.net" --environment "${ENVIRONMENT}" \
+  "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh" --workload --vault "${key_vault}" --environment "${ENVIRONMENT}" \
     --region "${LOCATION}" --subscription "$WL_ARM_SUBSCRIPTION_ID" --spn_id "$WL_ARM_CLIENT_ID" --spn_secret "${WL_ARM_CLIENT_SECRET}" \
     --tenant_id "$WL_ARM_TENANT_ID" --keyvault_subscription "$STATE_SUBSCRIPTION"
 else
-  "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh" --workload --vault "${key_vault}.vault.azure.net" --environment "${ENVIRONMENT}" \
+  "$SAP_AUTOMATION_REPO_PATH/deploy/scripts/set_secrets.sh" --workload --vault "${key_vault}" --environment "${ENVIRONMENT}" \
     --region "${LOCATION}" --subscription "$WL_ARM_SUBSCRIPTION_ID" --keyvault_subscription "$STATE_SUBSCRIPTION" --msi
 fi
 secrets_set=$?
