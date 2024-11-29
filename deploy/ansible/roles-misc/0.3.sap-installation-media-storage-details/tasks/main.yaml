@@ -107,9 +107,8 @@
 - name:                                "Parameter review..."
   ansible.builtin.debug:
     msg:                               # Best method for formatting output with Azure Devops Logs
-                                       - "account_name:                    {{ account_name }}"
-                                       - "allowSharedKeyAccess:            {{ allowSharedKeyAccess | default(true) }}"
-    verbosity:                         2
+                                       - "Storage account_name:            {{ account_name }}"
+                                       - "allowSharedKeyAccess:            {{ allowSharedKeyAccess | default(false) }}"
 
 - name:                                "0.4 Installation Media: - Retrieve Access Key secret"
   when:
