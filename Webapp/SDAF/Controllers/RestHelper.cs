@@ -42,66 +42,67 @@ namespace SDAFWebApp.Controllers
 
     public RestHelper(IConfiguration configuration, string type = "ADO")
     {
-      collectionUri = configuration["CollectionUri"];
-      project = configuration["ProjectName"];
-      repositoryId = configuration["RepositoryId"];
-      PAT = configuration["PAT"];
-      string devops_authentication = configuration["AUTHENTICATION_TYPE"];
-      branch = configuration["SourceBranch"];
-      sdafGeneralId = configuration["SDAF_GENERAL_GROUP_ID"];
-      sdafControlPlaneEnvironment = configuration["CONTROLPLANE_ENV"];
-      sdafControlPlaneLocation = configuration["CONTROLPLANE_LOC"];
-      tenantId = configuration["AZURE_TENANT_ID"];
-      managedIdentityClientId = configuration["OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"];
+        collectionUri = configuration["CollectionUri"];
+        project = configuration["ProjectName"];
+        repositoryId = configuration["RepositoryId"];
+        PAT = configuration["PAT"];
+        string devops_authentication = configuration["AUTHENTICATION_TYPE"];
+        branch = configuration["SourceBranch"];
+        sdafGeneralId = configuration["SDAF_GENERAL_GROUP_ID"];
+        sdafControlPlaneEnvironment = configuration["CONTROLPLANE_ENV"];
+        sdafControlPlaneLocation = configuration["CONTROLPLANE_LOC"];
+        tenantId = configuration["AZURE_TENANT_ID"];
+        managedIdentityClientId = configuration["OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"];
 
-      jsonSerializerOptions = new JsonSerializerOptions() { IgnoreNullValues = true };
+        jsonSerializerOptions = new JsonSerializerOptions() { IgnoreNullValues = true };
 
-      if (type == "ADO")
-      {
-        if (devops_authentication == "PAT")
+        if (type == "ADO")
         {
-          client = new HttpClient();
-          client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
-          Convert.ToBase64String(
-              System.Text.ASCIIEncoding.ASCII.GetBytes(
-                  string.Format("{0}:{1}", "", PAT))));
+            if (devops_authentication == "PAT")
+            {
+                client = new HttpClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
+                Convert.ToBase64String(
+                    System.Text.ASCIIEncoding.ASCII.GetBytes(
+                        string.Format("{0}:{1}", "", PAT))));
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(tenantId) || string.IsNullOrEmpty(managedIdentityClientId))
+                {
+                    throw new ArgumentNullException("TenantId and ManagedIdentityClientId must be provided for Managed Identity authentication.");
+                }
+
+                credential = new DefaultAzureCredential(
+                    new DefaultAzureCredentialOptions
+                    {
+                        TenantId = tenantId,
+                        ManagedIdentityClientId = managedIdentityClientId
+                    });
+
+                var tokenRequestContext = new TokenRequestContext(new[] { "https://management.azure.com/.default" });
+                var token = credential.GetToken(tokenRequestContext, CancellationToken.None);
+
+                var accessToken = token.Token;
+
+                client = new HttpClient();
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+                    accessToken);
+            }
+
+            client.DefaultRequestHeaders.Accept.Add(
+                new MediaTypeWithQualityHeaderValue("application/json"));
+            client.DefaultRequestHeaders.Add("User-Agent", "sap-automation");
         }
         else
         {
-          credential = new DefaultAzureCredential(
-            new DefaultAzureCredentialOptions
-            {
-              TenantId = tenantId,
-              ManagedIdentityClientId = managedIdentityClientId
-            }); ;
+            client = new HttpClient();
 
+            client.DefaultRequestHeaders.Accept.Add(
+                new MediaTypeWithQualityHeaderValue("application/json"));
 
-          var tokenRequestContext = new TokenRequestContext();
-          var token = credential.GetToken(tokenRequestContext, CancellationToken.None);
-
-          var accessToken = token.Token;
-          
-          client = new HttpClient();
-          client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
-              accessToken);
-
+            client.DefaultRequestHeaders.Add("User-Agent", "sap-automation");
         }
-
-        client.DefaultRequestHeaders.Accept.Add(
-            new MediaTypeWithQualityHeaderValue("application/json"));
-        client.DefaultRequestHeaders.Add("User-Agent", "sap-automation");
-      }
-      else
-      {
-        client = new HttpClient();
-
-        client.DefaultRequestHeaders.Accept.Add(
-            new MediaTypeWithQualityHeaderValue("application/json"));
-
-        client.DefaultRequestHeaders.Add("User-Agent", "sap-automation");
-      }
-
-
     }
 
     // Get ADO project id
