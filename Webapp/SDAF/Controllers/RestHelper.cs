@@ -14,6 +14,11 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Services.Client;
+using Microsoft.VisualStudio.Services.Common;
+using Microsoft.VisualStudio.Services.TenantPolicy;
+using Microsoft.VisualStudio.Services.WebApi;
+
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 #pragma warning disable SYSLIB0020
@@ -32,7 +37,7 @@ namespace SDAFWebApp.Controllers
     private readonly string tenantId;
     private readonly string managedIdentityClientId;
 
-    private readonly TokenCredential credential;
+    private readonly Azure.Identity.DefaultAzureCredential credential;
 
     private readonly string sampleUrl = "https://api.github.com/repos/Azure/SAP-automation-samples";
 
@@ -71,19 +76,18 @@ namespace SDAFWebApp.Controllers
           credential = new DefaultAzureCredential(
             new DefaultAzureCredentialOptions
             {
-              TenantId = tenantId,
-              ManagedIdentityClientId = managedIdentityClientId
-            }); ;
+              TenantId = configuration["AZURE_TENANT_ID"],
+              ManagedIdentityClientId = configuration["OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"]
+            });
 
+                    var tokenRequestContext = new TokenRequestContext(VssAadSettings.DefaultScopes);
+                    var token = credential.GetToken(tokenRequestContext, CancellationToken.None);
 
-          var tokenRequestContext = new TokenRequestContext();
-          var token = credential.GetToken(tokenRequestContext, CancellationToken.None);
+                    var accessToken = token.Token;
 
-          var accessToken = token.Token;
-          
-          client = new HttpClient();
-          client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
-              accessToken);
+                    client = new HttpClient();
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer",
+                        accessToken);
 
         }
 
