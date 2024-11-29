@@ -735,6 +735,15 @@
         "Options": [],
         "Overrules": "",
         "Display": 2
+      },
+      {
+        "Name": "database_active_active",
+        "Required": false,
+        "Description": "If true, database will deployed with Active/Active (read enabled) configuration, only supported for HANA.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
       }
     ]
   },

@@ -42,6 +42,11 @@ variable "infrastructure"                               {
                                                              )
                                                              error_message = "Either the arm_id or (name and address_space) of the Virtual Network must be specified in the infrastructure.vnets.sap block."
                                                            }
+
+                                                           validation {
+                                                             condition     = var.infrastructure.vnets.sap.flow_timeout_in_minutes == null ? true : (var.infrastructure.vnets.sap.flow_timeout_in_minutes >= 4 && var.infrastructure.vnets.sap.flow_timeout_in_minutes <= 30)
+                                                             error_message = "The flow timeout in minutes must be between 4 and 30 if set."
+                                                           }
                                                         }
 
 variable "options"                                      { description = "Configuration options" }
@@ -267,3 +272,10 @@ variable "use_AFS_for_shared_storage"                    {
                                                          }
 
 variable "tags"                                          { description = "List of tags to associate to all resources" }
+
+
+variable "data_plane_available"                          {
+                                                           description = "Boolean value indicating if storage account access is via data plane"
+                                                           default     = false
+                                                           type        = bool
+                                                         }

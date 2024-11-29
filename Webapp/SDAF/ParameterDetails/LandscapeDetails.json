@@ -320,6 +320,25 @@
         "Display": 3
       },
       {
+        "Name": "network_flow_timeout_in_minutes",
+        "Required": false,
+        "Description": "The flow timeout in minutes of the virtual network",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "network_enable_route_propagation",
+        "Required": false,
+        "Description": "Enable network route table propagation.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      
+      {
         "Name": "use_private_endpoint",
         "Required": false,
         "Description": "Defines if the key vaults and storage accounts have private endpoints.",

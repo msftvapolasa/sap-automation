@@ -87,6 +87,12 @@ $$public_network_access_enabled$$
 # place_delete_lock_on_resources, If defined, a delete lock will be placed on the key resources
 $$place_delete_lock_on_resources$$
 
+# The flow timeout in minutes of the virtual network
+$$network_flow_timeout_in_minutes$$
+
+# Enable network route table propagation.
+$$network_enable_route_propagation$$
+
 #########################################################################################
 #                                                                                       #
 #  Admin Subnet variables                                                               #

@@ -79,6 +79,17 @@ variable "management_network_address_space"     {
                                                   default     = ""
                                                 }
 
+variable "network_flow_timeout_in_minutes"      {
+                                                  description = "The flow timeout in minutes of the virtual network"
+                                                  type = number
+                                                  nullable = true
+                                                  default = null
+                                                  validation {
+                                                    condition     = var.network_flow_timeout_in_minutes == null ? true : (var.network_flow_timeout_in_minutes >= 4 && var.network_flow_timeout_in_minutes <= 30)
+                                                    error_message = "The flow timeout in minutes must be between 4 and 30 if set."
+                                                  }
+                                                }
+
 #######################################4#######################################8
 #                                                                              #
 #                          Management Subnet variables                         #
@@ -132,6 +143,13 @@ variable "firewall_allowed_ipaddresses"         {
                                                   description = "List of allowed IP addresses to be part of the firewall rule"
                                                   default     = []
                                                 }
+
+variable "firewall_public_ip_tags"              {
+                                                   description = "Tags for the public_ip resource"
+                                                   type        = map(string)
+                                                   default     = null
+                                                 }
+
 
 #######################################4#######################################8
 #                                                                              #
@@ -253,11 +271,20 @@ variable "deployer_private_ip_address"          {
 
 variable "shared_access_key_enabled"            {
                                                   description = "Indicates whether the storage account permits requests to be authorized with the account access key via Shared Key."
-                                                  default     = true
+                                                  default     = false
                                                   type        = bool
                                                 }
 
+variable "data_plane_available"                 {
+                                                  description = "Boolean value indicating if storage account access is via data plane"
+                                                  default     = false
+                                                  type        = bool
+                                                }
 
+variable "custom_random_id"                     {
+                                                  description = "If provided, the value of the custom random id"
+                                                  default     = ""
+                                                }
 
 ###############################################################################
 #                                                                             #

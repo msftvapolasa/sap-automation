@@ -33,7 +33,7 @@ locals {
 
   deployer_public_ip_address                      = try(var.deployer_tfstate.deployer_public_ip_address, "")
   deployer_subnet_management_id                   = try(var.deployer_tfstate.subnet_mgmt_id, "")
-  deployer_virtualnetwork_id                      = try(var.deployer_tfstate.vnet_mgmt_id, try(var.deployer_tfstate.vnet_mgmt.id, ""))
+  deployer_virtualnetwork_id                      = try(var.deployer_tfstate.vnet_mgmt_id, "")
   management_subnet_exists                        = length(local.deployer_subnet_management_id) > 0
 
 
@@ -95,6 +95,10 @@ locals {
                                                     )
 
   network_address_space                           = local.SAP_virtualnetwork_exists ? [""] : var.infrastructure.vnets.sap.address_space
+
+  network_flow_timeout_in_minutes                 = var.infrastructure.vnets.sap.flow_timeout_in_minutes
+
+  network_enable_route_propagation                = var.infrastructure.vnets.sap.enable_route_propagation
 
   // By default, Ansible ssh key for SID uses generated public key.
   // Provide sshkey.path_to_public_key and path_to_private_key overides it

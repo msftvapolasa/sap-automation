@@ -192,6 +192,9 @@ $$database_use_avset$$
 # Optional, Defines if the tags for the database virtual machines
 $$database_tags$$
 
+# If true, database will deployed with Active/Active (read enabled) configuration, only supported for HANA
+$$database_active_active$$
+
 #########################################################################################
 #                                                                                       #
 #  Application tier                                                                        #                                                                                       #
