@@ -533,7 +533,7 @@ else
         exit 65
       fi
     else
-      read -r -p "Do you want to specify the Workload SPN Details Y/N?" ans
+      read -r -p "Do you want to specify the Workload SPN Details Y/N? " ans
       answer=${ans^^}
       if [ "${answer}" == 'Y' ]; then
         allParameters=$(printf " --workload --environment %s --region %s --vault %s --subscription %s  --spn_id %s " "${environment}" "${region_code}" "${keyvault}" "${STATE_SUBSCRIPTION}" "${client_id}")
@@ -566,7 +566,7 @@ else
 fi
 
 if [ -z "${REMOTE_STATE_SA}" ]; then
-  read -p -r "Terraform state storage account name:" REMOTE_STATE_SA
+  read -r -p "Terraform state storage account name: " REMOTE_STATE_SA
   getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${workload_config_information}"
   load_config_vars "${workload_config_information}" "STATE_SUBSCRIPTION"
   load_config_vars "${workload_config_information}" "REMOTE_STATE_RG"
@@ -593,7 +593,7 @@ if [ -z "${REMOTE_STATE_RG}" ]; then
     tfstate_parameter=" -var tfstate_resource_id=${tfstate_resource_id}"
   else
     option="REMOTE_STATE_RG"
-    read -p -r "Remote state resource group name:" REMOTE_STATE_RG
+    read -r -p "Remote state resource group name: " REMOTE_STATE_RG
     save_config_vars "${workload_config_information}" REMOTE_STATE_RG
   fi
 fi
@@ -743,7 +743,7 @@ if [ 1 == $check_output ]; then
         exit 1
       fi
 
-      read -p -r "Do you want to continue Y/N?" ans
+      read -r -p "Do you want to continue Y/N? " ans
       answer=${ans^^}
       if [ "$answer" == 'Y' ]; then
         apply_needed=1
@@ -912,7 +912,7 @@ if [ -f plan_output.log ]; then
       read -n 1 -r -s -p $'Press enter to continue...\n'
 
       cat plan_output.log
-      read -p -r "Do you want to continue with the deployment Y/N?" ans
+      read -r -p "Do you want to continue with the deployment Y/N? " ans
       answer=${ans^^}
       if [ "${answer}" == 'Y' ]; then
         apply_needed=1

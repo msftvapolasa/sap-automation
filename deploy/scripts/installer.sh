@@ -362,7 +362,7 @@ export TF_VAR_deployer_tfstate_key="${deployer_tfstate_key}"
 if [ "${deployment_system}" != sap_deployer ]; then
   if [ -z "${deployer_tfstate_key}" ]; then
     if [ 1 != $called_from_ado ]; then
-      read -p -r "Deployer terraform statefile name :" deployer_tfstate_key
+      read -r -p "Deployer terraform statefile name: " deployer_tfstate_key
 
       save_config_var "deployer_tfstate_key" "${system_config_information}"
     else
@@ -416,7 +416,7 @@ fi
 if [ "${deployment_system}" == sap_system ]; then
   if [ -z "${landscape_tfstate_key}" ]; then
     if [ 1 != $called_from_ado ]; then
-      read -p -r "Workload terraform statefile name :" landscape_tfstate_key
+      read -r -p "Workload terraform statefile name: " landscape_tfstate_key
 
       save_config_var "landscape_tfstate_key" "${system_config_information}"
 
@@ -481,7 +481,7 @@ load_config_vars "${system_config_information}" "tfstate_resource_id"
 
 if [[ -z ${REMOTE_STATE_SA} ]]; then
   if [ 1 != $called_from_ado ]; then
-    read -p -r "Terraform state storage account name:" REMOTE_STATE_SA
+    read -r -p "Terraform state storage account name: " REMOTE_STATE_SA
 
     getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${system_config_information}"
     load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
@@ -716,7 +716,7 @@ if [ 0 == $new_deployment ]; then
       unset TF_DATA_DIR
       exit 1
     fi
-    read -p -r "Do you want to continue Y/N?" ans
+    read -r "Do you want to continue Y/N? " ans
     answer=${ans^^}
     if [ "$answer" != 'Y' ]; then
       unset TF_DATA_DIR
@@ -1082,7 +1082,7 @@ if [ $fatal_errors == 1 ]; then
   if [ 1 == $force ]; then
     apply_needed=1
   else
-    read -p -r "Do you want to continue with the deployment Y/N?" ans
+    read -r -p "Do you want to continue with the deployment Y/N? " ans
     answer=${ans^^}
     if [ "$answer" == 'Y' ]; then
       apply_needed=true
