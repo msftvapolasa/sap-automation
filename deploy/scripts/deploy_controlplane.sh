@@ -226,7 +226,11 @@ library_file_parametername=$(basename "${library_parameter_file}")
 relative_path="${deployer_dirname}"
 export TF_DATA_DIR="${relative_path}"/.terraform
 
-step=0
+load_config_vars "${deployer_config_information}" "step"
+if [ -z "${step}" ]; then
+	step=0
+fi
+
 echo ""
 echo "#########################################################################################"
 echo "#                                                                                       #"
