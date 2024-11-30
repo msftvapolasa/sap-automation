@@ -47,15 +47,17 @@ locals {
   service_principal                    = {
                                            subscription_id = local.spn.subscription_id,
                                            tenant_id       = local.spn.tenant_id,
-                                           object_id       = var.use_spn ? data.azuread_service_principal.sp[0].object_id   : null
-                                           client_id       = var.use_spn ? data.azuread_service_principal.sp[0].client_id   : null
+                                           object_id       = var.use_spn ? data.azuread_service_principal.sp[0].object_id   : null,
+                                           client_id       = var.use_spn ? data.azuread_service_principal.sp[0].client_id   : null,
                                            exists          = var.use_spn
                                          }
 
   account                              = {
                                           subscription_id = data.azurerm_key_vault_secret.subscription_id.value,
                                           tenant_id       = data.azurerm_client_config.current.tenant_id,
-                                          object_id       = data.azurerm_client_config.current.object_id
+                                          object_id       = data.azurerm_client_config.current.object_id,
+                                          client_id       = data.azurerm_client_config.current.client_id ,
+                                          exists          = false
                                         }
 
   custom_names                         = length(var.name_override_file) > 0 ? (
