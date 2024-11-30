@@ -33,63 +33,63 @@ data "terraform_remote_state" "landscape"            {
                                                      }
 
 data "azurerm_key_vault_secret" "subscription_id"    {
-                                                        provider     = "azurerm.main"
+                                                        provider     = azurerm.main
                                                         name         = format("%s-subscription-id", local.environment)
                                                         key_vault_id = local.spn_key_vault_arm_id
                                                       }
 
 data "azurerm_key_vault_secret" "client_id"          {
-                                                        provider     = "azurerm.main"
-                                                        count        = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? 1 : 0
+                                                        provider     = azurerm.main
+                                                        count        = var.use_spn ? 1 : 0
                                                         name         = format("%s-client-id", local.environment)
                                                         key_vault_id = local.spn_key_vault_arm_id
                                                       }
 
 data "azurerm_key_vault_secret" "client_secret"       {
-                                                        provider     = "azurerm.main"
-                                                        count        = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? 1 : 0
+                                                        provider     = azurerm.main
+                                                        count        = var.use_spn ? 1 : 0
                                                         name         = format("%s-client-secret", local.environment)
                                                         key_vault_id = local.spn_key_vault_arm_id
                                                       }
 
 data "azurerm_key_vault_secret" "tenant_id"           {
-                                                        provider     = "azurerm.main"
-                                                        count        = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? 1 : 0
+                                                        provider     = azurerm.main
+                                                        count        = var.use_spn ? 1 : 0
                                                         name         = format("%s-tenant-id", local.environment)
                                                         key_vault_id = local.spn_key_vault_arm_id
                                                       }
 
 data "azurerm_key_vault_secret" "cp_subscription_id"  {
-                                                        provider     = "azurerm.main"
-                                                        count        = length(try(data.terraform_remote_state.deployer[0].outputs.environment, "")) > 0 ? (try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? 1 : 0) : 0
+                                                        provider     = azurerm.main
+                                                        count        = length(try(data.terraform_remote_state.deployer[0].outputs.environment, "")) > 0 ? (var.use_spn ? 1 : 0) : 0
                                                         name         = format("%s-subscription-id", data.terraform_remote_state.deployer[0].outputs.environment)
                                                         key_vault_id = local.spn_key_vault_arm_id
                                                       }
 
 data "azurerm_key_vault_secret" "cp_client_id"        {
-                                                        provider     = "azurerm.main"
-                                                        count        = length(try(data.terraform_remote_state.deployer[0].outputs.environment, "")) > 0 ? (try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? 1 : 0) : 0
+                                                        provider     = azurerm.main
+                                                        count        = length(try(data.terraform_remote_state.deployer[0].outputs.environment, "")) > 0 ? (var.use_spn ? 1 : 0) : 0
                                                         name         = format("%s-client-id", data.terraform_remote_state.deployer[0].outputs.environment)
                                                         key_vault_id = local.spn_key_vault_arm_id
                                                       }
 
 data "azurerm_key_vault_secret" "cp_client_secret"    {
-                                                        provider     = "azurerm.main"
-                                                        count        = length(try(data.terraform_remote_state.deployer[0].outputs.environment, "")) > 0 ? (try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? 1 : 0) : 0
+                                                        provider     = azurerm.main
+                                                        count        = length(try(data.terraform_remote_state.deployer[0].outputs.environment, "")) > 0 ? (var.use_spn ? 1 : 0) : 0
                                                         name         = format("%s-client-secret", data.terraform_remote_state.deployer[0].outputs.environment)
                                                         key_vault_id = local.spn_key_vault_arm_id
                                                       }
 
 data "azurerm_key_vault_secret" "cp_tenant_id"        {
-                                                        provider     = "azurerm.main"
-                                                        count        = length(try(data.terraform_remote_state.deployer[0].outputs.environment, "")) > 0 ? (try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? 1 : 0) : 0
+                                                        provider     = azurerm.main
+                                                        count        = length(try(data.terraform_remote_state.deployer[0].outputs.environment, "")) > 0 ? (var.use_spn ? 1 : 0) : 0
                                                         name         = format("%s-tenant-id", data.terraform_remote_state.deployer[0].outputs.environment)
                                                         key_vault_id = local.spn_key_vault_arm_id
                                                       }
 
 // Import current service principal
 data "azuread_service_principal" "sp"                 {
-                                                        count        = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? 1 : 0
+                                                        count        = var.use_spn ? 1 : 0
                                                         client_id    = local.spn.client_id
                                                       }
 
