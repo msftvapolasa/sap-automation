@@ -511,24 +511,25 @@ data "azurerm_private_dns_zone" "keyvault" {
   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
 }
 
-resource "azurerm_private_dns_a_record" "keyvault" {
-  provider                             = azurerm.privatelinkdnsmanagement
-  count                                = local.use_Azure_native_DNS && var.use_private_endpoint ?  0 : 0
-  name                                 = lower(
-                                           format("%s", local.user_keyvault_name)
-                                         )
-  zone_name                            = var.dns_settings.dns_zone_names.vault_dns_zone_name
-  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
-  ttl                                  = 10
-  records                              = [
-                                           length(var.keyvault_private_endpoint_id) > 0 ? (
-                                             data.azurerm_private_endpoint_connection.kv_user[0].private_service_connection[0].private_ip_address) : (
-                                             azurerm_private_endpoint.kv_user[0].private_service_connection[0].private_ip_address
-                                           )
-                                         ]
-  tags                                 = var.tags
+# Duplicate code, the private endpoint deployment performs the DNS registration
+# resource "azurerm_private_dns_a_record" "keyvault" {
+#   provider                             = azurerm.privatelinkdnsmanagement
+#   count                                = local.use_Azure_native_DNS && var.use_private_endpoint ?  0 : 0
+#   name                                 = lower(
+#                                            format("%s", local.user_keyvault_name)
+#                                          )
+#   zone_name                            = var.dns_settings.dns_zone_names.vault_dns_zone_name
+#   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
+#   ttl                                  = 10
+#   records                              = [
+#                                            length(var.keyvault_private_endpoint_id) > 0 ? (
+#                                              data.azurerm_private_endpoint_connection.kv_user[0].private_service_connection[0].private_ip_address) : (
+#                                              azurerm_private_endpoint.kv_user[0].private_service_connection[0].private_ip_address
+#                                            )
+#                                          ]
+#   tags                                 = var.tags
 
-}
+# }
 
 
 resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
