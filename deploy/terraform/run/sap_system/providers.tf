@@ -17,7 +17,6 @@ provider "azurerm"                     {
                                          subscription_id     = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
                                          storage_use_azuread = true
                                          use_msi             = true
-                                         alias               = "main"
                                        }
 
 provider "azurerm"                     {
