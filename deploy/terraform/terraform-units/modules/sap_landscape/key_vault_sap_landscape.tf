@@ -513,7 +513,7 @@ data "azurerm_private_dns_zone" "keyvault" {
 
 resource "azurerm_private_dns_a_record" "keyvault" {
   provider                             = azurerm.privatelinkdnsmanagement
-  count                                = local.use_Azure_native_DNS && var.use_private_endpoint ?  1 : 0
+  count                                = local.use_Azure_native_DNS && var.use_private_endpoint ?  0 : 0
   name                                 = lower(
                                            format("%s", local.user_keyvault_name)
                                          )
