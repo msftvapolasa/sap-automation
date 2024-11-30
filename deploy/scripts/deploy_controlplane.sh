@@ -282,17 +282,17 @@ if [ -n "${subscription}" ]; then
 
 	if [ -n "${keyvault}" ]; then
 
-		kv_found=$(az keyvault list --query "[?name=='$keyvault'].name | [0]" --subscription "${subscription}")
+		echo "Checking for keyvault:               ${keyvault}"
+
+		kv_found=$(az keyvault show --name="$keyvault" --subscription "${subscription}" --query name)
 		if [ -z "${kv_found}" ]; then
 			echo "#########################################################################################"
 			echo "#                                                                                       #"
 			echo -e "#                            $bold_red  Detected a failed deployment $reset_formatting                            #"
 			echo "#                                                                                       #"
-			echo -e "#                                  $cyan Trying to recover $reset_formatting                                  #"
 			echo "#                                                                                       #"
 			echo "#########################################################################################"
-			step=0
-			save_config_var "step" "${deployer_config_information}"
+			exit 10
 		fi
 	else
 		if [ $ado_flag != "--ado" ]; then
