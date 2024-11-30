@@ -164,12 +164,12 @@ resource "azurerm_key_vault_secret" "sid_ppk" {
   provider                             = azurerm.main
   count                                = !local.sid_key_exist ? 1 : 0
   depends_on                           = [
-                                           azurerm_key_vault_access_policy.kv_user,
-                                           azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_role_assignment.role_assignment_msi,
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_key_vault_access_policy.kv_user_spn,
-                                           azurerm_private_endpoint.kv_user
+                                           azurerm_key_vault_access_policy.kv_user,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_role_assignment.role_assignment_msi,
+                                           azurerm_role_assignment.role_assignment_spn
                                          ]
   content_type                          = ""
   name                                  = local.sid_ppk_name
@@ -192,12 +192,12 @@ resource "azurerm_key_vault_secret" "sid_pk" {
   provider                             = azurerm.main
   count                                = !local.sid_key_exist ? 1 : 0
   depends_on                           = [
-                                           azurerm_key_vault_access_policy.kv_user,
-                                           azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_role_assignment.role_assignment_msi,
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_key_vault_access_policy.kv_user_spn,
-                                           azurerm_private_endpoint.kv_user
+                                           azurerm_key_vault_access_policy.kv_user,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_role_assignment.role_assignment_msi,
+                                           azurerm_role_assignment.role_assignment_spn
                                          ]
   content_type                         = ""
   name                                 = local.sid_pk_name
@@ -225,12 +225,12 @@ resource "azurerm_key_vault_secret" "sid_username" {
   provider                             = azurerm.main
   count                                = (!local.sid_credentials_secret_exist) ? 1 : 0
   depends_on                           = [
-                                          azurerm_key_vault_access_policy.kv_user,
-                                          azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_role_assignment.role_assignment_msi,
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_key_vault_access_policy.kv_user_spn,
-                                           azurerm_private_endpoint.kv_user
+                                           azurerm_key_vault_access_policy.kv_user,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_role_assignment.role_assignment_msi,
+                                           azurerm_role_assignment.role_assignment_spn
                                         ]
   content_type                         = ""
   name                                 = local.sid_username_secret_name
@@ -256,12 +256,12 @@ resource "azurerm_key_vault_secret" "sid_password" {
   provider                             = azurerm.main
   count                                = (!local.sid_credentials_secret_exist) ? 1 : 0
   depends_on                           = [
-                                           azurerm_key_vault_access_policy.kv_user,
-                                           azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_role_assignment.role_assignment_msi,
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_key_vault_access_policy.kv_user_spn,
-                                           azurerm_private_endpoint.kv_user
+                                           azurerm_key_vault_access_policy.kv_user,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_role_assignment.role_assignment_msi,
+                                           azurerm_role_assignment.role_assignment_spn
                                          ]
   name                                 = local.sid_password_secret_name
   content_type                         = ""
@@ -289,12 +289,12 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
   provider                             = azurerm.main
   count                                = 1
   depends_on                           = [
-                                           azurerm_key_vault_access_policy.kv_user,
-                                           azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_role_assignment.role_assignment_msi,
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_key_vault_access_policy.kv_user_spn,
-                                           azurerm_private_endpoint.kv_user
+                                           azurerm_key_vault_access_policy.kv_user,
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_role_assignment.role_assignment_msi,
+                                           azurerm_role_assignment.role_assignment_spn
                                          ]
   content_type                         = ""
   name                                 = replace(
