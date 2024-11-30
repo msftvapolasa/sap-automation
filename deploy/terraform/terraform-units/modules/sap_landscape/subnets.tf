@@ -53,7 +53,7 @@ data "azurerm_subnet" "db" {
 // Creates app subnet of SAP VNET
 resource "azurerm_subnet" "app" {
   provider                             = azurerm.main
-  count                                = local.application_subnet_defined && !local.application_subnet_existing ? 1 : 0
+  count                                = local.create_application_subnet ? 1 : 0
   name                                 = local.application_subnet_name
   resource_group_name                  = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].resource_group_name : azurerm_virtual_network.vnet_sap[0].resource_group_name
   virtual_network_name                 = local.SAP_virtualnetwork_exists ? data.azurerm_virtual_network.vnet_sap[0].name : azurerm_virtual_network.vnet_sap[0].name

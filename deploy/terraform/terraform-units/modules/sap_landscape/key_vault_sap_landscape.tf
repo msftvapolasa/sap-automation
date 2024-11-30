@@ -425,10 +425,9 @@ data "azurerm_private_endpoint_connection" "kv_user" {
 resource "azurerm_private_endpoint" "kv_user" {
   provider                             = azurerm.main
   count                                = (length(var.keyvault_private_endpoint_id) == 0 &&
-                                           local.application_subnet_defined &&
+                                           local.create_application_subnet &&
                                            var.use_private_endpoint &&
-                                           local.enable_landscape_kv &&
-                                           !local.user_keyvault_exist
+                                           local.create_workloadzone_keyvault
                                          ) ? 1 : 0
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_msi,
