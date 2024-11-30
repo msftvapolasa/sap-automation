@@ -117,10 +117,10 @@ resource "azurerm_key_vault_access_policy" "kv_user" {
 
 resource "azurerm_key_vault_access_policy" "kv_user_spn" {
   provider                             = azurerm.main
-  count                                = var.options.use_spn ? 1 : 0
+  count                                = var.service_principal.exists ? 1 : 0
   key_vault_id                         = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
-  tenant_id                            = data.azuread_client_config.current.tenant_id
-  object_id                            = data.azuread_client_config.current.object_id
+  tenant_id                            = var.service_principal.tenant_id
+  object_id                            = var.service_principal.object_id
 
   secret_permissions                   = [
                                           "Get",
