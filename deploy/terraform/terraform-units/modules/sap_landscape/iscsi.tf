@@ -258,7 +258,8 @@ resource "azurerm_key_vault_secret" "iscsi_ppk" {
                                            azurerm_key_vault_access_policy.kv_user,
                                            azurerm_role_assignment.role_assignment_spn,
                                            azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_key_vault_access_policy.kv_user_msi
+                                           azurerm_key_vault_access_policy.kv_user_msi,
+                                           azurerm_private_endpoint.kv_user
                                         ]
   content_type                         = ""
   name                                 = local.iscsi_ppk_name
@@ -278,7 +279,8 @@ resource "azurerm_key_vault_secret" "iscsi_pk" {
                                            azurerm_key_vault_access_policy.kv_user,
                                            azurerm_role_assignment.role_assignment_spn,
                                            azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_key_vault_access_policy.kv_user_msi
+                                           azurerm_key_vault_access_policy.kv_user_msi,
+                                           azurerm_private_endpoint.kv_user
                                          ]
   content_type                         = ""
   name                                 = local.iscsi_pk_name
@@ -297,7 +299,8 @@ resource "azurerm_key_vault_secret" "iscsi_username" {
                                            azurerm_key_vault_access_policy.kv_user,
                                            azurerm_role_assignment.role_assignment_spn,
                                            azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_key_vault_access_policy.kv_user_msi
+                                           azurerm_key_vault_access_policy.kv_user_msi,
+                                           azurerm_private_endpoint.kv_user
                                          ]
   content_type                         = ""
   name                                 = local.iscsi_username_name
@@ -316,7 +319,8 @@ resource "azurerm_key_vault_secret" "iscsi_password" {
                                            azurerm_key_vault_access_policy.kv_user,
                                            azurerm_role_assignment.role_assignment_spn,
                                            azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_key_vault_access_policy.kv_user_msi
+                                           azurerm_key_vault_access_policy.kv_user_msi,
+                                           azurerm_private_endpoint.kv_user
                                          ]
   content_type                         = ""
   name                                 = local.iscsi_pwd_name
