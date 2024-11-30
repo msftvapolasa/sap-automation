@@ -976,7 +976,7 @@ if [ 1 == $apply_needed ]; then
   else
     # Using if so that no zero return codes don't fail -o errexit
     # shellcheck disable=SC2086
-    if ! terraform -chdir="${terraform_module_directory}" apply "${approve}" -parallelism="${parallelism}" $allParameters -input=false; then
+    if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters -input=false; then
       if [ $return_value -eq 1 ]; then
         echo "Errors when running Terraform apply"
       else
