@@ -293,6 +293,9 @@ if [ -n "${subscription}" ]; then
 			echo "#                                                                                       #"
 			echo "#########################################################################################"
 			exit 10
+			else
+			TF_VAR_deployer_kv_user_arm_id=$(az keyvault show --name="$keyvault" --subscription "${subscription}" --query id)
+			export TF_VAR_deployer_kv_user_arm_id
 		fi
 	else
 		if [ $ado_flag != "--ado" ]; then
