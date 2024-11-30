@@ -603,9 +603,50 @@ else
 	new_deployment=1
 	check_output=true
 
-	local_backend=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
-	if [ -n "$local_backend" ]; then
-		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
+	if [ -f .terraform/terraform.tfstate ]; then
+
+		local_backend=$(grep "\"type\": \"local\"" .terraform/terraform.tfstate || true)
+		if [ -n "$local_backend" ]; then
+			if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -force-copy \
+				--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
+				--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
+				--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
+				--backend-config "container_name=tfstate" \
+				--backend-config "key=${key}.terraform.tfstate"; then
+				return_value=$?
+				echo "Error when initializing Terraform"
+			else
+				return_value=$?
+			fi
+
+		else
+			echo ""
+			echo "#########################################################################################"
+			echo "#                                                                                       #"
+			echo -e "#            $cyan The system has already been deployed and the statefile is in Azure $reset_formatting       #"
+			echo "#                                                                                       #"
+			echo "#########################################################################################"
+			echo ""
+
+			check_output=true
+			if ! terraform -chdir="${terraform_module_directory}" init; then
+				#  \
+				#   -upgrade=true -reconfigure \
+				# 	--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
+				# 	--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
+				# 	--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
+				# 	--backend-config "container_name=tfstate" \
+				# 	--backend-config "key=${key}.terraform.tfstate"; then
+				return_value=$?
+				echo "Error when initializing Terraform"
+			else
+				return_value=$?
+			fi
+
+		fi
+	else
+		if ! terraform -chdir="${terraform_module_directory}" init \
+			-upgrade=true -reconfigure \
 			--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
 			--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
 			--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
@@ -616,31 +657,6 @@ else
 		else
 			return_value=$?
 		fi
-
-	else
-		echo ""
-		echo "#########################################################################################"
-		echo "#                                                                                       #"
-		echo -e "#            $cyan The system has already been deployed and the statefile is in Azure $reset_formatting       #"
-		echo "#                                                                                       #"
-		echo "#########################################################################################"
-		echo ""
-
-		check_output=true
-		if ! terraform -chdir="${terraform_module_directory}" init ; then
-		#  \
-		#   -upgrade=true -reconfigure \
-		# 	--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
-		# 	--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
-		# 	--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
-		# 	--backend-config "container_name=tfstate" \
-		# 	--backend-config "key=${key}.terraform.tfstate"; then
-			return_value=$?
-			echo "Error when initializing Terraform"
-		else
-			return_value=$?
-		fi
-
 	fi
 fi
 if [ "true" == "$check_output" ]; then
