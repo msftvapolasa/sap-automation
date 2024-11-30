@@ -855,7 +855,9 @@ if [ 1 != $return_value ]; then
 			save_config_var "deployer_public_ip_address" "${system_config_information}"
 
 			keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
-			save_config_var "keyvault" "${system_config_information}"
+			if [ -n "$keyvault" ]; then
+				save_config_var "keyvault" "${system_config_information}"
+			fi
 			if [ 1 == $called_from_ado ]; then
 
 				if [[ "$TF_VAR_use_webapp" == "true" && $IS_PIPELINE_DEPLOYMENT = "true" ]]; then
