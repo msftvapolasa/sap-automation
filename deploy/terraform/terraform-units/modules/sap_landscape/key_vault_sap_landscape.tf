@@ -439,15 +439,7 @@ resource "azurerm_private_endpoint" "kv_user" {
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_key_vault_access_policy.kv_user,
-                                           azurerm_private_dns_zone_virtual_network_link.vault,
-                                           azurerm_key_vault_secret.sid_ppk,
-                                           azurerm_key_vault_secret.sid_pk,
-                                           azurerm_key_vault_secret.sid_username,
-                                           azurerm_key_vault_secret.deployer_keyvault_user_name,
-                                           azurerm_key_vault_secret.witness_name,
-                                           azurerm_key_vault_secret.witness_access_key,
-                                           azurerm_key_vault_secret.sid_password,
-                                           azurerm_key_vault_secret.sid_username
+                                           azurerm_private_dns_zone_virtual_network_link.vault
                                          ]
 
   name                                 = format("%s%s%s",
