@@ -22,14 +22,14 @@ function setSecretValue {
 	local subscription=$2
 	local secret_name=$3
 	local value=$4
-	if az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)"; then
+	if az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)" --output none; then
 		return_value=$?
 	else
 		return_value=$?
 		if [ 1 = "${return_value}" ]; then
 			az keyvault secret recover --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}"
 			sleep 10
-			az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)"
+			az keyvault secret set --name "${secret_name}" --vault-name "${keyvault}" --subscription "${subscription}" --value "${value}" --expires "$(date -d '+1 year' -u +%Y-%m-%dT%H:%M:%SZ)"  --output none
 		else
 			echo "Failed to set secret ${secret_name} in keyvault ${keyvault}"
 		fi
