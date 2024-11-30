@@ -295,8 +295,15 @@ if [ -n "${subscription}" ]; then
 			save_config_var "step" "${deployer_config_information}"
 		fi
 	else
-		step=0
-		save_config_var "step" "${deployer_config_information}"
+		if [ $ado_flag != "--ado" ]; then
+			read -r -p "Deployer keyvault name: " keyvault
+			save_config_var "keyvault" "${deployer_config_information}"
+		else
+			step=0
+			save_config_var "step" "${deployer_config_information}"
+			exit 10
+		fi
+
 	fi
 fi
 
