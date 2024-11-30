@@ -43,7 +43,7 @@ source "${script_directory}/helpers/script_helpers.sh"
 
 force=0
 recover=0
-ado_flag=""
+ado_flag="none"
 deploy_using_msi_only=0
 
 INPUT_ARGUMENTS=$(getopt -n deploy_controlplane -o d:l:s:c:p:t:a:k:ifohrvm --longoptions deployer_parameter_file:,library_parameter_file:,subscription:,spn_id:,spn_secret:,tenant_id:,storageaccountname:,vault:,auto-approve,force,only_deployer,help,recover,ado,msi -- "$@")
