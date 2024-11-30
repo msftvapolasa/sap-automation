@@ -64,13 +64,13 @@ data "azurerm_key_vault_secret" "cp_subscription_id"  {
                                                       }
 
 data "azurerm_key_vault_secret" "cp_client_id"        {
-                                                        count        = var.use_spn ? 1 : 0
+                                                        count        = length(try(data.terraform_remote_state.deployer[0].outputs.environment, "")) > 0 ? (try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? 1 : 0) : 0
                                                         name         = format("%s-client-id", data.terraform_remote_state.deployer[0].outputs.environment)
                                                         key_vault_id = local.spn_key_vault_arm_id
                                                       }
 
 data "azurerm_key_vault_secret" "cp_client_secret"    {
-                                                        count        = var.use_spn ? 1 : 0
+                                                        count        = length(try(data.terraform_remote_state.deployer[0].outputs.environment, "")) > 0 ? (try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? 1 : 0) : 0
                                                         name         = format("%s-client-secret", data.terraform_remote_state.deployer[0].outputs.environment)
                                                         key_vault_id = local.spn_key_vault_arm_id
                                                       }
