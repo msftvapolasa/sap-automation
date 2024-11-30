@@ -586,9 +586,10 @@ function testIfResourceWouldBeRecreated {
 
 function validate_key_vault {
   local keyvault_to_check=$1
+	local subscription=$2
   return_value=0
 
-  kv_name_check=$(az keyvault list --query "[?name=='$keyvault_to_check'].name | [0]")
+	kv_name_check=$(az keyvault show --name="$keyvault_to_check" --subscription "${subscription}" --query name)
   if [ -z "$kv_name_check" ]; then
     echo ""
     echo "#########################################################################################"
@@ -598,7 +599,7 @@ function validate_key_vault {
     echo "#########################################################################################"
     echo ""
     sleep 60
-    kv_name_check=$(az keyvault list --query "[?name=='$keyvault_to_check'].name | [0]")
+		kv_name_check=$(az keyvault show --name="$keyvault_to_check" --subscription "${subscription}" --query name)
   fi
 
   if [ -z "$kv_name_check" ]; then
