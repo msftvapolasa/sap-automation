@@ -364,7 +364,7 @@ if [ -f .terraform/terraform.tfstate ]; then
 
 	azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 	if [ -n "${azure_backend}" ]; then
-		if terraform -chdir="${terraform_module_directory}" init ; then
+		if terraform -chdir="${terraform_module_directory}" init -upgrade=true ; then
 			echo ""
 			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
 			echo ""

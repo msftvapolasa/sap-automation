@@ -227,6 +227,7 @@ if [ "$deployer_environment" != "$environment" ]; then
 fi
 
 workload_config_information="${automation_config_directory}/${environment}${region_code}${network_logical_name}"
+touch "${workload_config_information}"
 deployer_config_information="${automation_config_directory}/${deployer_environment}${region_code}"
 save_config_vars "${workload_config_information}" \
 	STATE_SUBSCRIPTION REMOTE_STATE_SA subscription
@@ -686,7 +687,7 @@ else
 			echo ""
 		fi
 	else
-		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure; then
+		if ! terraform -chdir="${terraform_module_directory}" init -upgrade=true ; then
 			return_value=$?
 			echo ""
 			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
