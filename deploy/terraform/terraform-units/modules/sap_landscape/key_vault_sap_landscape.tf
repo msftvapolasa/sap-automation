@@ -166,18 +166,16 @@ resource "azurerm_key_vault_secret" "sid_ppk" {
   provider                             = azurerm.main
   count                                = !local.sid_key_exist ? 1 : 0
   depends_on                           = [
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_spn,
-                                           azurerm_key_vault_access_policy.kv_user,
                                            azurerm_private_endpoint.kv_user,
-                                           azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_private_dns_zone_virtual_network_link.vault
+                                           azurerm_key_vault.kv_user
                                          ]
   content_type                          = ""
   name                                  = local.sid_ppk_name
   value                                 = local.sid_private_key
-  key_vault_id                          = local.user_keyvault_exist ? local.user_key_vault_id : azurerm_key_vault.kv_user[0].id
+  key_vault_id                          = local.user_keyvault_exist ? (
+                                            data.azurerm_key_vault.kv_user[0].id) : (
+                                            azurerm_key_vault.kv_user[0].id
+                                          )
   expiration_date                       = var.key_vault.set_secret_expiry ? (
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
@@ -195,19 +193,14 @@ resource "azurerm_key_vault_secret" "sid_pk" {
   provider                             = azurerm.main
   count                                = !local.sid_key_exist ? 1 : 0
   depends_on                           = [
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_spn,
-                                           azurerm_key_vault_access_policy.kv_user,
                                            azurerm_private_endpoint.kv_user,
-                                           azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_private_dns_zone_virtual_network_link.vault
+                                           azurerm_key_vault.kv_user
                                          ]
   content_type                         = ""
   name                                 = local.sid_pk_name
   value                                = local.sid_public_key
   key_vault_id                         = local.user_keyvault_exist ? (
-                                           local.user_key_vault_id) : (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
   expiration_date                       = var.key_vault.set_secret_expiry ? (
@@ -229,19 +222,14 @@ resource "azurerm_key_vault_secret" "sid_username" {
   provider                             = azurerm.main
   count                                = (!local.sid_credentials_secret_exist) ? 1 : 0
   depends_on                           = [
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_spn,
-                                           azurerm_key_vault_access_policy.kv_user,
                                            azurerm_private_endpoint.kv_user,
-                                           azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_private_dns_zone_virtual_network_link.vault
+                                           azurerm_key_vault.kv_user
                                         ]
   content_type                         = ""
   name                                 = local.sid_username_secret_name
   value                                = local.input_sid_username
   key_vault_id                         = local.user_keyvault_exist ? (
-                                           local.user_key_vault_id) : (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
   expiration_date                       = var.key_vault.set_secret_expiry ? (
@@ -261,19 +249,14 @@ resource "azurerm_key_vault_secret" "sid_password" {
   provider                             = azurerm.main
   count                                = (!local.sid_credentials_secret_exist) ? 1 : 0
   depends_on                           = [
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_spn,
-                                           azurerm_key_vault_access_policy.kv_user,
                                            azurerm_private_endpoint.kv_user,
-                                           azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_private_dns_zone_virtual_network_link.vault
+                                           azurerm_key_vault.kv_user
                                          ]
   name                                 = local.sid_password_secret_name
   content_type                         = ""
   value                                = local.input_sid_password
   key_vault_id                         = local.user_keyvault_exist ? (
-                                           local.user_key_vault_id) : (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
   expiration_date                       = var.key_vault.set_secret_expiry ? (
@@ -295,13 +278,8 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
   provider                             = azurerm.main
   count                                = 1
   depends_on                           = [
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_spn,
-                                           azurerm_key_vault_access_policy.kv_user,
                                            azurerm_private_endpoint.kv_user,
-                                           azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_private_dns_zone_virtual_network_link.vault
+                                           azurerm_key_vault.kv_user
                                          ]
   content_type                         = ""
   name                                 = replace(
@@ -321,7 +299,7 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
                                            azurerm_storage_account.witness_storage[0].primary_access_key
                                          )
   key_vault_id                         = local.user_keyvault_exist ? (
-                                           local.user_key_vault_id) : (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
   expiration_date                       = var.key_vault.set_secret_expiry ? (
@@ -335,13 +313,8 @@ resource "azurerm_key_vault_secret" "witness_name" {
   provider                             = azurerm.main
   count                                = 1
   depends_on                           = [
-                                           azurerm_key_vault_access_policy.kv_user,
-                                           azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_private_endpoint.kv_user,
-                                           azurerm_private_dns_zone_virtual_network_link.vault
+                                           azurerm_key_vault.kv_user
                                          ]
   content_type                         = ""
   name                                 = replace(
@@ -361,7 +334,7 @@ resource "azurerm_key_vault_secret" "witness_name" {
                                            azurerm_storage_account.witness_storage[0].name
                                          )
   key_vault_id                         = local.user_keyvault_exist ? (
-                                           local.user_key_vault_id) : (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
   expiration_date                       = var.key_vault.set_secret_expiry ? (
@@ -405,19 +378,14 @@ resource "azurerm_key_vault_access_policy" "kv_user_msi" {
 resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
   provider                             = azurerm.main
   depends_on                           = [
-                                           azurerm_key_vault_access_policy.kv_user,
-                                           azurerm_role_assignment.role_assignment_spn,
-                                           azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_spn,
                                            azurerm_private_endpoint.kv_user,
-                                           azurerm_private_dns_zone_virtual_network_link.vault
+                                           azurerm_key_vault.kv_user
                                          ]
   content_type                         = ""
   name                                 = "deployer-kv-name"
   value                                = local.deployer_keyvault_user_name
   key_vault_id                         = local.user_keyvault_exist ? (
-                                           local.user_key_vault_id) : (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
   expiration_date                       = var.key_vault.set_secret_expiry ? (
@@ -577,10 +545,9 @@ resource "azurerm_key_vault_access_policy" "kv_user_additional_users" {
                                          )
 
   key_vault_id                         = local.user_keyvault_exist ? (
-                                           local.user_key_vault_id) : (
+                                           data.azurerm_key_vault.kv_user[0].id) : (
                                            azurerm_key_vault.kv_user[0].id
                                          )
-
 
   tenant_id                            = local.service_principal.tenant_id
   object_id                            = var.additional_users_to_add_to_keyvault_policies[count.index]

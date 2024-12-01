@@ -753,7 +753,7 @@ resource "azurerm_storage_share" "install_smb" {
 
 #Private endpoint tend to take a while to be created, so we need to wait for it to be ready before we can use it
 resource "time_sleep" "wait_for_private_endpoints" {
-  create_duration                      = "120s"
+  create_duration                      = "60s"
 
   depends_on                           = [
                                            azurerm_private_endpoint.install,
