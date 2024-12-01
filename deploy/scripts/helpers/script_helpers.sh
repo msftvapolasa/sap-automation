@@ -604,6 +604,7 @@ function validate_key_vault {
 	return_value=0
 
 	kv_name_check=$(az keyvault show --name="$keyvault_to_check" --subscription "${subscription}" --query name)
+	return_value=$?
 	if [ -z "$kv_name_check" ]; then
 		echo ""
 		echo "#########################################################################################"
@@ -614,6 +615,7 @@ function validate_key_vault {
 		echo ""
 		sleep 60
 		kv_name_check=$(az keyvault show --name="$keyvault_to_check" --subscription "${subscription}" --query name)
+		return_value=$?
 	fi
 
 	if [ -z "$kv_name_check" ]; then
@@ -627,7 +629,7 @@ function validate_key_vault {
 		exit 10
 	fi
 
-	access_error=$(az keyvault secret list --vault "$keyvault_to_check" --only-show-errors | grep "The user, group or application" || true)
+	access_error=$(az keyvault secret list --vault "$keyvault_to_check" --subscription "${subscription}" --only-show-errors | grep "The user, group or application" || true)
 	if [ -n "${access_error}" ]; then
 
 		az_subscription_id=$(az account show --query id -o tsv)
