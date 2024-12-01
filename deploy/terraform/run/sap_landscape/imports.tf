@@ -23,47 +23,71 @@ data "terraform_remote_state" "deployer" {
 data "azurerm_key_vault_secret" "subscription_id" {
   name                                 = format("%s-subscription-id", local.environment)
   key_vault_id                         = local.spn_key_vault_arm_id
+  timeouts                             {
+                                          read = "1m"
+                                       }
 }
 
 data "azurerm_key_vault_secret" "client_id" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-client-id", local.environment)
   key_vault_id                         = local.spn_key_vault_arm_id
+  timeouts                             {
+                                          read = "1m"
+                                       }
 }
 
 data "azurerm_key_vault_secret" "client_secret" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-client-secret", local.environment)
   key_vault_id                         = local.spn_key_vault_arm_id
+  timeouts                             {
+                                          read = "1m"
+                                       }
 }
 
 data "azurerm_key_vault_secret" "tenant_id" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-tenant-id", local.environment)
   key_vault_id                         = local.spn_key_vault_arm_id
+  timeouts                             {
+                                          read = "1m"
+                                       }
 }
 
 data "azurerm_key_vault_secret" "cp_subscription_id" {
   name                                 = format("%s-subscription-id", data.terraform_remote_state.deployer[0].outputs.environment)
   key_vault_id                         = local.spn_key_vault_arm_id
+  timeouts                             {
+                                          read = "1m"
+                                       }
 }
 
 data "azurerm_key_vault_secret" "cp_client_id" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-client-id", data.terraform_remote_state.deployer[0].outputs.environment)
   key_vault_id                         = local.spn_key_vault_arm_id
+  timeouts                             {
+                                          read = "1m"
+                                       }
 }
 
 data "azurerm_key_vault_secret" "cp_client_secret" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-client-secret", data.terraform_remote_state.deployer[0].outputs.environment)
   key_vault_id                         = local.spn_key_vault_arm_id
+  timeouts                             {
+                                          read = "1m"
+                                       }
 }
 
 data "azurerm_key_vault_secret" "cp_tenant_id" {
   count                                = var.use_spn ? 1 : 0
   name                                 = format("%s-tenant-id", data.terraform_remote_state.deployer[0].outputs.environment)
   key_vault_id                         = local.spn_key_vault_arm_id
+  timeouts                             {
+                                          read = "1m"
+                                       }
 }
 
 // Import current service principal
