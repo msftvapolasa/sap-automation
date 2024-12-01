@@ -272,7 +272,6 @@ resource "azurerm_management_lock" "vnet_sap" {
 # // Peers management VNET to SAP VNET
 resource "azurerm_virtual_network_peering" "peering_agent_sap" {
   provider                             = azurerm.peering
-  depends_on                           = [ azurerm_key_vault.kv_user ]
   count                                = length(var.agent_network_id) > 0 ? 1:0
   name                                 = substr(
                                            format("%s_to_%s",
@@ -298,7 +297,6 @@ resource "azurerm_virtual_network_peering" "peering_agent_sap" {
 // Peers SAP VNET to management VNET
 resource "azurerm_virtual_network_peering" "peering_sap_agent" {
   provider                             = azurerm.main
-  depends_on                           = [ azurerm_key_vault.kv_user ]
   count                                = length(var.agent_network_id) > 0 ? 1:0
   name                                 = substr(
                                            format("%s_to_%s",
