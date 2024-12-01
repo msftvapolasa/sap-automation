@@ -384,6 +384,22 @@ if [ -f .terraform/terraform.tfstate ]; then
 			exit 1
 		fi
 	fi
+else
+	if terraform -chdir="${terraform_module_directory}" init -reconfigure \
+		--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
+		--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
+		--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
+		--backend-config "container_name=tfstate" \
+		--backend-config "key=${key}.terraform.tfstate"; then
+		echo ""
+		echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+		echo ""
+	else
+		echo ""
+		echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
+		echo ""
+		exit 1
+	fi
 fi
 
 tfstate_resource_id=$(az storage account show --name "${REMOTE_STATE_SA}" --query id --subscription "${STATE_SUBSCRIPTION}" --out tsv)
