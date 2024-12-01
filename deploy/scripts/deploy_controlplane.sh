@@ -579,6 +579,10 @@ if [ 2 == $step ]; then
 			step=2
 			save_config_var "step" "${deployer_config_information}"
 			exit 20
+		else
+			step=3
+			save_config_var "step" "${deployer_config_information}"
+
 		fi
 	else
 		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/install_library.sh" \
@@ -589,6 +593,9 @@ if [ 2 == $step ]; then
 			step=2
 			save_config_var "step" "${deployer_config_information}"
 			exit 20
+		else
+			step=3
+			save_config_var "step" "${deployer_config_information}"
 		fi
 	fi
 	return_code=$?
@@ -646,7 +653,7 @@ echo "##vso[task.setprogress value=80;]Progress Indicator"
 #                                                                                        #
 ##########################################################################################
 
-if [ 3 == $step ]; then
+if [ 3 == "$step" ]; then
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
@@ -660,22 +667,6 @@ if [ 3 == $step ]; then
 	# Remove the script file
 	if [ -f post_deployment.sh ]; then
 		rm post_deployment.sh
-	fi
-
-	secretname=sa-connection-string
-	deleted=$(az keyvault secret list-deleted --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" | tr -d \")
-	if [ "${deleted}" == "${secretname}" ]; then
-		echo -e "\t $cyan Recovering secret ${secretname} in keyvault ${keyvault} $reset_formatting \n"
-		az keyvault secret recover --name "${secretname}" --vault-name "${keyvault}"
-		sleep 10
-	fi
-
-	v=""
-	secret=$(az keyvault secret list --vault-name "${keyvault}" --query "[].{Name:name} | [? contains(Name,'${secretname}')] | [0]" | tr -d \")
-	if [ "${secret}" == "${secretname}" ]; then
-		TF_VAR_sa_connection_string=$(az keyvault secret show --name "${secretname}" --vault-name "${keyvault}" --query value | tr -d \")
-		export TF_VAR_sa_connection_string
-
 	fi
 
 	if [[ -z $REMOTE_STATE_SA ]]; then
@@ -720,6 +711,10 @@ if [ 3 == $step ]; then
 			step=3
 			save_config_var "step" "${deployer_config_information}"
 			exit 30
+		else
+			step=4
+			save_config_var "step" "${deployer_config_information}"
+
 		fi
 	else
 		if ! "${SAP_AUTOMATION_REPO_PATH}/deploy/scripts/installer.sh" \
@@ -730,6 +725,9 @@ if [ 3 == $step ]; then
 			step=3
 			save_config_var "step" "${deployer_config_information}"
 			exit 30
+		else
+			step=4
+			save_config_var "step" "${deployer_config_information}"
 		fi
 	fi
 	return_code=$?
