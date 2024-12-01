@@ -18,6 +18,11 @@ source "${script_directory}/deploy_utils.sh"
 #helper files
 source "${script_directory}/helpers/script_helpers.sh"
 
+if [ "$DEBUG" = True ]; then
+	set -x
+	set -o errexit
+fi
+
 #Internal helper functions
 function showhelp {
 
