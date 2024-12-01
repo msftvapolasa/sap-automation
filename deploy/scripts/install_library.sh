@@ -371,9 +371,9 @@ else
 	if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode \
 		-var-file="${var_file}" -input=false | tee -a plan_output.log 2>&1; then
 		return_value=$?
-		echo "Terraform plan:                        failed"
+		echo -e  "${bold_red}Terraform plan: $reset_formatting                       failed"
 	else
-		echo "Terraform plan:                        succeeded"
+		echo -e  "${cyan}Terraform plan: $reset_formatting                       succeeded"
 	fi
 	allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
 	allImportParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
@@ -418,16 +418,16 @@ if [ -n "${approve}" ]; then
 	if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters --auto-approve | tee -a apply_output.json; then
 		return_value=$?
 		if [ $return_value -eq 1 ]; then
-			echo "Terraform apply:                       failed"
+			echo -e  "${bold_red}Terraform apply: $reset_formatting                      failed"
 		else
 			# return code 2 is ok
-			echo "Terraform apply:                       succeeded"
+			echo -e  "${cyan}Terraform apply: $reset_formatting                      succeeded"
 			return_value=0
 		fi
 	else
 
 		return_value=0
-		echo "Terraform apply:                       succeeded"
+		echo -e  "${cyan}Terraform apply: $reset_formatting                      succeeded"
 	fi
 
 else
@@ -435,11 +435,11 @@ else
 	if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters; then
 		return_value=$?
 		if [ $return_value -eq 1 ]; then
-			echo "Terraform apply:                       failed"
+			echo -e  "${bold_red}Terraform apply: $reset_formatting                      failed"
 		else
 			# return code 2 is ok
 			return_value=0
-			echo "Terraform apply:                       succeeded"
+			echo -e  "${cyan}Terraform apply: $reset_formatting                      succeeded"
 		fi
 	fi
 fi

@@ -1113,11 +1113,14 @@ if [ 1 == $apply_needed ]; then
 		# shellcheck disable=SC2086
 		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee -a apply_output.json; then
 			return_value=$?
+			echo "Terraform return code:                 $return_value"
 			if [ $return_value -eq 1 ]; then
-				echo "Errors when running Terraform apply"
+
+				echo -e  "${bold_red}Terraform apply: $reset_formatting                      failed"
 				exit $return_value
 			else
 				# return code 2 is ok
+				echo -e  "${cyan}Terraform apply: $reset_formatting                      succeeded"
 				return_value=0
 			fi
 		else
@@ -1129,7 +1132,7 @@ if [ 1 == $apply_needed ]; then
 		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters; then
 			return_value=$?
 			if [ $return_value -eq 1 ]; then
-				echo "Errors when running Terraform apply"
+				echo -e  "${bold_red}Terraform apply: $reset_formatting                      failed"
 				exit $return_value
 			else
 				# return code 2 is ok
