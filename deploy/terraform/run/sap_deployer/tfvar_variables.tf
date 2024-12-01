@@ -366,7 +366,7 @@ variable "soft_delete_retention_days"                 {
 
 #######################################4#######################################8
 #                                                                              #
-#  Miscallaneous settings                                                      #
+#  Miscellaneous settings                                                      #
 #                                                                              #
 #######################################4#######################################8
 
@@ -437,6 +437,12 @@ variable "tags"                                 {
                                                   description = "If provided, tags for all resources"
                                                   default     = {}
                                                 }
+
+variable "agent_network_id"                          {
+                                                       description = "Agent Network resource ID"
+                                                       default     = ""
+                                                     }
+
 #########################################################################################
 #                                                                                       #
 #  DNS settings                                                                         #
