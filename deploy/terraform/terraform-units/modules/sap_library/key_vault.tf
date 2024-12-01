@@ -16,7 +16,8 @@ resource "azurerm_key_vault_secret" "saplibrary_access_key" {
   depends_on                           = [
                                             azurerm_storage_account.storage_tfstate,
                                             azurerm_private_dns_zone.vault,
-                                            azurerm_private_dns_zone_virtual_network_link.vault
+                                            azurerm_private_dns_zone_virtual_network_link.vault,
+                                            azurerm_private_dns_zone_virtual_network_link.vault_agent
                                          ]
   count                                = var.storage_account_sapbits.shared_access_key_enabled && length(try(var.key_vault.kv_spn_id, "")) > 0 ? 1 : 0
   name                                 = "sapbits-access-key"
@@ -38,7 +39,8 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
   depends_on                           = [
                                             azurerm_storage_account.storage_tfstate,
                                             azurerm_private_dns_zone.vault,
-                                            azurerm_private_dns_zone_virtual_network_link.vault
+                                            azurerm_private_dns_zone_virtual_network_link.vault,
+                                            azurerm_private_dns_zone_virtual_network_link.vault_agent
                                          ]
   count                                = length(try(var.key_vault.kv_spn_id, "")) > 0 ? 1 : 0
   name                                 = "sapbits-location-base-path"
@@ -68,7 +70,8 @@ resource "azurerm_key_vault_secret" "sa_connection_string" {
   depends_on                           = [
                                             azurerm_storage_account.storage_tfstate,
                                             azurerm_private_dns_zone.vault,
-                                            azurerm_private_dns_zone_virtual_network_link.vault
+                                            azurerm_private_dns_zone_virtual_network_link.vault,
+                                            azurerm_private_dns_zone_virtual_network_link.vault_agent
                                          ]
   count                                = length(try(var.key_vault.kv_spn_id, "")) > 0 ? 1 : 0
   name                                 = "sa-connection-string"
@@ -88,7 +91,8 @@ resource "azurerm_key_vault_secret" "tfstate" {
   depends_on                           = [
                                             azurerm_storage_account.storage_tfstate,
                                             azurerm_private_dns_zone.vault,
-                                            azurerm_private_dns_zone_virtual_network_link.vault
+                                            azurerm_private_dns_zone_virtual_network_link.vault,
+                                            azurerm_private_dns_zone_virtual_network_link.vault_agent
                                          ]
   count                                = length(try(var.key_vault.kv_spn_id, "")) > 0 ? 1 : 0
   name                                 = "tfstate"
