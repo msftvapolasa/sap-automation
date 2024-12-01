@@ -424,47 +424,47 @@ resource "azurerm_key_vault_secret" "subscription" {
                                          )
 }
 
-resource "azurerm_key_vault_secret" "tenant" {
-  count                                = !var.key_vault.kv_exists ? (1) : (0)
+# resource "azurerm_key_vault_secret" "tenant" {
+#   count                                = !var.key_vault.kv_exists ? (1) : (0)
 
-  depends_on                           = [
-                                           azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_systemidentity
-                                         ]
+#   depends_on                           = [
+#                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
+#                                            azurerm_key_vault_access_policy.kv_user_msi,
+#                                            azurerm_key_vault_access_policy.kv_user_systemidentity
+#                                          ]
 
-  name                                 = format("%s-tenant-id", upper(var.infrastructure.environment))
-  value                                = data.azurerm_client_config.deployer.tenant_id
-  key_vault_id                         = var.key_vault.kv_exists ? (
-                                           var.key_vault.kv_user_id) : (
-                                           azurerm_key_vault.kv_user[0].id
-                                         )
+#   name                                 = format("%s-tenant-id", upper(var.infrastructure.environment))
+#   value                                = data.azurerm_client_config.deployer.tenant_id
+#   key_vault_id                         = var.key_vault.kv_exists ? (
+#                                            var.key_vault.kv_user_id) : (
+#                                            azurerm_key_vault.kv_user[0].id
+#                                          )
 
-  expiration_date                      = var.set_secret_expiry ? (
-                                           time_offset.secret_expiry_date.rfc3339) : (
-                                           null
-                                         )
-}
+#   expiration_date                      = var.set_secret_expiry ? (
+#                                            time_offset.secret_expiry_date.rfc3339) : (
+#                                            null
+#                                          )
+# }
 
 
-resource "azurerm_key_vault_secret" "spn" {
-  count                                = !var.key_vault.kv_exists && length(var.spn_id) > 0 ? (1) : (0)
+# resource "azurerm_key_vault_secret" "spn" {
+#   count                                = !var.key_vault.kv_exists && length(var.spn_id) > 0 ? (1) : (0)
 
-  depends_on                           = [
-                                           azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_systemidentity
-                                         ]
+#   depends_on                           = [
+#                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
+#                                            azurerm_key_vault_access_policy.kv_user_msi,
+#                                            azurerm_key_vault_access_policy.kv_user_systemidentity
+#                                          ]
 
-  name                                 = format("%s-client-id", upper(var.infrastructure.environment))
-  value                                = var.spn_id
-  key_vault_id                         = var.key_vault.kv_exists ? (
-                                           var.key_vault.kv_user_id) : (
-                                           azurerm_key_vault.kv_user[0].id
-                                         )
+#   name                                 = format("%s-client-id", upper(var.infrastructure.environment))
+#   value                                = var.spn_id
+#   key_vault_id                         = var.key_vault.kv_exists ? (
+#                                            var.key_vault.kv_user_id) : (
+#                                            azurerm_key_vault.kv_user[0].id
+#                                          )
 
-  expiration_date                      = var.set_secret_expiry ? (
-                                           time_offset.secret_expiry_date.rfc3339) : (
-                                           null
-                                         )
-}
+#   expiration_date                      = var.set_secret_expiry ? (
+#                                            time_offset.secret_expiry_date.rfc3339) : (
+#                                            null
+#                                          )
+# }
