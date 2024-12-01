@@ -659,7 +659,7 @@ if [ ! -d .terraform/ ]; then
 		echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
 		echo ""
 	else
-		return_value=$?
+		return_value=0
 		echo ""
 		echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
 		echo ""
@@ -680,7 +680,7 @@ else
 			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
 			echo ""
 		else
-			return_value=$?
+			return_value=0
 			echo ""
 			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
 			echo ""
@@ -697,7 +697,7 @@ else
 			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
 			echo ""
 		else
-			return_value=$?
+			return_value=0
 			echo ""
 			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
 			echo ""
