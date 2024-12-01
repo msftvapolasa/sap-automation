@@ -151,10 +151,8 @@ resource "azurerm_virtual_network_peering" "peering_management_agent" {
                                            data.azurerm_resource_group.deployer[0].name) : (
                                            azurerm_resource_group.deployer[0].name
                                          )
-  remote_virtual_network_id            = local.management_virtual_network_exists ? (
-                                               data.azurerm_virtual_network.vnet_mgmt[0].id) : (
-                                               azurerm_virtual_network.vnet_mgmt[0].id
-                                             )
+
+  remote_virtual_network_id            = data.azurerm_virtual_network.agent_virtual_network[0].id
 
   virtual_network_name                 = local.management_virtual_network_exists ? (
                                                data.azurerm_virtual_network.vnet_mgmt[0].name) : (
@@ -181,8 +179,10 @@ resource "azurerm_virtual_network_peering" "peering_agent_management" {
                                          )
   resource_group_name                  = split("/", var.agent_network_id)[4]
   virtual_network_name                 = split("/", var.agent_network_id)[8]
-
-  remote_virtual_network_id            = data.azurerm_virtual_network.agent_virtual_network[0].id
+  remote_virtual_network_id            = local.management_virtual_network_exists ? (
+                                               data.azurerm_virtual_network.vnet_mgmt[0].id) : (
+                                               azurerm_virtual_network.vnet_mgmt[0].id
+                                             )
   allow_virtual_network_access         = true
   allow_forwarded_traffic              = true
 }
