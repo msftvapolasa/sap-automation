@@ -381,6 +381,27 @@ if [ 0 != $return_value ]; then
 	unset TF_DATA_DIR
 	exit 10
 fi
+
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo "#                     Running Terraform apply (deployer - local)                              #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	echo ""
+
+	if terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" "${approve_parameter}"; then
+		return_value=$?
+		echo ""
+		echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+		echo ""
+	else
+		return_value=$?
+		echo ""
+		echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
+		echo ""
+	fi
+
 cd "${current_directory}" || exit
 
 key=$(echo "${library_tfvars_filename}" | cut -d. -f1)
