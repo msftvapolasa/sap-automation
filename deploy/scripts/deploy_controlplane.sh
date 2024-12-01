@@ -422,6 +422,62 @@ if [ -n "${subscription}" ]; then
 	cd "$root_dirname" || exit
 fi
 
+##########################################################################################
+#                                                                                        #
+#                                     Step 1                                             #
+#                           Validating Key Vault Access                                  #
+#                                                                                        #
+#                                                                                        #
+##########################################################################################
+
+echo "Step:                                $step"
+
+if [ 1 == $step ] || [ 3 == $step ]; then
+	# If the keyvault is not set, check the terraform state file
+	if [ -z "$keyvault" ]; then
+		key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
+		if [ $recover == 1 ] && [ -n "$REMOTE_STATE_SA" ]; then
+			terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
+			terraform -chdir="${terraform_module_directory}" init -upgrade=true \
+				--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
+				--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
+				--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
+				--backend-config "container_name=tfstate" \
+				--backend-config "key=${key}.terraform.tfstate"
+
+			keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
+			save_config_var "keyvault" "${deployer_config_information}"
+		fi
+	fi
+
+	if [ -z "$keyvault" ]; then
+		if [ $ado_flag != "--ado" ]; then
+			read -r -p "Deployer keyvault name: " keyvault
+		else
+			exit 10
+		fi
+	fi
+
+	if [ 1 == $step ] && [ -n "$client_secret" ]; then
+
+		if "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh \
+			--environment "${environment}" \
+			--region "${region_code}" \
+			--vault "${keyvault}" \
+			--spn_id "${client_id}" \
+			--spn_secret "${client_secret}" \
+			--tenant_id "${tenant_id}"; then
+			echo ""
+			echo -e "${cyan}Set secrets:                           succeeded$reset_formatting"
+			echo ""
+		else
+			echo -e "${bold_red}Set secrets:                           succeeded$failed"
+			exit 10
+		fi
+	fi
+
+fi
+
 if [ -z "$keyvault" ]; then
 	load_config_vars "${deployer_config_information}" "keyvault"
 fi
@@ -451,61 +507,6 @@ else
 		step=0
 		save_config_var "step" "${deployer_config_information}"
 		exit 10
-	fi
-
-fi
-
-##########################################################################################
-#                                                                                        #
-#                                     Step 1                                             #
-#                           Validating Key Vault Access                                  #
-#                                                                                        #
-#                                                                                        #
-##########################################################################################
-
-echo "Step:                                $step"
-
-if [ 1 == $step ] || [ 3 == $step ]; then
-	# If the keyvault is not set, check the terraform state file
-	if [ -z "$keyvault" ]; then
-		key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
-		if [ $recover == 1 ] && [ -n "$REMOTE_STATE_SA" ]; then
-			terraform_module_directory="$SAP_AUTOMATION_REPO_PATH"/deploy/terraform/run/sap_deployer/
-			terraform -chdir="${terraform_module_directory}" init -upgrade=true \
-				--backend-config "subscription_id=${STATE_SUBSCRIPTION}" \
-				--backend-config "resource_group_name=${REMOTE_STATE_RG}" \
-				--backend-config "storage_account_name=${REMOTE_STATE_SA}" \
-				--backend-config "container_name=tfstate" \
-				--backend-config "key=${key}.terraform.tfstate"
-
-			keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
-		fi
-	fi
-
-	if [ -z "$keyvault" ]; then
-		if [ $ado_flag != "--ado" ]; then
-			read -r -p "Deployer keyvault name: " keyvault
-		else
-			exit 10
-		fi
-	fi
-
-	if [ 1 == $step ] && [ -n "$client_secret" ]; then
-
-		if "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh \
-			--environment "${environment}" \
-			--region "${region_code}" \
-			--vault "${keyvault}" \
-			--spn_id "${client_id}" \
-			--spn_secret "${client_secret}" \
-			--tenant_id "${tenant_id}"; then
-			echo ""
-			echo -e "${cyan}Set secrets:                           succeeded$reset_formatting"
-			echo ""
-		else
-			echo -e "${bold_red}Set secrets:                           succeeded$failed"
-			exit 10
-		fi
 	fi
 
 fi
