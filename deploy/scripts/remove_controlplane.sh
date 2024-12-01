@@ -21,6 +21,13 @@ source "${script_directory}/helpers/script_helpers.sh"
 
 keep_agent=0
 
+
+if [ "$DEBUG" = True ]; then
+	echo -e "${cyan}Enabling debug mode$reset_formatting"
+	set -x
+	set -o errexit
+fi
+
 ################################################################################################
 #                                                                                              #
 #   This file contains the logic to deploy the environment to support SAP workloads.           #

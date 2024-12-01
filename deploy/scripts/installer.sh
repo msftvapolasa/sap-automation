@@ -149,7 +149,7 @@ while :; do
 done
 
 if [ "$DEBUG" = True ]; then
-	echo -e "$cyanEnabling debug mode$reset_formatting"
+	echo -e "${cyan}Enabling debug mode$reset_formatting"
 	set -x
 	set -o errexit
 fi
