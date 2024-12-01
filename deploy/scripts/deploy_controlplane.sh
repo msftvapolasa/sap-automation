@@ -62,6 +62,8 @@ while :; do
 		;;
 	-c | --spn_id)
 		client_id="$2"
+		TF_VAR_spn_id="$client_id"
+		export TF_VAR_spn_id
 		shift 2
 		;;
 	-d | --deployer_parameter_file)
