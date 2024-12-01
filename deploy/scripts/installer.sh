@@ -847,7 +847,7 @@ fi
 allParameters=$(printf " -var-file=%s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
 
 # shellcheck disable=SC2086
-if ! terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode  -compact-warnings | tee -a plan_output.log; then
+if ! terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode -compact-warnings | tee -a plan_output.log; then
 	return_value=$?
 	echo "Terraform Plan return code:          $return_value"
 
@@ -1163,7 +1163,7 @@ if [ 1 == $apply_needed ]; then
 
 	else
 		# shellcheck disable=SC2086
-		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters; then
+		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters | tee -a apply_output.json; then
 			return_value=$?
 			if [ $return_value -eq 1 ]; then
 				echo ""
@@ -1184,31 +1184,47 @@ if [ 1 == $apply_needed ]; then
 		errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
 		if [[ -n $errors_occurred ]]; then
-			# shellcheck disable=SC2086
-			if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-				return_value=$?
-			fi
-		fi
+			if [ -n "${approve}" ]; then
+				# shellcheck disable=SC2086
+				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+					return_value=$?
+				fi
 
-		if [ -f apply_output.json ]; then
-			# shellcheck disable=SC2086
-			if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-				return_value=$?
-			fi
-		fi
+				if [ -f apply_output.json ]; then
+					# shellcheck disable=SC2086
+					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+						return_value=$?
+					fi
+				fi
 
-		if [ -f apply_output.json ]; then
-			# shellcheck disable=SC2086
-			if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-				return_value=$?
-			fi
+				if [ -f apply_output.json ]; then
+					# shellcheck disable=SC2086
+					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+						return_value=$?
+					fi
 
-		fi
+				fi
 
-		if [ -f apply_output.json ]; then
-			# shellcheck disable=SC2086
-			if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-				return_value=$?
+				if [ -f apply_output.json ]; then
+					# shellcheck disable=SC2086
+					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+						return_value=$?
+					fi
+				fi
+				if [ -f apply_output.json ]; then
+					# shellcheck disable=SC2086
+					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+						return_value=$?
+					fi
+				fi
+				if [ -f apply_output.json ]; then
+					# shellcheck disable=SC2086
+					if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
+						return_value=$?
+					fi
+				fi
+			else
+				return_value=10
 			fi
 
 		fi
