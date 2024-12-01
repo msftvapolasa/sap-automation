@@ -457,11 +457,9 @@ if [ "$resource_group_exist" ]; then
 		terraform -chdir="${terraform_bootstrap_directory}" init -upgrade=true -force-copy
 
 		terraform -chdir="${terraform_bootstrap_directory}" refresh -var-file="${var_file}" \
-			"$landscape_tfstate_key_parameter" \
 			"$deployer_tfstate_key_parameter"
 
-		terraform -chdir="${terraform_bootstrap_directory}" destroy -var-file="${var_file}" "${approve}" \
-			"$landscape_tfstate_key_parameter" \
+		terraform -chdir="${terraform_bootstrap_directory}" destroy -var-file="${var_file}" "${approve}" -var use_deployer=false \
 			"$deployer_tfstate_key_parameter"
 	else
 
