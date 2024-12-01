@@ -524,6 +524,15 @@ if terraform -chdir="${terraform_module_directory}" destroy -var-file="${var_fil
 	echo ""
 	echo -e "${cyan}Terraform destroy:                      succeeded$reset_formatting"
 	echo ""
+	if [ -f "${param_dirname}/terraform.tfstate" ]; then
+		rm "${param_dirname}/terraform.tfstate"
+	fi
+	if [ -f "${param_dirname}/terraform.tfstate.backup" ]; then
+		rm "${param_dirname}/terraform.tfstate.backup"
+	fi
+	if [ -f "${param_dirname}/.terraform/terraform.tfstate" ]; then
+		rm "${param_dirname}/.terraform/terraform.tfstate"
+	fi
 else
 	return_value=$?
 	echo ""
@@ -597,6 +606,15 @@ else
 		echo ""
 		echo -e "${cyan}Terraform destroy:                      succeeded$reset_formatting"
 		echo ""
+		if [ -f "${param_dirname}/terraform.tfstate" ]; then
+			rm "${param_dirname}/terraform.tfstate"
+		fi
+		if [ -f "${param_dirname}/terraform.tfstate.backup" ]; then
+			rm "${param_dirname}/terraform.tfstate.backup"
+		fi
+		if [ -f "${param_dirname}/.terraform/terraform.tfstate" ]; then
+			rm "${param_dirname}/.terraform/terraform.tfstate"
+		fi
 	else
 		return_value=$?
 		echo ""
@@ -612,6 +630,9 @@ else
 		deployer_tfstate_key=''
 		save_config_var "$keyvault" "${deployer_config_information}"
 		save_config_var "$deployer_tfstate_key" "${deployer_config_information}"
+		if [ -f "${deployer_config_information}" ]; then
+			rm "${deployer_config_information}"
+		fi
 	fi
 fi
 
