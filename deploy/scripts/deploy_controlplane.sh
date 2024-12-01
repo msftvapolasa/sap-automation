@@ -230,6 +230,7 @@ load_config_vars "${deployer_config_information}" "step"
 if [ -z "${step}" ]; then
 	step=0
 fi
+echo "Step:                                $step"
 
 echo ""
 echo "#########################################################################################"
@@ -298,7 +299,7 @@ if [ -n "${subscription}" ]; then
 			export TF_VAR_deployer_kv_user_arm_id
 		fi
 	else
-		if [ $ado_flag != "--ado" ]; then
+		if [ $ado_flag != "--ado" ] && [ 0 != "$step"  ]; then
 			read -r -p "Deployer keyvault name: " keyvault
 			save_config_var "keyvault" "${deployer_config_information}"
 		else
@@ -309,9 +310,6 @@ if [ -n "${subscription}" ]; then
 
 	fi
 fi
-
-load_config_vars "${deployer_config_information}" "step"
-echo "Step:                                $step"
 
 if [ 0 = "${deploy_using_msi_only:-}" ]; then
 	echo "Identity to use:                     Service Principal"
@@ -359,7 +357,7 @@ curdir=$(pwd)
 #                                                                                        #
 ##########################################################################################
 
-if [ 0 == $step ]; then
+if [ 0 == "$step" ]; then
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
