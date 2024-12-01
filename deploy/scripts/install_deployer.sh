@@ -412,10 +412,9 @@ if [ -f apply_output.json ]; then
 					return_value=0
 				fi
 			fi
+		else
+			return_value=10
 		fi
-	else
-		return_value=10
-
 	fi
 fi
 
