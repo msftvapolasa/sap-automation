@@ -840,7 +840,7 @@ allParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "
 if ! terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters -input=false | tee -a plan_output.log; then
   return_value=$?
   if [ $return_value -eq 1 ]; then
-	  echo -e  "${bold_red}Terraform plan: $reset_formatting                       failed"
+	  echo -e  "${bold_red}Terraform plan:                        failed$reset_formatting"
     echo "#########################################################################################"
     echo "#                                                                                       #"
     echo -e "#                           $bold_red_underscore !!! Error when running plan !!! $reset_formatting                           #"
@@ -854,7 +854,7 @@ if ! terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $all
   fi
 else
   return_value=$?
-	echo -e  "${cyan}Terraform plan: $reset_formatting                       succeeded"
+	echo -e  "${cyan}Terraform plan:                        succeeded$reset_formatting"
 fi
 
 if [ $check_output == 0 ]; then

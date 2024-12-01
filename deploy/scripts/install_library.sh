@@ -315,29 +315,29 @@ else
 					--backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME" \
 					--backend-config "container_name=tfstate" \
 					--backend-config "key=${key}.terraform.tfstate"; then
-					echo -e  "${cyan}Terraform init: $reset_formatting                       succeeded"
+					echo -e  "${cyan}Terraform init:                        succeeded$reset_formatting"
 
 					terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}" -input=false \
 						-var deployer_statefile_foldername="${deployer_statefile_foldername}"
 				else
-					echo -e  "${bold_red}Terraform init: $reset_formatting                       succeeded"
+					echo -e  "${bold_red}Terraform init:                        succeeded$reset_formatting"
 					return 10
 				fi
 			else
 				if terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
-					echo -e  "${cyan}Terraform init: $reset_formatting                       succeeded"
+					echo -e  "${cyan}Terraform init:                        succeeded$reset_formatting"
 					terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
 				else
-					echo -e  "${bold_red}Terraform init: $reset_formatting                       succeeded"
+					echo -e  "${bold_red}Terraform init:                        succeeded$reset_formatting"
 					return 10
 				fi
 			fi
 		fi
 	else
 		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
-			echo -e  "${cyan}Terraform init: $reset_formatting                       succeeded"
+			echo -e  "${cyan}Terraform init:                        succeeded$reset_formatting"
 		else
-			echo -e  "${bold_red}Terraform init: $reset_formatting                       succeeded"
+			echo -e  "${bold_red}Terraform init:                        succeeded$reset_formatting"
 			return 10
 		fi
 	fi
@@ -371,9 +371,9 @@ else
 	if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode \
 		-var-file="${var_file}" -input=false | tee -a plan_output.log 2>&1; then
 		return_value=$?
-		echo -e  "${bold_red}Terraform plan: $reset_formatting                       failed"
+		echo -e  "${bold_red}Terraform plan:                        failed$reset_formatting"
 	else
-		echo -e  "${cyan}Terraform plan: $reset_formatting                       succeeded"
+		echo -e  "${cyan}Terraform plan:                        succeeded$reset_formatting"
 	fi
 	allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
 	allImportParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")

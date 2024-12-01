@@ -210,34 +210,46 @@ else
 					--backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME" \
 					--backend-config "container_name=tfstate" \
 					--backend-config "key=${key}.terraform.tfstate"; then
-					echo -e  "${cyan}Terraform init: $reset_formatting                       succeeded"
+					echo ""
+					echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+					echo ""
 					terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
 				else
-					echo -e  "${bold_red}Terraform init: $reset_formatting                       succeeded"
+					echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
 					return 10
 				fi
 			else
 				if terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
-					echo -e  "${cyan}Terraform init: $reset_formatting                       succeeded"
+					echo ""
+					echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+					echo ""
 					terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
 				else
-					echo -e  "${bold_red}Terraform init: $reset_formatting                       succeeded"
+					echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
 					return 10
 				fi
 			fi
 		fi
 	else
 		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
-			echo -e  "${cyan}Terraform init: $reset_formatting                       succeeded"
+			echo ""
+			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+			echo ""
 		else
-			echo -e  "${bold_red}Terraform init: $reset_formatting                       succeeded"
+			echo ""
+			echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
+			echo ""
 			return 10
 		fi
 	fi
 	if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
-		echo -e  "${cyan}Terraform init: $reset_formatting                       succeeded"
+		echo ""
+		echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+		echo ""
 	else
-		echo -e  "${bold_red}Terraform init: $reset_formatting                       succeeded"
+		echo ""
+		echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
+		echo ""
 		return 10
 	fi
 	echo "Parameters:                          $allParameters"
@@ -267,10 +279,14 @@ echo ""
 # shellcheck disable=SC2086
 
 if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters | tee -a plan_output.log; then
-	echo -e  "${cyan}Terraform plan: $reset_formatting                       succeeded"
+	echo ""
+	echo -e "${cyan}Terraform plan:                        succeeded$reset_formatting"
+	echo ""
 	return_value=0
 else
-	echo -e  "${bold_red}Terraform plan: $reset_formatting                       failed"
+	echo ""
+	echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
+	echo ""
 	return_value=$?
 	exit $return_value
 fi
@@ -322,10 +338,14 @@ if [ -n "${approve}" ]; then
 		$allParameters -no-color -compact-warnings -json -input=false --auto-approve | tee -a apply_output.json; then
 		return_value=$?
 		if [ $return_value -eq 1 ]; then
-			echo -e  "${bold_red}Terraform apply: $reset_formatting                      failed"
+			echo ""
+			echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
+			echo ""
 		else
 			# return code 2 is ok
-			echo "Terraform apply:                        succeeded"
+			echo ""
+			echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+			echo ""
 			return_value=0
 		fi
 	fi
@@ -334,10 +354,14 @@ else
 	if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters; then
 		return_value=$?
 		if [ $return_value -eq 1 ]; then
-			echo -e  "${bold_red}Terraform apply: $reset_formatting                      failed"
+			echo ""
+			echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
+			echo ""
 		else
-			echo "Terraform apply:                        succeeded"
 			# return code 2 is ok
+			echo ""
+			echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+			echo ""
 			return_value=0
 		fi
 	fi

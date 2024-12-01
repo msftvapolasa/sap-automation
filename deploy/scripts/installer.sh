@@ -594,10 +594,14 @@ if [ ! -d ./.terraform/ ]; then
 		--backend-config "container_name=tfstate" \
 		--backend-config "key=${key}.terraform.tfstate"; then
 		return_value=$?
-		echo -e "${bold_red}Terraform init: $reset_formatting                       failed"
+		echo ""
+		echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
+		echo ""
 	else
 		return_value=$?
-		echo -e "${cyan}Terraform init: $reset_formatting                       succeeded"
+		echo ""
+		echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+		echo ""
 	fi
 
 else
@@ -615,11 +619,15 @@ else
 				--backend-config "container_name=tfstate" \
 				--backend-config "key=${key}.terraform.tfstate"; then
 				return_value=$?
-				echo -e "${bold_red}Terraform init: $reset_formatting                       failed"
+				echo ""
+				echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
+				echo ""
 				exit $return_value
 			else
 				return_value=$?
-				echo -e "${cyan}Terraform init: $reset_formatting                       succeeded"
+				echo ""
+				echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+				echo ""
 			fi
 
 		else
@@ -641,11 +649,15 @@ else
 				# 	--backend-config "container_name=tfstate" \
 				# 	--backend-config "key=${key}.terraform.tfstate"; then
 				return_value=$?
-				echo -e "${bold_red}Terraform init: $reset_formatting                       failed"
+				echo ""
+				echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
+				echo ""
 				exit $return_value
 			else
 				return_value=$?
-				echo -e "${cyan}Terraform init: $reset_formatting                       succeeded"
+				echo ""
+				echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+				echo ""
 			fi
 
 		fi
@@ -658,11 +670,15 @@ else
 			--backend-config "container_name=tfstate" \
 			--backend-config "key=${key}.terraform.tfstate"; then
 			return_value=$?
-			echo -e "${bold_red}Terraform init: $reset_formatting                       failed"
+			echo ""
+			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
+			echo ""
 			exit $return_value
 		else
 			return_value=$?
-			echo -e "${cyan}Terraform init: $reset_formatting                       succeeded"
+			echo ""
+			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+			echo ""
 		fi
 	fi
 fi
@@ -1117,14 +1133,19 @@ if [ 1 == $apply_needed ]; then
 		# shellcheck disable=SC2086
 		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters | tee -a apply_output.json; then
 			return_value=$?
+			echo ""
 			echo "Terraform return code:                 $return_value"
+			echo ""
 			if [ $return_value -eq 1 ]; then
-
-				echo -e "${bold_red}Terraform apply: $reset_formatting                      failed"
+				echo ""
+				echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
+				echo ""
 				exit $return_value
 			else
 				# return code 2 is ok
+				echo ""
 				echo -e "${cyan}Terraform apply: $reset_formatting                      succeeded"
+				echo ""
 				return_value=0
 			fi
 		else
@@ -1136,7 +1157,7 @@ if [ 1 == $apply_needed ]; then
 		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters; then
 			return_value=$?
 			if [ $return_value -eq 1 ]; then
-				echo -e "${bold_red}Terraform apply: $reset_formatting                      failed"
+				echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
 				exit $return_value
 			else
 				# return code 2 is ok

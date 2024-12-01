@@ -550,14 +550,20 @@ function ImportAndReRunApply {
 				if ! terraform -chdir="${terraform_module_directory}" apply -no-color -compact-warnings -json -input=false --auto-approve $applyParameters | tee -a "$fileName"; then
 					return_value=$?
 					if [ $return_value -eq 1 ]; then
-						echo -e  "${bold_red}Terraform apply: $reset_formatting                      failed"
+						echo ""
+						echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
+						echo ""
 					else
 						# return code 2 is ok
-						echo -e  "${cyan}Terraform apply: $reset_formatting                      succeeded"
+						echo ""
+						echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+						echo ""
 						return_value=0
 					fi
 				else
-					echo -e  "${cyan}Terraform apply: $reset_formatting                      succeeded"
+					echo ""
+					echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+					echo ""
 
 				fi
 			fi
