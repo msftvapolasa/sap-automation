@@ -490,7 +490,7 @@ if [ 1 == $step ] || [ 3 == $step ]; then
 		fi
 	fi
 
-	if [ -n "$client_secret" ]; then
+	if [ 1 == $step ] && [ -n "$client_secret" ]; then
 
 		if "${SAP_AUTOMATION_REPO_PATH}"/deploy/scripts/set_secrets.sh \
 			--environment "${environment}" \
@@ -499,9 +499,11 @@ if [ 1 == $step ] || [ 3 == $step ]; then
 			--spn_id "${client_id}" \
 			--spn_secret "${client_secret}" \
 			--tenant_id "${tenant_id}"; then
-			echo "Secrets set successfully"
+			echo ""
+			echo -e "${cyan}Set secrets:                           succeeded$reset_formatting"
+			echo ""
 		else
-			echo "Secrets set failed"
+			echo -e "${bold_red}Set secrets:                           succeeded$failed"
 			exit 10
 		fi
 	fi
