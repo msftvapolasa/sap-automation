@@ -38,7 +38,7 @@ module "sap_deployer" {
   key_vault                                    = local.key_vault
   options                                      = local.options
   place_delete_lock_on_resources               = var.place_delete_lock_on_resources
-  public_network_access_enabled                = var.public_network_access_enabled
+  public_network_access_enabled                = false # This can only be set once we have private DNS in place var.public_network_access_enabled
   sa_connection_string                         = var.sa_connection_string
   soft_delete_retention_days                   = var.soft_delete_retention_days
   set_secret_expiry                            = var.set_secret_expiry
