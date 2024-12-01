@@ -355,10 +355,10 @@ variable "create_privatelink_dns_zones"          {
                                                  }
 
 
-variable "agent_network_id"                          {
-                                                       description = "Agent Network resource ID"
-                                                       default     = ""
-                                                     }
+variable "agent_network_id"                      {
+                                                   description = "Agent Network resource ID"
+                                                   default     = ""
+                                                 }
 
 
 variable "dns_label"                             {

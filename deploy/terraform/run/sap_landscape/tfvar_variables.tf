@@ -730,7 +730,7 @@ variable "use_AFS_for_shared_storage"              {
 
 #########################################################################################
 #                                                                                       #
-#  iSCSI definitioms                                                                    #
+#  iSCSI definitions                                                                    #
 #                                                                                       #
 #########################################################################################
 
@@ -1007,3 +1007,8 @@ variable "custom_random_id"                     {
                                                   description = "If provided, the value of the custom random id"
                                                   default     = ""
                                                 }
+
+variable "agent_network_id"                      {
+                                                   description = "Agent Network resource ID"
+                                                   default     = ""
+                                                 }

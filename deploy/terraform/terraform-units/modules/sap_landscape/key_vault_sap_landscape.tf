@@ -13,7 +13,9 @@ resource "azurerm_key_vault" "kv_user" {
   count                                = (var.key_vault.exists) ? 0 : 1
   depends_on                           = [
                                            azurerm_virtual_network_peering.peering_management_sap,
-                                           azurerm_virtual_network_peering.peering_sap_management
+                                           azurerm_virtual_network_peering.peering_sap_management,
+                                           azurerm_virtual_network_peering.peering_agent_sap,
+                                            azurerm_virtual_network_peering.peering_sap_agent,
                                          ]
   name                                 = local.user_keyvault_name
   location                             = local.region
