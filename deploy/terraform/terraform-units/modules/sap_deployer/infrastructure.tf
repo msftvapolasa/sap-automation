@@ -136,7 +136,6 @@ resource "azurerm_role_assignment" "resource_group_contributor_contributor_msi" 
 # // Peers management VNET to SAP VNET
 resource "azurerm_virtual_network_peering" "peering_management_agent" {
   provider                             = azurerm.main
-
   count                                = length(var.agent_network_id) > 0 ? 1:0
   name                                 = substr(
                                            format("%s_to_%s",
@@ -153,11 +152,12 @@ resource "azurerm_virtual_network_peering" "peering_management_agent" {
                                            data.azurerm_resource_group.deployer[0].name) : (
                                            azurerm_resource_group.deployer[0].name
                                          )
-  location                             = local.resource_group_exists ? (
-                                           data.azurerm_resource_group.deployer[0].location) : (
-                                           azurerm_resource_group.deployer[0].location
-                                         )
   remote_virtual_network_id            = var.agent_network_id
+
+  virtual_network_name                 = local.vnet_mgmt_exists ? (
+                                               data.azurerm_virtual_network.vnet_mgmt[0].name) : (
+                                               azurerm_virtual_network.vnet_mgmt[0].name
+                                             )
 
   allow_virtual_network_access         = true
 }
