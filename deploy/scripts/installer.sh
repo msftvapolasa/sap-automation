@@ -847,9 +847,14 @@ fi
 allParameters=$(printf " -var-file=%s %s %s %s %s" "${var_file}" "${extra_vars}" "${deployment_parameter}" "${version_parameter}" "${deployer_parameter}")
 
 # shellcheck disable=SC2086
-if ! terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode | tee -a plan_output.log; then
+if ! terraform -chdir="$terraform_module_directory" plan $allParameters -input=false -detailed-exitcode  -compact-warnings | tee -a plan_output.log; then
 	return_value=$?
+	echo "Terraform Plan return code:          $return_value"
+
 	if [ $return_value -eq 1 ]; then
+		echo ""
+		echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
+		echo ""
 		echo "#########################################################################################"
 		echo "#                                                                                       #"
 		echo -e "#                           $bold_red_underscore !!! Error when running plan !!! $reset_formatting                           #"
@@ -860,9 +865,13 @@ if ! terraform -chdir="$terraform_module_directory" plan $allParameters -input=f
 	fi
 else
 	return_value=$?
-fi
+	echo "Terraform Plan return code:          $return_value"
 
-echo "Terraform Plan return code:          $return_value"
+	echo ""
+	echo -e "${cyan}Terraform plan:                        succeeded$reset_formatting"
+	echo ""
+
+fi
 
 apply_needed=1
 
