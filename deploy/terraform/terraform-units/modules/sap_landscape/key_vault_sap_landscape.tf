@@ -55,7 +55,8 @@ resource "azurerm_key_vault" "kv_user" {
                                             local.application_subnet_existing ? var.infrastructure.vnets.sap.subnet_app.arm_id : azurerm_subnet.app[0].id) : (
                                             ""
                                           ),
-                                          local.deployer_subnet_management_id
+                                          local.deployer_subnet_management_id,
+                                          var.agent_network_id
                                         ]
                                       )
                                     }
