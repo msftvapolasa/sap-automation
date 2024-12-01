@@ -37,7 +37,7 @@ data "azurerm_resource_group" "deployer" {
 
 // Create/Import management vnet
 resource "azurerm_virtual_network" "vnet_mgmt" {
-  count                                = (!local.vnet_mgmt_exists) ? 1 : 0
+  count                                = (!local.management_virtual_network_exists) ? 1 : 0
   name                                 = local.vnet_mgmt_name
   resource_group_name                  = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].name : azurerm_resource_group.deployer[0].name
   location                             = local.resource_group_exists ? data.azurerm_resource_group.deployer[0].location : azurerm_resource_group.deployer[0].location
@@ -46,7 +46,7 @@ resource "azurerm_virtual_network" "vnet_mgmt" {
 }
 
 data "azurerm_virtual_network" "vnet_mgmt" {
-  count                                = (local.vnet_mgmt_exists) ? 1 : 0
+  count                                = (local.management_virtual_network_exists) ? 1 : 0
   name                                 = split("/", local.vnet_mgmt_arm_id)[8]
   resource_group_name                  = split("/", local.vnet_mgmt_arm_id)[4]
 }
@@ -55,8 +55,8 @@ data "azurerm_virtual_network" "vnet_mgmt" {
 resource "azurerm_subnet" "subnet_mgmt" {
   count                                = (!local.management_subnet_exists) ? 1 : 0
   name                                 = local.management_subnet_name
-  resource_group_name                  = local.vnet_mgmt_exists ? data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name : azurerm_virtual_network.vnet_mgmt[0].resource_group_name
-  virtual_network_name                 = local.vnet_mgmt_exists ? data.azurerm_virtual_network.vnet_mgmt[0].name : azurerm_virtual_network.vnet_mgmt[0].name
+  resource_group_name                  = local.management_virtual_network_exists ? data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name : azurerm_virtual_network.vnet_mgmt[0].resource_group_name
+  virtual_network_name                 = local.management_virtual_network_exists ? data.azurerm_virtual_network.vnet_mgmt[0].name : azurerm_virtual_network.vnet_mgmt[0].name
   address_prefixes                     = [local.management_subnet_prefix]
 
   private_endpoint_network_policies    = !var.use_private_endpoint ? "Enabled" : "Disabled"
@@ -140,7 +140,7 @@ resource "azurerm_virtual_network_peering" "peering_management_agent" {
   name                                 = substr(
                                            format("%s_to_%s",
                                              split("/", var.agent_network_id)[8],
-                                             local.vnet_mgmt_exists ? (
+                                             local.management_virtual_network_exists ? (
                                                data.azurerm_virtual_network.vnet_mgmt[0].name) : (
                                                azurerm_virtual_network.vnet_mgmt[0].name
                                              )
@@ -152,9 +152,12 @@ resource "azurerm_virtual_network_peering" "peering_management_agent" {
                                            data.azurerm_resource_group.deployer[0].name) : (
                                            azurerm_resource_group.deployer[0].name
                                          )
-  remote_virtual_network_id            = var.agent_network_id
+  remote_virtual_network_id            = local.management_virtual_network_exists ? (
+                                               data.azurerm_virtual_network.vnet_mgmt[0].id) : (
+                                               azurerm_virtual_network.vnet_mgmt[0].id
+                                             )
 
-  virtual_network_name                 = local.vnet_mgmt_exists ? (
+  virtual_network_name                 = local.management_virtual_network_exists ? (
                                                data.azurerm_virtual_network.vnet_mgmt[0].name) : (
                                                azurerm_virtual_network.vnet_mgmt[0].name
                                              )
@@ -169,9 +172,9 @@ resource "azurerm_virtual_network_peering" "peering_agent_management" {
 
   name                                 = substr(
                                            format("%s_to_%s",
-                                               local.vnet_mgmt_exists ? (
-                                               data.azurerm_virtual_network.vnet_mgmt[0].name) : (
-                                               azurerm_virtual_network.vnet_mgmt[0].name
+                                               local.management_virtual_network_exists ? (
+                                                data.azurerm_virtual_network.vnet_mgmt[0].name) : (
+                                                azurerm_virtual_network.vnet_mgmt[0].name
                                              ),
                                              split("/", var.agent_network_id)[8]
                                            ),
@@ -180,6 +183,7 @@ resource "azurerm_virtual_network_peering" "peering_agent_management" {
                                          )
   resource_group_name                  = split("/", var.agent_network_id)[4]
   virtual_network_name                 = split("/", var.agent_network_id)[8]
+
   remote_virtual_network_id            = var.agent_network_id
   allow_virtual_network_access         = true
   allow_forwarded_traffic              = true
