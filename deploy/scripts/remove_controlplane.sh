@@ -566,35 +566,6 @@ else
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
-	echo "#                       Running Terraform apply (deployer)                              #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
-
-	if terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" "${approve_parameter}"; then
-		return_value=$?
-		echo ""
-		echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
-		echo ""
-	else
-		return_value=$?
-		echo ""
-		echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
-		echo ""
-	fi
-
-	step=1
-	save_config_var "step" "${deployer_config_information}"
-	if [ 0 != $return_value ]; then
-		keyvault=''
-		deployer_tfstate_key=''
-		save_config_var "$keyvault" "${deployer_config_information}"
-		save_config_var "$deployer_tfstate_key" "${deployer_config_information}"
-	fi
-
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
 	echo "#                     Running Terraform destroy (deployer)                              #"
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
