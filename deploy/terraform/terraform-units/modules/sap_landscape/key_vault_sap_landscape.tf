@@ -171,7 +171,8 @@ resource "azurerm_key_vault_secret" "sid_ppk" {
                                            azurerm_key_vault_access_policy.kv_user,
                                            azurerm_private_endpoint.kv_user,
                                            azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_role_assignment.role_assignment_spn
+                                           azurerm_role_assignment.role_assignment_spn,
+                                           azurerm_private_dns_zone_virtual_network_link.vault
                                          ]
   content_type                          = ""
   name                                  = local.sid_ppk_name
@@ -199,7 +200,8 @@ resource "azurerm_key_vault_secret" "sid_pk" {
                                            azurerm_key_vault_access_policy.kv_user,
                                            azurerm_private_endpoint.kv_user,
                                            azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_role_assignment.role_assignment_spn
+                                           azurerm_role_assignment.role_assignment_spn,
+                                           azurerm_private_dns_zone_virtual_network_link.vault
                                          ]
   content_type                         = ""
   name                                 = local.sid_pk_name
@@ -232,7 +234,8 @@ resource "azurerm_key_vault_secret" "sid_username" {
                                            azurerm_key_vault_access_policy.kv_user,
                                            azurerm_private_endpoint.kv_user,
                                            azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_role_assignment.role_assignment_spn
+                                           azurerm_role_assignment.role_assignment_spn,
+                                           azurerm_private_dns_zone_virtual_network_link.vault
                                         ]
   content_type                         = ""
   name                                 = local.sid_username_secret_name
@@ -263,7 +266,8 @@ resource "azurerm_key_vault_secret" "sid_password" {
                                            azurerm_key_vault_access_policy.kv_user,
                                            azurerm_private_endpoint.kv_user,
                                            azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_role_assignment.role_assignment_spn
+                                           azurerm_role_assignment.role_assignment_spn,
+                                           azurerm_private_dns_zone_virtual_network_link.vault
                                          ]
   name                                 = local.sid_password_secret_name
   content_type                         = ""
@@ -296,7 +300,8 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
                                            azurerm_key_vault_access_policy.kv_user,
                                            azurerm_private_endpoint.kv_user,
                                            azurerm_role_assignment.role_assignment_msi,
-                                           azurerm_role_assignment.role_assignment_spn
+                                           azurerm_role_assignment.role_assignment_spn,
+                                           azurerm_private_dns_zone_virtual_network_link.vault
                                          ]
   content_type                         = ""
   name                                 = replace(
@@ -335,7 +340,8 @@ resource "azurerm_key_vault_secret" "witness_name" {
                                            azurerm_role_assignment.role_assignment_msi,
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_key_vault_access_policy.kv_user_spn,
-                                           azurerm_private_endpoint.kv_user
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_private_dns_zone_virtual_network_link.vault
                                          ]
   content_type                         = ""
   name                                 = replace(
@@ -404,7 +410,8 @@ resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
                                            azurerm_role_assignment.role_assignment_msi,
                                            azurerm_key_vault_access_policy.kv_user_msi,
                                            azurerm_key_vault_access_policy.kv_user_spn,
-                                           azurerm_private_endpoint.kv_user
+                                           azurerm_private_endpoint.kv_user,
+                                           azurerm_private_dns_zone_virtual_network_link.vault
                                          ]
   content_type                         = ""
   name                                 = "deployer-kv-name"
