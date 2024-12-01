@@ -233,6 +233,13 @@ if [ "${deployment_system}" == sap_system ]; then
 	system_config_information="${automation_config_directory}/${environment}${region_code}${network_logical_name}"
 fi
 
+load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
+
+load_config_vars "${system_config_information}" "keyvault"
+TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
+export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
+
+
 echo "Configuration file:                  $system_config_information"
 echo "Deployment region:                   $region"
 echo "Deployment region code:              $region_code"

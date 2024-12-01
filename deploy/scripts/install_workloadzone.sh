@@ -189,7 +189,7 @@ fi
 echo "Region code:                         ${region_code}"
 
 load_config_vars "$workload_file_parametername" "network_logical_name"
-network_logical_name=$(echo "${network_logical_name}" | tr "[:lower:]" "[:upper:]" | tr -d ' \t\n\r\f"')
+network_logical_name=$(echo "$workload_file_parametername" | awk -F'-' '{print $3}')
 
 if [ -z "${network_logical_name}" ]; then
 	echo "#########################################################################################"
