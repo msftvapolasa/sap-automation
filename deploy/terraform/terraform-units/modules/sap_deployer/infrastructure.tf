@@ -190,8 +190,8 @@ resource "azurerm_virtual_network_peering" "peering_agent_management" {
 
 data "azurerm_virtual_network" "agent_virtual_network" {
   count                                = length(var.agent_network_id) > 0 ? 1:0
-  name                                 = split("/", local.var.agent_network_id)[8]
-  resource_group_name                  = split("/", local.var.agent_network_id)[4]
+  name                                 = split("/", var.agent_network_id)[8]
+  resource_group_name                  = split("/", var.agent_network_id)[4]
 }
 
 
