@@ -152,9 +152,9 @@ resource "azurerm_virtual_network_peering" "peering_management_agent" {
                                            data.azurerm_resource_group.deployer[0].name) : (
                                            azurerm_resource_group.deployer[0].name
                                          )
-  remote_virtual_network_id            = local.management_virtual_network_exists ? (
-                                               data.azurerm_virtual_network.vnet_mgmt[0].id) : (
-                                               azurerm_virtual_network.vnet_mgmt[0].id
+  remote_virtual_network_id            = local.management_subnet_exists ? (
+                                               data.azurerm_subnet.subnet_mgmt[0].id) : (
+                                               azurerm_subnet.subnet_mgmt[0].id
                                              )
 
   virtual_network_name                 = local.management_virtual_network_exists ? (
