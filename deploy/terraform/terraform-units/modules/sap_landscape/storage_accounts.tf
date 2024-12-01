@@ -499,7 +499,9 @@ resource "azurerm_storage_account" "install" {
   depends_on                           = [
                                            azurerm_subnet.app,
                                            azurerm_subnet.db,
-                                           azurerm_subnet.web
+                                           azurerm_subnet.web,
+                                           azurerm_virtual_network_peering.peering_agent_sap,
+                                           azurerm_virtual_network_peering.peering_sap_agent
                                          ]
   name                                 = replace(
                                            lower(

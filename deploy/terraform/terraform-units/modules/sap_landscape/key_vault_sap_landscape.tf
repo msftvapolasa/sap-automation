@@ -15,7 +15,7 @@ resource "azurerm_key_vault" "kv_user" {
                                            azurerm_virtual_network_peering.peering_management_sap,
                                            azurerm_virtual_network_peering.peering_sap_management,
                                            azurerm_virtual_network_peering.peering_agent_sap,
-                                            azurerm_virtual_network_peering.peering_sap_agent,
+                                           azurerm_virtual_network_peering.peering_sap_agent,
                                          ]
   name                                 = local.user_keyvault_name
   location                             = local.region
