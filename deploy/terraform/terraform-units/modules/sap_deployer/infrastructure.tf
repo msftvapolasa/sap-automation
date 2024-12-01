@@ -133,7 +133,6 @@ resource "azurerm_role_assignment" "resource_group_contributor_contributor_msi" 
   principal_id                         = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].principal_id : data.azurerm_user_assigned_identity.deployer[0].principal_id
 }
 
-# // Peers management VNET to SAP VNET
 resource "azurerm_virtual_network_peering" "peering_management_agent" {
   provider                             = azurerm.main
   count                                = length(var.agent_network_id) > 0 ? 1 : 0
@@ -165,7 +164,6 @@ resource "azurerm_virtual_network_peering" "peering_management_agent" {
   allow_virtual_network_access         = true
 }
 
-// Peers SAP VNET to management VNET
 resource "azurerm_virtual_network_peering" "peering_agent_management" {
   provider                             = azurerm.main
   count                                = length(var.agent_network_id) > 0 ? 1:0
@@ -184,9 +182,17 @@ resource "azurerm_virtual_network_peering" "peering_agent_management" {
   resource_group_name                  = split("/", var.agent_network_id)[4]
   virtual_network_name                 = split("/", var.agent_network_id)[8]
 
-  remote_virtual_network_id            = var.agent_network_id
+  remote_virtual_network_id            = data.azurerm_virtual_network.agent_virtual_network[0].id
   allow_virtual_network_access         = true
   allow_forwarded_traffic              = true
 }
+
+
+data "azurerm_virtual_network" "agent_virtual_network" {
+  count                                = length(var.agent_network_id) > 0 ? 1:0
+  name                                 = split("/", local.var.agent_network_id)[8]
+  resource_group_name                  = split("/", local.var.agent_network_id)[4]
+}
+
 
 
