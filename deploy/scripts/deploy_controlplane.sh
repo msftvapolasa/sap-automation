@@ -313,7 +313,7 @@ if [ -n "${subscription}" ]; then
 		save_config_var "tenant_id" "${deployer_config_information}"
 	fi
 
-	curdir=$(pwd)
+	current_directory=$(pwd)
 
 	##########################################################################################
 	#                                                                                        #
@@ -436,6 +436,7 @@ if [ 1 == $step ] || [ 3 == $step ]; then
 	# If the keyvault is not set, check the terraform state file
 	if [ -z "$keyvault" ]; then
 		key=$(echo "${deployer_file_parametername}" | cut -d. -f1)
+		cd "${deployer_dirname}" || exit
 		if [ -f ./.terraform/terraform.tfstate ]; then
 			azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 			if [ -n "$azure_backend" ]; then
@@ -615,7 +616,7 @@ if [ 2 == $step ]; then
 	fi
 	export TF_VAR_tfstate_resource_id
 
-	cd "${curdir}" || exit
+	cd "${current_directory}" || exit
 	save_config_var "step" "${deployer_config_information}"
 	echo "##vso[task.setprogress value=60;]Progress Indicator"
 
@@ -731,7 +732,7 @@ if [ 3 == $step ]; then
 	fi
 	return_code=$?
 
-	cd "${curdir}" || exit
+	cd "${current_directory}" || exit
 	export step=4
 	save_config_var "step" "${deployer_config_information}"
 
@@ -850,7 +851,7 @@ export terraform_state_storage_account
 
 if [ 5 == $step ]; then
 	if [ "${ado_flag}" != "--ado" ]; then
-		cd "${curdir}" || exit
+		cd "${current_directory}" || exit
 
 		load_config_vars "${deployer_config_information}" "sshsecret"
 		load_config_vars "${deployer_config_information}" "keyvault"
