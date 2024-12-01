@@ -21,7 +21,6 @@ source "${script_directory}/helpers/script_helpers.sh"
 
 keep_agent=0
 
-
 if [ "$DEBUG" = True ]; then
 	echo -e "${cyan}Enabling debug mode$reset_formatting"
 	set -x
@@ -381,26 +380,27 @@ if [ 0 != $return_value ]; then
 	unset TF_DATA_DIR
 	exit 10
 fi
+var_file="${param_dirname}/${deployer_tfvars_filename}"
 
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo "#                     Running Terraform apply (deployer - local)                              #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+echo ""
+echo "#########################################################################################"
+echo "#                                                                                       #"
+echo "#                     Running Terraform apply (deployer - local)                              #"
+echo "#                                                                                       #"
+echo "#########################################################################################"
+echo ""
 
-	if terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" "${approve_parameter}"; then
-		return_value=$?
-		echo ""
-		echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
-		echo ""
-	else
-		return_value=$?
-		echo ""
-		echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
-		echo ""
-	fi
+if terraform -chdir="${terraform_module_directory}" apply -var-file="${var_file}" "${approve_parameter}"; then
+	return_value=$?
+	echo ""
+	echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+	echo ""
+else
+	return_value=$?
+	echo ""
+	echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
+	echo ""
+fi
 
 cd "${current_directory}" || exit
 
