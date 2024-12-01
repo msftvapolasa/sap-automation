@@ -40,7 +40,8 @@ resource "azurerm_key_vault_secret" "sapbits_location_base_path" {
                                             azurerm_storage_account.storage_tfstate,
                                             azurerm_private_dns_zone.vault,
                                             azurerm_private_dns_zone_virtual_network_link.vault,
-                                            azurerm_private_dns_zone_virtual_network_link.vault_agent
+                                            azurerm_private_dns_zone_virtual_network_link.vault_agent,
+                                            azurerm_private_endpoint.kv_user
                                          ]
   count                                = length(try(var.key_vault.kv_spn_id, "")) > 0 ? 1 : 0
   name                                 = "sapbits-location-base-path"
@@ -71,7 +72,8 @@ resource "azurerm_key_vault_secret" "sa_connection_string" {
                                             azurerm_storage_account.storage_tfstate,
                                             azurerm_private_dns_zone.vault,
                                             azurerm_private_dns_zone_virtual_network_link.vault,
-                                            azurerm_private_dns_zone_virtual_network_link.vault_agent
+                                            azurerm_private_dns_zone_virtual_network_link.vault_agent,
+                                            azurerm_private_endpoint.kv_user
                                          ]
   count                                = length(try(var.key_vault.kv_spn_id, "")) > 0 ? 1 : 0
   name                                 = "sa-connection-string"
@@ -92,7 +94,8 @@ resource "azurerm_key_vault_secret" "tfstate" {
                                             azurerm_storage_account.storage_tfstate,
                                             azurerm_private_dns_zone.vault,
                                             azurerm_private_dns_zone_virtual_network_link.vault,
-                                            azurerm_private_dns_zone_virtual_network_link.vault_agent
+                                            azurerm_private_dns_zone_virtual_network_link.vault_agent,
+                                            azurerm_private_endpoint.kv_user
                                          ]
   count                                = length(try(var.key_vault.kv_spn_id, "")) > 0 ? 1 : 0
   name                                 = "tfstate"
