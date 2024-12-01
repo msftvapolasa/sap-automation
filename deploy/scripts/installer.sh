@@ -1144,7 +1144,7 @@ if [ 1 == $apply_needed ]; then
 			else
 				# return code 2 is ok
 				echo ""
-				echo -e "${cyan}Terraform apply: $reset_formatting                      succeeded"
+				echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
 				echo ""
 				return_value=0
 			fi
@@ -1157,10 +1157,15 @@ if [ 1 == $apply_needed ]; then
 		if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters; then
 			return_value=$?
 			if [ $return_value -eq 1 ]; then
+				echo ""
 				echo -e "${bold_red}Terraform apply:                       failed$reset_formatting"
+				echo ""
 				exit $return_value
 			else
 				# return code 2 is ok
+				echo ""
+				echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+				echo ""
 				return_value=0
 			fi
 		fi
