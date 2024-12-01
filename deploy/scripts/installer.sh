@@ -615,6 +615,7 @@ else
 				--backend-config "key=${key}.terraform.tfstate"; then
 				return_value=$?
 				echo "Error when initializing Terraform"
+				exit $return_value
 			else
 				return_value=$?
 			fi
@@ -639,6 +640,7 @@ else
 				# 	--backend-config "key=${key}.terraform.tfstate"; then
 				return_value=$?
 				echo "Error when initializing Terraform"
+				exit $return_value
 			else
 				return_value=$?
 			fi
@@ -654,6 +656,7 @@ else
 			--backend-config "key=${key}.terraform.tfstate"; then
 			return_value=$?
 			echo "Error when initializing Terraform"
+			exit $return_value
 		else
 			return_value=$?
 		fi
@@ -1112,6 +1115,7 @@ if [ 1 == $apply_needed ]; then
 			return_value=$?
 			if [ $return_value -eq 1 ]; then
 				echo "Errors when running Terraform apply"
+				exit $return_value
 			else
 				# return code 2 is ok
 				return_value=0
@@ -1126,6 +1130,7 @@ if [ 1 == $apply_needed ]; then
 			return_value=$?
 			if [ $return_value -eq 1 ]; then
 				echo "Errors when running Terraform apply"
+				exit $return_value
 			else
 				# return code 2 is ok
 				return_value=0

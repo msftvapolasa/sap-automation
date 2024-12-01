@@ -738,7 +738,7 @@ if [ 1 == $check_output ]; then
       echo "#########################################################################################"
       if [ 1 == $called_from_ado ]; then
         unset TF_DATA_DIR
-        echo "The environment was deployed using an older version of the Terrafrom templates, Risk for data loss" >"${workload_config_information}".err
+        echo "The environment was deployed using an older version of the Terraform templates, Risk for data loss" >"${workload_config_information}".err
 
         exit 1
       fi
@@ -791,7 +791,7 @@ if [ 1 == $check_output ]; then
       echo "#########################################################################################"
       echo ""
 
-      # Remeadiating the Storage Accounts and File Shares
+      # Remediating the Storage Accounts and File Shares
 
       moduleID='module.sap_landscape.azurerm_storage_account.storage_bootdiag[0]'
       ReplaceResourceInStateFile "${moduleID}" "${terraform_module_directory}" "id"
@@ -840,6 +840,7 @@ allParameters=$(printf " -var-file=%s %s %s %s " "${var_file}" "${extra_vars}" "
 if ! terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $allParameters -input=false | tee -a plan_output.log; then
   return_value=$?
   if [ $return_value -eq 1 ]; then
+	  echo "Terraform plan:                      failed"
     echo "#########################################################################################"
     echo "#                                                                                       #"
     echo -e "#                           $bold_red_underscore !!! Error when running plan !!! $reset_formatting                           #"
@@ -853,6 +854,7 @@ if ! terraform -chdir="$terraform_module_directory" plan -detailed-exitcode $all
   fi
 else
   return_value=$?
+	echo "Terraform plan:                      succeeded"
 fi
 
 if [ $check_output == 0 ]; then
