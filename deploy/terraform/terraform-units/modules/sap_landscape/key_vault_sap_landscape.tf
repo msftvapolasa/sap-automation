@@ -78,6 +78,27 @@ data "azurerm_key_vault" "kv_user" {
   resource_group_name                  = local.user_keyvault_resourcegroup_name
 }
 
+
+resource "azurerm_management_lock" "keyvault" {
+  provider                             = azurerm.main
+  count                                = var.key_vault.exists ? 0 : var.place_delete_lock_on_resources ? 1 : 0
+  name                                 = format("%s-lock", local.user_keyvault_name)
+  scope                                = azurerm_key_vault.kv_user[0].id
+  lock_level                           = "CanNotDelete"
+  notes                                = "Locked because it's needed by the Workload zone"
+
+  lifecycle {
+              prevent_destroy = false
+            }
+}
+
+#######################################4#######################################8
+#                                                                              #
+#                  Workload zone key vault role assignments                    #
+#                                                                              #
+#######################################4#######################################8
+
+
 resource "azurerm_role_assignment" "role_assignment_msi" {
   provider                             = azurerm.main
   count                                = var.enable_rbac_authorization_for_keyvault ? 1 : 0
@@ -137,6 +158,37 @@ resource "azurerm_key_vault_access_policy" "kv_user_spn" {
 }
 
 
+resource "azurerm_key_vault_access_policy" "kv_user_msi" {
+  provider                             = azurerm.main
+  count                                = local.user_keyvault_exist && var.enable_rbac_authorization_for_keyvault ? (
+                                           0) : (
+                                           length(var.deployer_tfstate) > 0 ? (
+                                             length(var.deployer_tfstate.deployer_uai) == 2 ? (
+                                               1) : (
+                                               0
+                                             )) : (
+                                             0
+                                           )
+                                         )
+  key_vault_id                         = local.user_keyvault_exist ? (
+                                           local.user_key_vault_id) : (
+                                           azurerm_key_vault.kv_user[0].id
+                                         )
+
+  tenant_id                            = var.deployer_tfstate.deployer_uai.tenant_id
+  object_id                            = var.deployer_tfstate.deployer_uai.principal_id
+
+  secret_permissions                   = [
+                                          "Get",
+                                          "List",
+                                          "Set",
+                                          "Delete",
+                                          "Recover",
+                                          "Restore",
+                                          "Purge"
+                                         ]
+}
+
 ###############################################################################
 #                                                                             #
 #                                       Secrets                               #
@@ -169,7 +221,9 @@ resource "azurerm_key_vault_secret" "sid_ppk" {
   depends_on                           = [
                                            azurerm_private_endpoint.kv_user,
                                            azurerm_key_vault.kv_user,
-                                           azurerm_key_vault_access_policy.kv_user_spn
+                                           azurerm_key_vault_access_policy.kv_user_spn,
+                                           azurerm_private_dns_zone_virtual_network_link.vault,
+                                           azurerm_private_dns_zone_virtual_network_link.storage
                                          ]
   content_type                          = ""
   name                                  = local.sid_ppk_name
@@ -197,7 +251,9 @@ resource "azurerm_key_vault_secret" "sid_pk" {
   depends_on                           = [
                                            azurerm_private_endpoint.kv_user,
                                            azurerm_key_vault.kv_user,
-                                           azurerm_key_vault_access_policy.kv_user_spn
+                                           azurerm_key_vault_access_policy.kv_user_spn,
+                                           azurerm_private_dns_zone_virtual_network_link.vault,
+                                           azurerm_private_dns_zone_virtual_network_link.storage
                                          ]
   content_type                         = ""
   name                                 = local.sid_pk_name
@@ -227,7 +283,9 @@ resource "azurerm_key_vault_secret" "sid_username" {
   depends_on                           = [
                                            azurerm_private_endpoint.kv_user,
                                            azurerm_key_vault.kv_user,
-                                           azurerm_key_vault_access_policy.kv_user_spn
+                                           azurerm_key_vault_access_policy.kv_user_spn,
+                                           azurerm_private_dns_zone_virtual_network_link.vault,
+                                           azurerm_private_dns_zone_virtual_network_link.storage
                                         ]
   content_type                         = ""
   name                                 = local.sid_username_secret_name
@@ -255,7 +313,9 @@ resource "azurerm_key_vault_secret" "sid_password" {
   depends_on                           = [
                                            azurerm_private_endpoint.kv_user,
                                            azurerm_key_vault.kv_user,
-                                           azurerm_key_vault_access_policy.kv_user_spn
+                                           azurerm_key_vault_access_policy.kv_user_spn,
+                                           azurerm_private_dns_zone_virtual_network_link.vault,
+                                           azurerm_private_dns_zone_virtual_network_link.storage
                                          ]
   name                                 = local.sid_password_secret_name
   content_type                         = ""
@@ -285,7 +345,9 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
   depends_on                           = [
                                            azurerm_private_endpoint.kv_user,
                                            azurerm_key_vault.kv_user,
-                                           azurerm_key_vault_access_policy.kv_user_spn
+                                           azurerm_key_vault_access_policy.kv_user_spn,
+                                           azurerm_private_dns_zone_virtual_network_link.vault,
+                                           azurerm_private_dns_zone_virtual_network_link.storage
                                          ]
   content_type                         = ""
   name                                 = replace(
@@ -321,7 +383,9 @@ resource "azurerm_key_vault_secret" "witness_name" {
   depends_on                           = [
                                            azurerm_private_endpoint.kv_user,
                                            azurerm_key_vault.kv_user,
-                                           azurerm_key_vault_access_policy.kv_user_spn
+                                           azurerm_key_vault_access_policy.kv_user_spn,
+                                           azurerm_private_dns_zone_virtual_network_link.vault,
+                                           azurerm_private_dns_zone_virtual_network_link.storage
                                          ]
   content_type                         = ""
   name                                 = replace(
@@ -348,37 +412,6 @@ resource "azurerm_key_vault_secret" "witness_name" {
                                            time_offset.secret_expiry_date.rfc3339) : (
                                            null
                                          )
-}
-
-resource "azurerm_key_vault_access_policy" "kv_user_msi" {
-  provider                             = azurerm.main
-  count                                = local.user_keyvault_exist && var.enable_rbac_authorization_for_keyvault ? (
-                                           0) : (
-                                           length(var.deployer_tfstate) > 0 ? (
-                                             length(var.deployer_tfstate.deployer_uai) == 2 ? (
-                                               1) : (
-                                               0
-                                             )) : (
-                                             0
-                                           )
-                                         )
-  key_vault_id                         = local.user_keyvault_exist ? (
-                                           local.user_key_vault_id) : (
-                                           azurerm_key_vault.kv_user[0].id
-                                         )
-
-  tenant_id                            = var.deployer_tfstate.deployer_uai.tenant_id
-  object_id                            = var.deployer_tfstate.deployer_uai.principal_id
-
-  secret_permissions                   = [
-                                          "Get",
-                                          "List",
-                                          "Set",
-                                          "Delete",
-                                          "Recover",
-                                          "Restore",
-                                          "Purge"
-                                         ]
 }
 
 //Witness access key
@@ -532,17 +565,4 @@ resource "azurerm_role_assignment" "kv_user_additional_users" {
                                                                      )
   role_definition_name                 = "Key Vault Secrets Officer"
   principal_id                         = var.additional_users_to_add_to_keyvault_policies[count.index]
-}
-
-resource "azurerm_management_lock" "keyvault" {
-  provider                             = azurerm.main
-  count                                = var.key_vault.exists ? 0 : var.place_delete_lock_on_resources ? 1 : 0
-  name                                 = format("%s-lock", local.user_keyvault_name)
-  scope                                = azurerm_key_vault.kv_user[0].id
-  lock_level                           = "CanNotDelete"
-  notes                                = "Locked because it's needed by the Control Plane"
-
-  lifecycle {
-              prevent_destroy = false
-            }
 }
