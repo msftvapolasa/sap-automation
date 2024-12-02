@@ -141,6 +141,13 @@ parameterfile_path=$(realpath "${parameterfile}")
 parameterfile_name=$(basename "${parameterfile_path}")
 parameterfile_dirname=$(dirname "${parameterfile_path}")
 
+
+#Provide a way to limit the number of parallel tasks for Terraform
+if [[ -n "$TF_PARALLELLISM" ]]; then
+	parallelism="$TF_PARALLELLISM"
+fi
+
+
 if [ "${parameterfile_dirname}" != "${working_directory}" ]; then
 	echo ""
 	echo "#########################################################################################"
@@ -473,7 +480,7 @@ if [ "$resource_group_exist" ]; then
 			terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json | tee -a destroy_output.json
 		else
 			# shellcheck disable=SC2086
-			terraform -chdir="${terraform_module_directory}" destroy $allParameters
+			terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="${parallelism}"
 
 		fi
 
