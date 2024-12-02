@@ -11,7 +11,8 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
   count                                = local.use_Azure_native_DNS && var.use_private_endpoint && var.dns_settings.register_virtual_network_to_dns ? 1 : 0
   depends_on                           = [
                                            azurerm_virtual_network.vnet_sap,
-                                           azurerm_subnet.app
+                                           azurerm_subnet.app,
+                                           azurerm_key_vault.kv_user
                                          ]
   name                                 = format("%s%s%s%s",
                                            var.naming.resource_prefixes.dns_link,
@@ -32,7 +33,8 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
   count                                = local.use_Azure_native_DNS && var.use_private_endpoint ? 1 : 0
   depends_on                           = [
                                            azurerm_virtual_network.vnet_sap,
-                                           azurerm_subnet.app
+                                           azurerm_subnet.app,
+                                           azurerm_key_vault.kv_user
                                          ]
   name                                 = format("%s%s%s%s-file",
                                            var.naming.resource_prefixes.dns_link,
@@ -53,7 +55,8 @@ resource "azurerm_private_dns_zone_virtual_network_link" "storage" {
   count                                = local.use_Azure_native_DNS  && var.use_private_endpoint ? 1 : 0
   depends_on                           = [
                                            azurerm_virtual_network.vnet_sap,
-                                           azurerm_storage_account.witness_storage
+                                           azurerm_storage_account.witness_storage,
+                                           azurerm_key_vault.kv_user
                                          ]
   name                                 = format("%s%s%s%s-blob",
                                            var.naming.resource_prefixes.dns_link,
