@@ -249,6 +249,7 @@ export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
 echo "Configuration file:                  $system_config_information"
 echo "Deployment region:                   $region"
 echo "Deployment region code:              $region_code"
+echo "Working_directory:                   $working_directory"
 
 key=$(echo "${parameterfile_name}" | cut -d. -f1)
 
