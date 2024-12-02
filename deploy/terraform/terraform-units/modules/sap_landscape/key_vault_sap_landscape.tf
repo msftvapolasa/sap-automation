@@ -486,56 +486,6 @@ resource "azurerm_private_endpoint" "kv_user" {
                                         private_dns_zone_ids = [data.azurerm_private_dns_zone.keyvault[0].id]
                                       }
                                     }
-}
-
-
-data "azurerm_private_dns_zone" "keyvault" {
-  provider                             = azurerm.privatelinkdnsmanagement
-  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 1 : 0
-  name                                 = var.dns_settings.dns_zone_names.vault_dns_zone_name
-  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
-}
-
-# Duplicate code, the private endpoint deployment performs the DNS registration
-# resource "azurerm_private_dns_a_record" "keyvault" {
-#   provider                             = azurerm.privatelinkdnsmanagement
-#   count                                = local.use_Azure_native_DNS && var.use_private_endpoint ?  0 : 0
-#   name                                 = lower(
-#                                            format("%s", local.user_keyvault_name)
-#                                          )
-#   zone_name                            = var.dns_settings.dns_zone_names.vault_dns_zone_name
-#   resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
-#   ttl                                  = 10
-#   records                              = [
-#                                            length(var.keyvault_private_endpoint_id) > 0 ? (
-#                                              data.azurerm_private_endpoint_connection.kv_user[0].private_service_connection[0].private_ip_address) : (
-#                                              azurerm_private_endpoint.kv_user[0].private_service_connection[0].private_ip_address
-#                                            )
-#                                          ]
-#   tags                                 = var.tags
-
-# }
-
-
-resource "azurerm_private_dns_zone_virtual_network_link" "vault" {
-  provider                             = azurerm.privatelinkdnsmanagement
-  count                                = local.use_Azure_native_DNS && var.use_private_endpoint ? 1 : 0
-  depends_on                           = [
-                                           azurerm_virtual_network.vnet_sap,
-                                           azurerm_key_vault.kv_user
-                                         ]
-  name                                 = format("%s%s%s%s",
-                                           var.naming.resource_prefixes.dns_link,
-                                           local.prefix,
-                                           var.naming.separator,
-                                           "vault"
-                                         )
-  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
-  private_dns_zone_name                = var.dns_settings.dns_zone_names.vault_dns_zone_name
-  virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
-  registration_enabled                 = false
-}
-
 
 ###############################################################################
 #                                                                             #
