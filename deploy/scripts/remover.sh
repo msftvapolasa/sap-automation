@@ -476,10 +476,10 @@ if [ "$resource_group_exist" ]; then
 
 		if [ -n "${approve}" ]; then
 			# shellcheck disable=SC2086
-			terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json | tee -a destroy_output.json
+			terraform -chdir="${terraform_module_directory}" destroy $allParameters "$approve" -no-color -json -parallelism=1 | tee -a destroy_output.json
 		else
 			# shellcheck disable=SC2086
-			terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism="${parallelism}"
+			terraform -chdir="${terraform_module_directory}" destroy $allParameters -parallelism=1
 
 		fi
 
