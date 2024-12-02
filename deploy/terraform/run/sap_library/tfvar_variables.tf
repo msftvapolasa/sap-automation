@@ -354,6 +354,13 @@ variable "create_privatelink_dns_zones"          {
                                                    type        = bool
                                                  }
 
+
+variable "agent_network_id"                      {
+                                                   description = "Agent Network resource ID"
+                                                   default     = ""
+                                                 }
+
+
 variable "dns_label"                             {
                                                    description = "DNS label"
                                                    default     = ""

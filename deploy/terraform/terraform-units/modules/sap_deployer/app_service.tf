@@ -11,11 +11,11 @@ resource "azurerm_subnet" "webapp" {
 
   count                                         = var.use_webapp ? local.webapp_subnet_exists ? 0 : 1 : 0
   name                                          = local.webapp_subnet_name
-  resource_group_name                           = local.vnet_mgmt_exists ? (
+  resource_group_name                           = local.management_virtual_network_exists ? (
                                                     data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
                                                     azurerm_virtual_network.vnet_mgmt[0].resource_group_name
                                                   )
-  virtual_network_name                          = local.vnet_mgmt_exists ? (
+  virtual_network_name                          = local.management_virtual_network_exists ? (
                                                     data.azurerm_virtual_network.vnet_mgmt[0].name) : (
                                                     azurerm_virtual_network.vnet_mgmt[0].name
                                                   )

@@ -34,21 +34,6 @@ resource "azurerm_storage_account" "storage_bootdiag" {
 
 }
 
-resource "azurerm_private_dns_a_record" "storage_bootdiag" {
-  provider                             = azurerm.privatelinkdnsmanagement
-  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 0 : 0
-  name                                 = lower(local.storageaccount_name)
-
-  zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
-  resource_group_name                  = local.resource_group_exists ? (
-                                           data.azurerm_resource_group.resource_group[0].name) : (
-                                           azurerm_resource_group.resource_group[0].name
-                                         )
-  ttl                                  = 3600
-  records                              = [azurerm_private_endpoint.storage_bootdiag[count.index].private_service_connection[0].private_ip_address]
-  tags                                 = var.tags
-}
-
 data "azurerm_storage_account" "storage_bootdiag" {
   provider                             = azurerm.main
   count                                = length(var.diagnostics_storage_account.arm_id) > 0 ? 1 : 0
@@ -170,20 +155,6 @@ resource "azurerm_storage_account" "witness_storage" {
                                                 ])
                 }
 
-
-}
-
-
-resource "azurerm_private_dns_a_record" "witness_storage" {
-  provider                             = azurerm.privatelinkdnsmanagement
-  count                                = var.dns_settings.register_storage_accounts_keyvaults_with_dns ? 0 : 0
-  name                                 = lower(local.witness_storageaccount_name)
-  zone_name                            = var.dns_settings.dns_zone_names.blob_dns_zone_name
-  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
-  ttl                                  = 3600
-  records                              = [azurerm_private_endpoint.witness_storage[count.index].private_service_connection[0].private_ip_address]
-
-  tags                                 = var.tags
 
 }
 
@@ -324,42 +295,6 @@ resource "azurerm_storage_account" "transport" {
 
 }
 
-resource "azurerm_private_dns_a_record" "transport" {
-  provider                             = azurerm.privatelinkdnsmanagement
-  count                                = var.use_private_endpoint && var.create_transport_storage && local.use_Azure_native_DNS && local.use_AFS_for_shared && length(var.transport_private_endpoint_id) == 0 ? 1 : 0
-  name                                 = replace(
-                                           lower(
-                                             format("%s", local.landscape_shared_transport_storage_account_name)
-                                           ),
-                                           "/[^a-z0-9]/",
-                                           ""
-                                         )
-  zone_name                            = var.dns_settings.dns_zone_names.file_dns_zone_name
-  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
-  ttl                                  = 10
-  records                              = [
-                                           length(var.transport_private_endpoint_id) > 0 ? (
-                                             data.azurerm_private_endpoint_connection.transport[0].private_service_connection[0].private_ip_address) : (
-                                             azurerm_private_endpoint.transport[0].private_service_connection[0].private_ip_address  )
-                                         ]
-  tags                                 = var.tags
-}
-
-data "azurerm_private_dns_a_record" "transport" {
-  provider                             = azurerm.privatelinkdnsmanagement
-  count                                = var.create_transport_storage && var.use_private_endpoint && length(var.transport_private_endpoint_id) > 0 ? 1 : 0
-  name                                 = replace(
-                                           lower(
-                                             format("%s", local.landscape_shared_transport_storage_account_name)
-                                           ),
-                                           "/[^a-z0-9]/",
-                                           ""
-                                         )
-  zone_name                            = var.dns_settings.dns_zone_names.file_dns_zone_name
-  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
-}
-
-
 resource "azurerm_storage_share" "transport" {
   provider                             = azurerm.main
   count                                = var.create_transport_storage && local.use_AFS_for_shared ? (
@@ -499,7 +434,9 @@ resource "azurerm_storage_account" "install" {
   depends_on                           = [
                                            azurerm_subnet.app,
                                            azurerm_subnet.db,
-                                           azurerm_subnet.web
+                                           azurerm_subnet.web,
+                                           azurerm_virtual_network_peering.peering_agent_sap,
+                                           azurerm_virtual_network_peering.peering_sap_agent
                                          ]
   name                                 = replace(
                                            lower(
@@ -563,50 +500,6 @@ resource "azurerm_storage_account_network_rules" "install" {
               ignore_changes = [virtual_network_subnet_ids]
             }
 }
-
-
-
-resource "azurerm_private_dns_a_record" "install" {
-  provider                             = azurerm.privatelinkdnsmanagement
-  count                                = var.use_private_endpoint && local.use_Azure_native_DNS && local.use_AFS_for_shared && length(var.install_private_endpoint_id) == 0 ? 1 : 0
-  name                                 = replace(
-                                           lower(
-                                             format("%s", local.landscape_shared_install_storage_account_name)
-                                           ),
-                                           "/[^a-z0-9]/",
-                                           ""
-                                         )
-  zone_name                            = var.dns_settings.dns_zone_names.file_dns_zone_name
-  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
-  ttl                                  = 10
-  records                              = [
-                                           length(var.install_private_endpoint_id) > 0 ? (
-                                             data.azurerm_private_endpoint_connection.install[0].private_service_connection[0].private_ip_address) : (
-                                             azurerm_private_endpoint.install[0].private_service_connection[0].private_ip_address)
-                                         ]
-
-  lifecycle {
-              ignore_changes = [tags]
-            }
-}
-
-
-data "azurerm_private_dns_a_record" "install" {
-  provider                             = azurerm.privatelinkdnsmanagement
-  count                                = var.use_private_endpoint && length(var.install_private_endpoint_id) > 0 ? 1 : 0
-  name                                 = replace(
-                                          lower(
-                                            format("%s", local.landscape_shared_install_storage_account_name)
-                                          ),
-                                          "/[^a-z0-9]/",
-                                          ""
-                                        )
-  zone_name                            = var.dns_settings.dns_zone_names.file_dns_zone_name
-  resource_group_name                  = var.dns_settings.privatelink_dns_resourcegroup_name
-}
-
-
-
 data "azurerm_storage_account" "install" {
   provider                             = azurerm.main
   count                                = local.use_AFS_for_shared && length(var.install_storage_account_id) > 0 ? 1 : 0
@@ -752,7 +645,7 @@ resource "azurerm_storage_share" "install_smb" {
 
 #Private endpoint tend to take a while to be created, so we need to wait for it to be ready before we can use it
 resource "time_sleep" "wait_for_private_endpoints" {
-  create_duration                      = "120s"
+  create_duration                      = "60s"
 
   depends_on                           = [
                                            azurerm_private_endpoint.install,

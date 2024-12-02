@@ -79,6 +79,8 @@ locals {
                                            register_endpoints_with_dns               = var.register_endpoints_with_dns
 
                                            create_privatelink_dns_zones              = var.create_privatelink_dns_zones
+
+                                           agent_network_id                          = var.agent_network_id
                                          }
 
 
