@@ -486,7 +486,7 @@ resource "azurerm_private_endpoint" "kv_user" {
                                         private_dns_zone_ids = [data.azurerm_private_dns_zone.keyvault[0].id]
                                       }
                                     }
-
+}
 ###############################################################################
 #                                                                             #
 #                                Additional Users                             #
