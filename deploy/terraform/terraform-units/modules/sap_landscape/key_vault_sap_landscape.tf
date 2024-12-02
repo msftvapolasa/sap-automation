@@ -218,13 +218,6 @@ resource "time_offset" "secret_expiry_date" {
 resource "azurerm_key_vault_secret" "sid_ppk" {
   provider                             = azurerm.main
   count                                = !local.sid_key_exist ? 1 : 0
-  depends_on                           = [
-                                           azurerm_private_endpoint.kv_user,
-                                           azurerm_key_vault.kv_user,
-                                           azurerm_key_vault_access_policy.kv_user_spn,
-                                           azurerm_private_dns_zone_virtual_network_link.vault,
-                                           azurerm_private_dns_zone_virtual_network_link.storage
-                                         ]
   content_type                          = ""
   name                                  = local.sid_ppk_name
   value                                 = local.sid_private_key
@@ -248,13 +241,6 @@ data "azurerm_key_vault_secret" "sid_ppk" {
 resource "azurerm_key_vault_secret" "sid_pk" {
   provider                             = azurerm.main
   count                                = !local.sid_key_exist ? 1 : 0
-  depends_on                           = [
-                                           azurerm_private_endpoint.kv_user,
-                                           azurerm_key_vault.kv_user,
-                                           azurerm_key_vault_access_policy.kv_user_spn,
-                                           azurerm_private_dns_zone_virtual_network_link.vault,
-                                           azurerm_private_dns_zone_virtual_network_link.storage
-                                         ]
   content_type                         = ""
   name                                 = local.sid_pk_name
   value                                = local.sid_public_key
@@ -280,13 +266,6 @@ data "azurerm_key_vault_secret" "sid_pk" {
 resource "azurerm_key_vault_secret" "sid_username" {
   provider                             = azurerm.main
   count                                = (!local.sid_credentials_secret_exist) ? 1 : 0
-  depends_on                           = [
-                                           azurerm_private_endpoint.kv_user,
-                                           azurerm_key_vault.kv_user,
-                                           azurerm_key_vault_access_policy.kv_user_spn,
-                                           azurerm_private_dns_zone_virtual_network_link.vault,
-                                           azurerm_private_dns_zone_virtual_network_link.storage
-                                        ]
   content_type                         = ""
   name                                 = local.sid_username_secret_name
   value                                = local.input_sid_username
@@ -310,13 +289,6 @@ data "azurerm_key_vault_secret" "sid_username" {
 resource "azurerm_key_vault_secret" "sid_password" {
   provider                             = azurerm.main
   count                                = (!local.sid_credentials_secret_exist) ? 1 : 0
-  depends_on                           = [
-                                           azurerm_private_endpoint.kv_user,
-                                           azurerm_key_vault.kv_user,
-                                           azurerm_key_vault_access_policy.kv_user_spn,
-                                           azurerm_private_dns_zone_virtual_network_link.vault,
-                                           azurerm_private_dns_zone_virtual_network_link.storage
-                                         ]
   name                                 = local.sid_password_secret_name
   content_type                         = ""
   value                                = local.input_sid_password
@@ -342,13 +314,6 @@ data "azurerm_key_vault_secret" "sid_password" {
 resource "azurerm_key_vault_secret" "witness_access_key" {
   provider                             = azurerm.main
   count                                = 1
-  depends_on                           = [
-                                           azurerm_private_endpoint.kv_user,
-                                           azurerm_key_vault.kv_user,
-                                           azurerm_key_vault_access_policy.kv_user_spn,
-                                           azurerm_private_dns_zone_virtual_network_link.vault,
-                                           azurerm_private_dns_zone_virtual_network_link.storage
-                                         ]
   content_type                         = ""
   name                                 = replace(
                                           format("%s%s%s",
@@ -380,13 +345,6 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
 resource "azurerm_key_vault_secret" "witness_name" {
   provider                             = azurerm.main
   count                                = 1
-  depends_on                           = [
-                                           azurerm_private_endpoint.kv_user,
-                                           azurerm_key_vault.kv_user,
-                                           azurerm_key_vault_access_policy.kv_user_spn,
-                                           azurerm_private_dns_zone_virtual_network_link.vault,
-                                           azurerm_private_dns_zone_virtual_network_link.storage
-                                         ]
   content_type                         = ""
   name                                 = replace(
                                            format("%s%s%s",
@@ -417,11 +375,6 @@ resource "azurerm_key_vault_secret" "witness_name" {
 //Witness access key
 resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
   provider                             = azurerm.main
-  depends_on                           = [
-                                           azurerm_private_endpoint.kv_user,
-                                           azurerm_key_vault.kv_user,
-                                           azurerm_key_vault_access_policy.kv_user_spn
-                                         ]
   content_type                         = ""
   name                                 = "deployer-kv-name"
   value                                = local.deployer_keyvault_user_name
