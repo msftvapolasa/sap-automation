@@ -425,7 +425,7 @@ if [ 0 = "${deploy_using_msi_only:-}" ]; then
 	fi
 else
 	#setting the user environment variables
-	set_executing_user_environment_variables "N/A"
+	set_executing_user_environment_variables "none"
 fi
 
 if [[ -z ${REMOTE_STATE_SA} ]]; then
