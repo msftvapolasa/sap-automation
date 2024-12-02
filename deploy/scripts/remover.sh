@@ -141,12 +141,12 @@ parameterfile_path=$(realpath "${parameterfile}")
 parameterfile_name=$(basename "${parameterfile_path}")
 parameterfile_dirname=$(dirname "${parameterfile_path}")
 
-
 #Provide a way to limit the number of parallel tasks for Terraform
 if [[ -n "$TF_PARALLELLISM" ]]; then
 	parallelism="$TF_PARALLELLISM"
+else
+	parallelism=3
 fi
-
 
 if [ "${parameterfile_dirname}" != "${working_directory}" ]; then
 	echo ""
@@ -245,7 +245,6 @@ load_config_vars "${system_config_information}" "STATE_SUBSCRIPTION"
 load_config_vars "${system_config_information}" "keyvault"
 TF_VAR_deployer_kv_user_arm_id=$(az resource list --name "${keyvault}" --subscription "${STATE_SUBSCRIPTION}" --resource-type Microsoft.KeyVault/vaults --query "[].id | [0]" -o tsv)
 export TF_VAR_spn_keyvault_id="${TF_VAR_deployer_kv_user_arm_id}"
-
 
 echo "Configuration file:                  $system_config_information"
 echo "Deployment region:                   $region"
@@ -371,7 +370,7 @@ if [ -f .terraform/terraform.tfstate ]; then
 
 	azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 	if [ -n "${azure_backend}" ]; then
-		if terraform -chdir="${terraform_module_directory}" init -upgrade=true ; then
+		if terraform -chdir="${terraform_module_directory}" init -upgrade=true; then
 			echo ""
 			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
 			echo ""
