@@ -51,25 +51,13 @@ data "azurerm_virtual_network" "vnet_sap" {
 resource "azurerm_virtual_network_dns_servers" "vnet_sap_dns_servers" {
   provider                             = azurerm.main
   count                                = local.SAP_virtualnetwork_exists && length(var.dns_settings.dns_server_list) > 0 ? 1 : 0
-  virtual_network_id                   = local.SAP_virtualnetwork_exists ? (
-                                           data.azurerm_virtual_network.vnet_sap[0].id) : (
-                                           azurerm_virtual_network.vnet_sap[0].id
-                                         )
+  virtual_network_id                   = azurerm_virtual_network.vnet_sap[0].id
   dns_servers                          = var.dns_settings.dns_server_list
 }
 
 # // Peers management VNET to SAP VNET
 resource "azurerm_virtual_network_peering" "peering_management_sap" {
   provider                             = azurerm.peering
-  depends_on                           = [
-                                           azurerm_subnet.app,
-                                           azurerm_subnet.db,
-                                           azurerm_subnet.web,
-                                           azurerm_subnet.admin,
-                                           azurerm_subnet.ams
-
-                                         ]
-
   count                                = var.peer_with_control_plane_vnet ? (
                                            local.SAP_virtualnetwork_exists || !var.use_deployer ? 0 : 1) : (
                                            0
@@ -87,10 +75,7 @@ resource "azurerm_virtual_network_peering" "peering_management_sap" {
                                          )
   virtual_network_name                 = split("/", local.deployer_virtualnetwork_id)[8]
   resource_group_name                  = split("/", local.deployer_virtualnetwork_id)[4]
-  remote_virtual_network_id            = local.SAP_virtualnetwork_exists ? (
-                                           data.azurerm_virtual_network.vnet_sap[0].id) : (
-                                           azurerm_virtual_network.vnet_sap[0].id
-                                         )
+  remote_virtual_network_id            = azurerm_virtual_network.vnet_sap[0].id
 
   allow_virtual_network_access         = true
 }
@@ -102,14 +87,6 @@ resource "azurerm_virtual_network_peering" "peering_sap_management" {
                                            local.SAP_virtualnetwork_exists || !var.use_deployer ? 0 : 1) : (
                                            0
                                          )
-  depends_on                           = [
-                                           azurerm_subnet.app,
-                                           azurerm_subnet.db,
-                                           azurerm_subnet.web,
-                                           azurerm_subnet.admin,
-                                           azurerm_subnet.ams
-
-                                         ]
 
   name                                 = substr(
                                            format("%s_to_%s",
@@ -125,10 +102,8 @@ resource "azurerm_virtual_network_peering" "peering_sap_management" {
                                            data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
                                            azurerm_virtual_network.vnet_sap[0].resource_group_name
                                          )
-  virtual_network_name                 = local.SAP_virtualnetwork_exists ? (
-                                           data.azurerm_virtual_network.vnet_sap[0].name) : (
-                                           azurerm_virtual_network.vnet_sap[0].name
-                                         )
+  virtual_network_name                 = azurerm_virtual_network.vnet_sap[0].name
+
   remote_virtual_network_id            = local.deployer_virtualnetwork_id
   allow_virtual_network_access         = true
   allow_forwarded_traffic              = true
@@ -148,14 +123,9 @@ resource "azurerm_route_table" "rt" {
                                            local.resource_suffixes.routetable
                                          )
   bgp_route_propagation_enabled        = local.network_enable_route_propagation
-  resource_group_name                  = local.SAP_virtualnetwork_exists ? (
-                                           data.azurerm_virtual_network.vnet_sap[0].resource_group_name) : (
-                                           azurerm_virtual_network.vnet_sap[0].resource_group_name
-                                         )
-  location                             = local.SAP_virtualnetwork_exists ? (
-                                            data.azurerm_virtual_network.vnet_sap[0].location) : (
-                                            azurerm_virtual_network.vnet_sap[0].location
-                                          )
+  resource_group_name                  = azurerm_virtual_network.vnet_sap[0].resource_group_name
+  location                             = azurerm_virtual_network.vnet_sap[0].location
+
   tags                                 = var.tags
 }
 
@@ -186,7 +156,8 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap" {
   provider                             = azurerm.dnsmanagement
   count                                = local.use_Azure_native_DNS && var.use_private_endpoint && var.dns_settings.register_virtual_network_to_dns ? 1 : 0
   depends_on                           = [
-                                           azurerm_virtual_network.vnet_sap
+                                           azurerm_virtual_network.vnet_sap,
+                                           azurerm_subnet.app
                                          ]
   name                                 = format("%s%s%s%s",
                                            var.naming.resource_prefixes.dns_link,
@@ -207,8 +178,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "vnet_sap_file" {
   count                                = local.use_Azure_native_DNS && var.use_private_endpoint ? 1 : 0
   depends_on                           = [
                                            azurerm_virtual_network.vnet_sap,
-                                           azurerm_storage_account.install,
-                                           azurerm_storage_account.transport
+                                           azurerm_subnet.app
                                          ]
   name                                 = format("%s%s%s%s-file",
                                            var.naming.resource_prefixes.dns_link,
