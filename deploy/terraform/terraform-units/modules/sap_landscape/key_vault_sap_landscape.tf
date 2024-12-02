@@ -217,6 +217,7 @@ resource "time_offset" "secret_expiry_date" {
 // Key pair/password will be stored in the existing KV if specified, otherwise will be stored in a newly provisioned KV
 resource "azurerm_key_vault_secret" "sid_ppk" {
   provider                             = azurerm.main
+  depends_on                           = [ azurerm_key_vault_access_policy.kv_user_spn, azurerm_key_vault_access_policy.kv_user_msi ]
   count                                = !local.sid_key_exist ? 1 : 0
   content_type                          = ""
   name                                  = local.sid_ppk_name
@@ -240,6 +241,7 @@ data "azurerm_key_vault_secret" "sid_ppk" {
 
 resource "azurerm_key_vault_secret" "sid_pk" {
   provider                             = azurerm.main
+  depends_on                           = [ azurerm_key_vault_access_policy.kv_user_spn, azurerm_key_vault_access_policy.kv_user_msi ]
   count                                = !local.sid_key_exist ? 1 : 0
   content_type                         = ""
   name                                 = local.sid_pk_name
@@ -265,6 +267,7 @@ data "azurerm_key_vault_secret" "sid_pk" {
 // Credentials will be stored in the existing KV if specified, otherwise will be stored in a newly provisioned KV
 resource "azurerm_key_vault_secret" "sid_username" {
   provider                             = azurerm.main
+  depends_on                           = [ azurerm_key_vault_access_policy.kv_user_spn, azurerm_key_vault_access_policy.kv_user_msi ]
   count                                = (!local.sid_credentials_secret_exist) ? 1 : 0
   content_type                         = ""
   name                                 = local.sid_username_secret_name
@@ -288,6 +291,7 @@ data "azurerm_key_vault_secret" "sid_username" {
 
 resource "azurerm_key_vault_secret" "sid_password" {
   provider                             = azurerm.main
+  depends_on                           = [ azurerm_key_vault_access_policy.kv_user_spn, azurerm_key_vault_access_policy.kv_user_msi ]
   count                                = (!local.sid_credentials_secret_exist) ? 1 : 0
   name                                 = local.sid_password_secret_name
   content_type                         = ""
@@ -313,6 +317,7 @@ data "azurerm_key_vault_secret" "sid_password" {
 //Witness access key
 resource "azurerm_key_vault_secret" "witness_access_key" {
   provider                             = azurerm.main
+  depends_on                           = [ azurerm_key_vault_access_policy.kv_user_spn, azurerm_key_vault_access_policy.kv_user_msi ]
   count                                = 1
   content_type                         = ""
   name                                 = replace(
@@ -344,6 +349,7 @@ resource "azurerm_key_vault_secret" "witness_access_key" {
 //Witness access key
 resource "azurerm_key_vault_secret" "witness_name" {
   provider                             = azurerm.main
+  depends_on                           = [ azurerm_key_vault_access_policy.kv_user_spn, azurerm_key_vault_access_policy.kv_user_msi ]
   count                                = 1
   content_type                         = ""
   name                                 = replace(
@@ -375,6 +381,7 @@ resource "azurerm_key_vault_secret" "witness_name" {
 //Witness access key
 resource "azurerm_key_vault_secret" "deployer_keyvault_user_name" {
   provider                             = azurerm.main
+  depends_on                           = [ azurerm_key_vault_access_policy.kv_user_spn, azurerm_key_vault_access_policy.kv_user_msi ]
   content_type                         = ""
   name                                 = "deployer-kv-name"
   value                                = local.deployer_keyvault_user_name
