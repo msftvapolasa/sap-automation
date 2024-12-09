@@ -573,10 +573,7 @@ if [ "$resource_group_exist" ]; then
 				echo ""
 				exit 1
 			fi
-
 		fi
-
-		return_value=$?
 
 		if [ -f destroy_output.json ]; then
 			errors_occurred=$(jq 'select(."@level" == "error") | length' destroy_output.json)
