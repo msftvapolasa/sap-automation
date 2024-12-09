@@ -570,8 +570,18 @@ function ImportAndReRunApply {
 					echo ""
 					echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
 					echo ""
-
 				fi
+				existing=$(jq 'select(."@level" == "error") | {address: .diagnostic.address, summary: .diagnostic.summary} | select(.summary | startswith("A resource with the ID"))' "$fileName")
+				if [[ -n ${existing} ]]; then
+					return_value=0
+				else
+					rm "$fileName"
+				fi
+			else
+				echo ""
+				echo -e "${cyan}No resources to import$reset_formatting"
+				echo ""
+				return_value=1
 			fi
 		fi
 	fi

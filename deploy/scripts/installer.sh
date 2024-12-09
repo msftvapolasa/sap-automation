@@ -1202,11 +1202,17 @@ if [ 1 == $apply_needed ]; then
 		errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
 		if [[ -n $errors_occurred ]]; then
+		  return_value=10
 			if [ -n "${approve}" ]; then
+				echo -e "${cyan}Retrying Terraform apply:$reset_formatting"
+
 				# shellcheck disable=SC2086
 				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
 					return_value=$?
 				fi
+
+				sleep 10
+				echo -e "${cyan}Retrying Terraform apply:$reset_formatting"
 
 				if [ -f apply_output.json ]; then
 					# shellcheck disable=SC2086
