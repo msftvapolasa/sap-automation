@@ -212,7 +212,7 @@ namespace SDAFWebApp.Models
     public string tfstate_resource_id { get; set; }
 
     [SubscriptionIdValidator(ErrorMessage = "Invalid subscription")]
-    public string subscription { get; set; }
+    public string subscription_id { get; set; }
 
     /*---------------------------------------------------------------------------8
     |                                                                            |
