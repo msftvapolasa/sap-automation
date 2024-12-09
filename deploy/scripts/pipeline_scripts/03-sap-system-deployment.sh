@@ -270,6 +270,8 @@ fi
 if [ -f sap-parameters.yaml ]; then
 	git add sap-parameters.yaml
 	added=1
+else
+	return_code=1
 fi
 
 if [ -f "${SID}_hosts.yaml" ]; then
