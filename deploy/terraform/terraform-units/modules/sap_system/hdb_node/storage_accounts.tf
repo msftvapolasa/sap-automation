@@ -2,7 +2,7 @@
 resource "azurerm_storage_account" "hanashared" {
   provider                             = azurerm.main
   count                                = var.NFS_provider == "AFS" && var.database.scale_out ? (
-                                           length(var.hanashared_id) > 0 ? (
+                                           try(length(var.hanashared_id) > 0, false) ? (
                                              0) : (
                                              length(var.database.zones)
                                            )) : (
@@ -93,7 +93,7 @@ resource "azurerm_storage_share" "hanashared" {
 resource "azurerm_private_endpoint" "hanashared" {
   provider                             = azurerm.main
   count                                = var.NFS_provider == "AFS" && var.use_private_endpoint && var.database.scale_out ? (
-                                          length(var.hanashared_private_endpoint_id) > 0 ? (
+                                          try(length(var.hanashared_private_endpoint_id) > 0, false) ? (
                                             0) : (
                                             length(var.database.zones)
                                           )) : (
@@ -131,7 +131,7 @@ resource "azurerm_private_endpoint" "hanashared" {
                                 local.resource_suffixes.storage_privatelink_hanashared
                               )
                               is_manual_connection = false
-                              private_connection_resource_id = length(var.hanashared_id) > 0 ? (
+                              private_connection_resource_id = try(length(var.hanashared_id), false) > 0 ? (
                                 var.hanashared_id[count.index]) : (
                                 azurerm_storage_account.hanashared[count.index].id
                               )
@@ -164,7 +164,7 @@ resource "time_sleep" "wait_for_private_endpoints" {
 
 data "azurerm_private_endpoint_connection" "hanashared" {
   provider                             = azurerm.main
-  count                                = var.NFS_provider == "AFS" && var.use_private_endpoint && var.database.scale_out ? (
+  count                                = var.NFS_provider == "AFS" && var.use_private_endpoint && var.database.scale_out && try(length(var.hanashared_private_endpoint_id) > 0, false) ? (
                                            length(var.hanashared_private_endpoint_id) > 0 ? (
                                              length(var.database.zones)) : (
                                              0
