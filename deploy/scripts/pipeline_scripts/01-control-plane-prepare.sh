@@ -126,8 +126,8 @@ if [[ ! -f /etc/profile.d/deploy_server.sh ]]; then
   ARM_CLIENT_ID="$servicePrincipalId"
   export ARM_CLIENT_ID
 
-  ARM_OIDC_TOKEN="$idToken"
-  export ARM_OIDC_TOKEN
+  # ARM_OIDC_TOKEN="$idToken"
+  # export ARM_OIDC_TOKEN
 
   ARM_TENANT_ID="$tenantId"
   export ARM_TENANT_ID
