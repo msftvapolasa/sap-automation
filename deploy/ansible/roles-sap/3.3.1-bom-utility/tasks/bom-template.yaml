@@ -92,7 +92,8 @@
 # -------------------------------------+---------------------------------------8
 
 - name:                                "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) template on disk"
-  when:                                result is failed or always_upload_jinja_templates  block:
+  when:                                result is failed or always_upload_jinja_templates
+  block:
     - name:                            "{{ task_prefix }} Check for Microsoft Supplied BOM ({{ bom_base_name }}) template"
       ansible.builtin.stat:
         path:                          "{{ BOM_directory }}/{{ bom_base_name }}/templates/{{ sap_inifile_template }}"
