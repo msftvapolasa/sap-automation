@@ -216,7 +216,7 @@ else
 					terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
 				else
 					echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
-					return 10
+					exit 10
 				fi
 			else
 				if terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
@@ -226,7 +226,7 @@ else
 					terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
 				else
 					echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
-					return 10
+					exit 10
 				fi
 			fi
 		fi
@@ -239,7 +239,7 @@ else
 			echo ""
 			echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
 			echo ""
-			return 10
+			exit 10
 		fi
 	fi
 	if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
@@ -250,7 +250,7 @@ else
 		echo ""
 		echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
 		echo ""
-		return 10
+		exit 10
 	fi
 	echo "Parameters:                          $allParameters"
 	terraform -chdir="${terraform_module_directory}" refresh $allParameters
