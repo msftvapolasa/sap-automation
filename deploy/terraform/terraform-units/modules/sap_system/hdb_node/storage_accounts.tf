@@ -64,7 +64,7 @@ resource "azurerm_storage_account" "hanashared" {
 resource "azurerm_storage_share" "hanashared" {
   provider                             = azurerm.main
    count                                = var.NFS_provider == "AFS" && var.database.scale_out ? (
-                                           length(var.hanashared_id) > 0 ? (
+                                           try(length(var.hanashared_id) > 0, false) ? (
                                              0) : (
                                              length(var.database.zones)
                                            )) : (
@@ -78,7 +78,7 @@ resource "azurerm_storage_share" "hanashared" {
 
   name                                 = format("%s-%s-%01d", lower(local.sid),local.resource_suffixes.hanasharedafs, count.index+1)
   storage_account_id                   = var.NFS_provider == "AFS" ? (
-                                           length(var.hanashared_id) > 0 ? (
+                                           try(length(var.hanashared_id) > 0, false) ? (
                                              var.hanashared_id[count.index]) : (
                                              azurerm_storage_account.hanashared[count.index].id
                                            )
