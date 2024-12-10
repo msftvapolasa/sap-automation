@@ -162,8 +162,8 @@ module "hdb_node" {
   use_secondary_ips                             = var.use_secondary_ips
   dns_settings                                  = local.dns_settings
   use_private_endpoint                          = var.use_private_endpoint
-  hanashared_private_endpoint_id                = var.hanashared_private_endpoint_id
-  hanashared_id                                 = var.hanashared_id
+  hanashared_private_endpoint_id                = length(var.hanashared_private_endpoint_id > 0) ? (length(var.hanashared_private_endpoint_id[0]) > 0 ? var.hanashared_private_endpoint_id : null) : null
+  hanashared_id                                 = length(var.hanashared_id > 0) ? (length(var.hanashared_id[0]) > 0 ? var.hanashared_id : null) : null
   random_id                                     = coalesce(var.custom_random_id, module.common_infrastructure.random_id)
 }
 
