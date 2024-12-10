@@ -59,7 +59,7 @@ namespace SDAFWebApp.Models
     // Common Infrastructure
 
     [SubscriptionIdValidator(ErrorMessage = "Invalid subscription")]
-    public string subscription { get; set; }
+    public string subscription_id { get; set; }
 
     public string custom_disk_sizes_filename { get; set; }
 
@@ -248,14 +248,16 @@ namespace SDAFWebApp.Models
 
     public string database_cluster_disk_type { get; set; } = "Premium_ZRS";
 
-    /*---------------------------------------------------------------------------8
-    |                                                                            |
-    |                          PPG information                                   |
-    |                                                                            |
-    +------------------------------------4--------------------------------------*/
+    public bool? use_sles_saphanasr_angi { get; set; } 
+
+        /*---------------------------------------------------------------------------8
+        |                                                                            |
+        |                          PPG information                                   |
+        |                                                                            |
+        +------------------------------------4--------------------------------------*/
 
 
-    public string[] proximityplacementgroup_names { get; set; }
+        public string[] proximityplacementgroup_names { get; set; }
 
     [PpgIdValidator]
     public string[] proximityplacementgroup_arm_ids { get; set; }
