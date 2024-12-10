@@ -93,7 +93,7 @@ resource "azurerm_storage_share" "hanashared" {
 resource "azurerm_private_endpoint" "hanashared" {
   provider                             = azurerm.main
   count                                = var.NFS_provider == "AFS" && var.use_private_endpoint && var.database.scale_out ? (
-                                          length(var.hanashared_private_endpoint_id) > 0 ? (
+                                          try(length(var.hanashared_private_endpoint_id) > 0, false) ? (
                                             0) : (
                                             length(var.database.zones)
                                           )) : (
