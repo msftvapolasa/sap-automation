@@ -84,7 +84,7 @@ locals {
                                                  local.resource_suffixes.app_subnet
                                                )
                                            ))) : (
-                                           ""
+                                           data.azurerm_subnet.subnet_sap_app[0].name
                                          )
 
   ##############################################################################################
@@ -150,7 +150,18 @@ locals {
                                                  local.resource_suffixes.web_subnet
                                                )
                                            ))) : (
-                                           ""
+                                           data.azurerm_subnet.subnet_sap_web[0].name
+                                         )
+
+  web_subnet_deployed                  = try(local.web_subnet_defined ? (
+                                           local.web_subnet_exists ? (
+                                             data.azurerm_subnet.subnet_sap_web[0]) : (
+                                             azurerm_subnet.subnet_sap_web[0]
+                                           )) : (
+                                           local.application_subnet_exists ? (
+                                             data.azurerm_subnet.subnet_sap_app[0]) : (
+                                             azurerm_subnet.subnet_sap_app[0]
+                                           )), null
                                          )
 
   ##############################################################################################
@@ -182,17 +193,6 @@ locals {
                                                )
                                            ))) : (
                                            ""
-                                         )
-
-  web_subnet_deployed                  = try(local.web_subnet_defined ? (
-                                           local.web_subnet_exists ? (
-                                             data.azurerm_subnet.subnet_sap_web[0]) : (
-                                             azurerm_subnet.subnet_sap_web[0]
-                                           )) : (
-                                           local.application_subnet_exists ? (
-                                             data.azurerm_subnet.subnet_sap_app[0]) : (
-                                             azurerm_subnet.subnet_sap_app[0]
-                                           )), null
                                          )
 
   web_subnet_nsg_deployed              = try(local.web_subnet_defined ? (
@@ -578,7 +578,7 @@ locals {
                                              name      = "IPConfig1"
                                              subnet_id = local.enable_deployment ? local.web_subnet_deployed.id : ""
 
-                                                                                    nic_ips                       = local.web_nic_ips
+                                             nic_ips                       = local.web_nic_ips
                                              private_ip_address_allocation = var.application_tier.use_DHCP ? "Dynamic" : "Static"
                                              offset                        = 0
                                              primary                       = true
