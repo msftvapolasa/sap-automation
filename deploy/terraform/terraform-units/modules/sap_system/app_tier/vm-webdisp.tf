@@ -29,7 +29,7 @@ resource "azurerm_network_interface" "web" {
                                           private_ip_address = try(pub.value.nic_ips[count.index],
                                             var.application_tier.use_DHCP ? (
                                               null) : (
-                                              local.web_subnet_defined ?
+                                              var.infrastructure.virtual_networks.sap.subnet_web.defined ?
                                               cidrhost(
                                                 local.web_subnet_prefix,
                                                 (tonumber(count.index) + local.ip_offsets.web_vm + pub.value.offset)

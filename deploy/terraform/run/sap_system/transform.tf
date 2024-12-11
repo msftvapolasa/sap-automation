@@ -473,8 +473,6 @@ locals {
                                           )
                                         )
 
-  temp_vnet                            =
-
   user_keyvault_specified              = (length(var.user_keyvault_id) ) > 0
   user_keyvault                        = local.user_keyvault_specified ? (
                                            var.user_keyvault_id
