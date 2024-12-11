@@ -230,7 +230,7 @@ locals {
                                            scs_lb = 4
                                            scs_vm = 6
                                            app_vm = 10
-                                           web_lb = local.var.infrastructure.virtual_networks.sap.subnet_web.defined ? (4 + 1) : 6
+                                           web_lb = var.infrastructure.virtual_networks.sap.subnet_web.defined ? (4 + 1) : 6
                                            web_vm = var.infrastructure.virtual_networks.sap.subnet_web.defined ? (10) : 50
                                          }
 
