@@ -382,7 +382,8 @@ locals {
 
   subnet_web_defined                   = (
                                            length(var.web_subnet_address_prefix) +
-                                           length(var.web_subnet_arm_id)
+                                           length(var.web_subnet_arm_id) +
+                                           length(try(data.terraform_remote_state.landscape.outputs.web_subnet_id, ""))
                                          ) > 0
 
   subnet_web_arm_id_defined            = (
