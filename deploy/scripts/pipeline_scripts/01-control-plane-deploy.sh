@@ -308,10 +308,6 @@ cd "${CONFIG_REPO_PATH}" || exit
 # Pull changes
 git pull -q origin "$BRANCH"
 
-if [ "$DEBUG" = "True" ]; then
-  cat "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
-  cat "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate"
-fi
 
 echo -e "$green--- Update repo ---$reset"
 if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}" ]; then
@@ -321,6 +317,11 @@ fi
 
 if [ -f .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}".md ]; then
   git add .sap_deployment_automation/"${ENVIRONMENT}${LOCATION}".md
+  added=1
+fi
+
+if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME" ]; then
+  git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/$DEPLOYER_TFVARS_FILENAME"
   added=1
 fi
 
@@ -354,6 +355,11 @@ if [ -f "DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
       added=1
     fi
   fi
+fi
+
+if [ -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME" ]; then
+  git add -f "${CONFIG_REPO_PATH}/LIBRARY/$LIBRARY_FOLDERNAME/$LIBRARY_TFVARS_FILENAME"
+  added=1
 fi
 
 if [ -f "LIBRARY/$LIBRARY_FOLDERNAME/.terraform/terraform.tfstate" ]; then

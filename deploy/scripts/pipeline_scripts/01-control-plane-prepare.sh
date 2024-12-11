@@ -290,14 +290,24 @@ cd "$CONFIG_REPO_PATH" || exit
 git pull -q origin "$BRANCH"
 
 echo -e "$green--- Update repo ---$reset"
+
+
+
 if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
   git add ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
   added=1
 fi
+
+if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name" ]; then
+  git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/deployer_tfvars_file_name"
+  added=1
+fi
+
 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate" ]; then
   git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/.terraform/terraform.tfstate"
   added=1
 fi
+
 if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ]; then
   sudo apt-get install zip -y
   # shellcheck disable=SC2001
