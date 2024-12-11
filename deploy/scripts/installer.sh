@@ -1274,6 +1274,14 @@ if [ "${deployment_system}" == sap_deployer ]; then
 
 	# terraform -chdir="${terraform_module_directory}"  output
 
+
+	deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+	if [ -n "${deployer_random_id}" ]; then
+		save_config_var "deployer_random_id" "${system_config_information}"
+		custom_random_id="${deployer_random_id}"
+		save_config_var "custom_random_id" ${parameterfile}
+	fi
+
 	deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
 	keyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \")
 
@@ -1295,7 +1303,15 @@ if [ "${deployment_system}" == sap_deployer ]; then
 	return_value=0
 	if [ 1 == $called_from_ado ]; then
 
-		terraform -chdir="${terraform_module_directory}" output -json -no-color deployer_uai
+		if [ -n "${deployer_random_id}" ]; then
+			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "DEPLOYER_RANDOM_ID.value")
+			if [ -z "${az_var}" ]; then
+				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_RANDOM_ID --value "${deployer_random_id}" --output none --only-show-errors
+			else
+				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name DEPLOYER_RANDOM_ID --value "${deployer_random_id}" --output none --only-show-errors
+			fi
+		fi
+
 
 		if [ -n "${created_resource_group_name}" ]; then
 			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "WEBAPP_RESOURCE_GROUP.value")
@@ -1399,6 +1415,12 @@ if [ "${deployment_system}" == sap_library ]; then
 	REMOTE_STATE_SA=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw remote_state_storage_account_name | tr -d \")
 	sapbits_storage_account_name=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw sapbits_storage_account_name | tr -d \")
 
+	library_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+	if [ -n "${library_random_id}" ]; then
+		save_config_var "library_random_id" "${system_config_information}"
+		custom_random_id="${library_random_id}"
+		save_config_var "custom_random_id" ${parameterfile}
+	fi
 	if [ 1 == $called_from_ado ]; then
 
 		if [ -n "${sapbits_storage_account_name}" ]; then
@@ -1407,6 +1429,14 @@ if [ "${deployment_system}" == sap_library ]; then
 				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --value "${sapbits_storage_account_name}" --output none --only-show-errors
 			else
 				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name INSTALLATION_MEDIA_ACCOUNT --value "${sapbits_storage_account_name}" --output none --only-show-errors
+			fi
+		fi
+		if [ -n "${library_random_id}" ]; then
+			az_var=$(az pipelines variable-group variable list --group-id "${VARIABLE_GROUP_ID}" --query "LIBRARY_RANDOM_ID.value")
+			if [ -z "${az_var}" ]; then
+				az pipelines variable-group variable create --group-id "${VARIABLE_GROUP_ID}" --name LIBRARY_RANDOM_ID --value "${library_random_id}" --output none --only-show-errors
+			else
+				az pipelines variable-group variable update --group-id "${VARIABLE_GROUP_ID}" --name LIBRARY_RANDOM_ID --value "${library_random_id}" --output none --only-show-errors
 			fi
 		fi
 

@@ -568,6 +568,14 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 	export REMOTE_STATE_SA
 
 	getAndStoreTerraformStateStorageAccountDetails "${REMOTE_STATE_SA}" "${library_config_information}"
+
+	library_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+	if [ -n "${library_random_id}" ]; then
+		save_config_var "library_random_id" "${library_config_information}"
+		custom_random_id="${library_random_id}"
+		save_config_var "custom_random_id" ${parameterfile}
+	fi
+
 	return_value=0
 else
 	return_value=20
