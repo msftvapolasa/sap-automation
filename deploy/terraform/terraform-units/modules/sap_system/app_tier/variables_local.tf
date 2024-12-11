@@ -230,16 +230,16 @@ locals {
                                            scs_lb = 4
                                            scs_vm = 6
                                            app_vm = 10
-                                           web_lb = local.web_subnet_defined ? (4 + 1) : 6
-                                           web_vm = local.web_subnet_defined ? (10) : 50
+                                           web_lb = local.var.infrastructure.virtual_networks.sap.subnet_web.defined ? (4 + 1) : 6
+                                           web_vm = var.infrastructure.virtual_networks.sap.subnet_web.defined ? (10) : 50
                                          }
 
   windows_ip_offsets                   = {
                                            scs_lb = 4
                                            scs_vm = 6 + 2 # Windows HA SCS may require 4 IPs
                                            app_vm = 10 + 2
-                                           web_lb = local.web_subnet_defined ? (4 + 1) : 6 + 2
-                                           web_vm = local.web_subnet_defined ? (10) : 50
+                                           web_lb = var.infrastructure.virtual_networks.sap.subnet_web.defined ? (4 + 1) : 6 + 2
+                                           web_vm = var.infrastructure.virtual_networks.sap.subnet_web.defined ? (10) : 50
                                          }
 
   win_ha_scs                           = local.scs_server_count > 0 && (var.application_tier.scs_high_availability && upper(var.application_tier.scs_os.os_type) == "WINDOWS")

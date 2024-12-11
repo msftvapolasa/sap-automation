@@ -315,6 +315,7 @@ if [ -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/terraform.tfstate" ];
   git add -f "${CONFIG_REPO_PATH}/DEPLOYER/$DEPLOYER_FOLDERNAME/state.zip"
   added=1
 fi
+
 if [ 1 = $added ]; then
   git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
   git config --global user.name "$BUILD_REQUESTEDFOR"
@@ -323,7 +324,8 @@ if [ 1 = $added ]; then
     # echo "##vso[task.logissue type=error]Failed to push changes to the repository."
 		echo ""
   fi
-fi§
+fi
+
 if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
   echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
 fi
