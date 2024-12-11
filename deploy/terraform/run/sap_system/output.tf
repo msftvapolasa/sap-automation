@@ -29,7 +29,7 @@ output "automation_version"            {
 
 output "random_id"                     {
                                          description = "Random ID for system"
-                                         value       = coalesce(var.custom_random_id, module.common_infrastructure.random_id)
+                                         value       = substr(coalesce(var.custom_random_id, module.common_infrastructure.random_id), 0, 3)
                                        }
 
 #######################################4#######################################8

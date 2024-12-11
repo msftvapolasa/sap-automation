@@ -32,7 +32,7 @@ output "public_network_access_enabled"          {
 
 output "random_id"                              {
                                                   description = "Random ID for workload zone"
-                                                  value       = coalesce(var.custom_random_id, module.sap_landscape.random_id)
+                                                  value       = substr(coalesce(var.custom_random_id, module.sap_landscape.random_id),0,3)
                                                 }
 
 ###############################################################################
