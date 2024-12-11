@@ -27,6 +27,11 @@ output "automation_version"            {
                                          value       = local.version_label
                                        }
 
+output "random_id"                     {
+                                         description = "Random ID for system"
+                                         value       = coalesce(var.custom_random_id, module.common_infrastructure.random_id)
+                                       }
+
 #######################################4#######################################8
 #                                                                             #
 #                             Resource Group                                  #
