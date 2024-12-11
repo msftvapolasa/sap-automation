@@ -122,14 +122,6 @@ resource "azurerm_key_vault_secret" "pk" {
                                            null
                                          )
 }
-
-data "azurerm_key_vault_secret" "pk" {
-  count                                = (local.enable_key && !local.key_exist) ? (1) : (0)
-  depends_on                           = [ azurerm_key_vault_secret.pk ]
-
-  name                                 = local.pk_secret_name
-  key_vault_id                         = var.key_vault.kv_user_id
-}
 resource "azurerm_key_vault_secret" "username" {
   count                                = (local.enable_key && !local.key_exist) ? (
                                           (
@@ -243,11 +235,14 @@ resource "azurerm_key_vault_secret" "pwd" {
                                          )
 }
 
-data "azurerm_key_vault_secret" "pk" {
-  count                                = (local.enable_key && local.key_exist) ? 1 : 0
+ephemeral "azurerm_key_vault_secret" "pk" {
+  count                                = (local.enable_key && !local.key_exist) ? (1) : (0)
+  depends_on                           = [ azurerm_key_vault_secret.pk ]
+
   name                                 = local.pk_secret_name
   key_vault_id                         = var.key_vault.kv_user_id
 }
+
 
 data "azurerm_key_vault_secret" "ppk" {
   count                                = (local.enable_key && local.key_exist) ? 1 : 0
