@@ -463,41 +463,14 @@ locals {
 
 
 all_subnets                          = merge(local.sap, (
-                                         local.subnet_admin.defined ? (
                                            {
-                                             "subnet_admin" = local.subnet_admin
-                                           }
-                                           ) : (
-                                           null
-                                         )), (
-                                         local.subnet_db.defined ? (
-                                           {
-                                             "subnet_db" = local.subnet_db
-                                           }
-                                           ) : (
-                                           null
-                                         )), (
-                                         local.subnet_app.defined ? (
-                                           {
-                                             "subnet_app" = local.subnet_app
-                                           }
-                                           ) : (
-                                           null
-                                         )), (
-                                         local.subnet_web.defined ? (
-                                           {
-                                             "subnet_web" = local.subnet_web
-                                           }
-                                           ) : (
-                                           null
-                                         )), (
-                                         local.subnet_storage.defined ? (
-                                           {
+                                             "subnet_admin"   = local.subnet_admin
+                                             "subnet_db"      = local.subnet_db
+                                             "subnet_app"     = local.subnet_app
+                                             "subnet_web"     = local.subnet_web
                                              "subnet_storage" = local.subnet_storage
                                            }
-                                           ) : (
-                                           null
-                                         )))
+                                           ))
 
   user_keyvault_specified              = (length(var.user_keyvault_id) ) > 0
   user_keyvault                        = local.user_keyvault_specified ? (
