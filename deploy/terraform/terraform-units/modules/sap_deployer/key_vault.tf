@@ -103,14 +103,7 @@ resource "azurerm_key_vault_secret" "ppk" {
 }
 
 resource "azurerm_key_vault_secret" "pk" {
-  count                                = (local.enable_key && !local.key_exist) ? (
-                                          (
-                                            !var.bootstrap || !var.key_vault.kv_exists) ? (
-                                            1) : (
-                                            0
-                                          )) : (
-                                          0
-                                        )
+  count                                = (local.enable_key && !local.key_exist) ? (1) : (0)
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
                                            azurerm_key_vault_access_policy.kv_user_msi,
@@ -130,6 +123,13 @@ resource "azurerm_key_vault_secret" "pk" {
                                          )
 }
 
+data "azurerm_key_vault_secret" "pk" {
+  count                                = (local.enable_key && !local.key_exist) ? (1) : (0)
+  depends_on                           = [ azurerm_key_vault_secret.pk ]
+
+  name                                 = local.pk_secret_name
+  key_vault_id                         = var.key_vault.kv_user_id
+}
 resource "azurerm_key_vault_secret" "username" {
   count                                = (local.enable_key && !local.key_exist) ? (
                                           (
