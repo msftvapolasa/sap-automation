@@ -87,8 +87,7 @@ resource "azurerm_key_vault_secret" "ppk" {
   name                                 = local.ppk_secret_name
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_systemidentity
+                                           azurerm_key_vault_access_policy.kv_user_msi
                                          ]
   value                                = local.private_key
   key_vault_id                         = var.key_vault.kv_exists ? (
@@ -106,8 +105,7 @@ resource "azurerm_key_vault_secret" "pk" {
   count                                = (local.enable_key && !local.key_exist) ? (1) : (0)
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_systemidentity
+                                           azurerm_key_vault_access_policy.kv_user_msi
                                          ]
 
   name                                 = local.pk_secret_name
@@ -133,8 +131,7 @@ resource "azurerm_key_vault_secret" "username" {
                                         )
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_systemidentity
+                                           azurerm_key_vault_access_policy.kv_user_msi
                                          ]
 
   name                                 = local.username_secret_name
@@ -161,8 +158,7 @@ resource "azurerm_key_vault_secret" "pat" {
                                         )
   depends_on                           = [
                                            azurerm_key_vault_access_policy.kv_user_pre_deployer[0],
-                                           azurerm_key_vault_access_policy.kv_user_msi,
-                                           azurerm_key_vault_access_policy.kv_user_systemidentity
+                                           azurerm_key_vault_access_policy.kv_user_msi
                                          ]
 
   name                                 = "PAT"
