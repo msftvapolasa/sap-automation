@@ -386,7 +386,7 @@ locals {
                                          ) > 0
 
   subnet_web_arm_id_defined            = (
-                                           length(var.web_subnet_arm_id)
+                                           length(var.web_subnet_arm_id) + length(try(data.terraform_remote_state.landscape.outputs.web_subnet_id, ""))
                                          ) > 0
 
   subnet_web_nsg_defined               = (
@@ -509,7 +509,7 @@ locals {
                                              ), (
                                              local.subnet_web_arm_id_defined ? (
                                                {
-                                                 "arm_id" = var.web_subnet_arm_id
+                                                 "arm_id" = coalesce(var.web_subnet_arm_id, terraform_remote_state.landscape.outputs.web_subnet_id)
                                                }
                                                ) : (
                                                null
