@@ -59,9 +59,9 @@ locals {
   application_subnet_prefix            = var.infrastructure.virtual_networks.sap.subnet_app.prefix
 
   application_subnet_arm_id            = var.infrastructure.virtual_networks.sap.subnet_app.arm_id
-  application_subnet_exists            = length(local.application_subnet_arm_id) > 0
+  application_subnet_exists            = length(var.infrastructure.virtual_networks.sap.subnet_app.arm_id) > 0
 
-  application_subnet_name              = coalesce(
+  application_subnet_name              = var.infrastructure.virtual_networks.sap.subnet_app.defined ? coalesce(
                                             var.infrastructure.virtual_networks.sap.subnet_app.name,
                                             format("%s%s%s%s",
                                               var.naming.resource_prefixes.app_subnet,
@@ -71,9 +71,8 @@ locals {
                                               ),
                                               var.naming.separator,
                                               local.resource_suffixes.app_subnet
-                                            ),
-                                           data.azurerm_subnet.subnet_sap_app[0].name
-                                         )
+                                            )
+                                         ) : ""
 
   ##############################################################################################
   #
@@ -118,7 +117,7 @@ locals {
   web_subnet_arm_id                    = var.infrastructure.virtual_networks.sap.subnet_web.arm_id
   web_subnet_exists                    = length(local.web_subnet_arm_id) > 0
 
-  web_subnet_name                      = coalesce(
+  web_subnet_name                      = var.infrastructure.virtual_networks.sap.subnet_web.defined ? coalesce(
                                            var.infrastructure.virtual_networks.sap.subnet_web.name,
                                            format("%s%s%s%s",
                                              var.naming.resource_prefixes.web_subnet,
@@ -128,9 +127,8 @@ locals {
                                              ),
                                              var.naming.separator,
                                              local.resource_suffixes.web_subnet
-                                           ),
-                                           data.azurerm_subnet.subnet_sap_web[0].name
-                                         )
+                                           )
+                                         ) : ""
 
   web_subnet_deployed                  = local.web_subnet_exists ? (
                                              data.azurerm_subnet.subnet_sap_web[0]) : (
