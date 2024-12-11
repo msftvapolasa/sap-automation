@@ -509,7 +509,7 @@ locals {
                                              ), (
                                              local.subnet_web_arm_id_defined ? (
                                                {
-                                                 "arm_id" = coalesce(var.web_subnet_arm_id, terraform_remote_state.landscape.outputs.web_subnet_id)
+                                                 "arm_id" = coalesce(var.web_subnet_arm_id, data.terraform_remote_state.landscape.outputs.web_subnet_id)
                                                }
                                                ) : (
                                                null
