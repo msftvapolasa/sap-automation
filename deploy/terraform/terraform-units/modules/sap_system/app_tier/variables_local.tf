@@ -166,7 +166,7 @@ locals {
                                            ""
                                          )
 
-  web_subnet_nsg_deployed              = try(local.web_subnet_defined ? (
+  web_subnet_nsg_deployed              = try(var.infrastructure.virtual_networks.sap.subnet_web.defined ? (
                                            local.web_subnet_nsg_exists ? (
                                              data.azurerm_network_security_group.nsg_web[0]) : (
                                              azurerm_network_security_group.nsg_web[0]
