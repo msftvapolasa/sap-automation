@@ -189,7 +189,7 @@ else
   echo "Deployer Key Vault:                  undefined"
 fi
 
-if [ $FORCE_RESET = true ]; then
+if [ $FORCE_RESET == "true" ]; then
   echo "##vso[task.logissue type=warning]Forcing a re-install"
   echo "Running on:            $THIS_AGENT"
   sed -i 's/step=1/step=0/' "$deployer_environment_file_name"
@@ -290,8 +290,6 @@ cd "$CONFIG_REPO_PATH" || exit
 git pull -q origin "$BRANCH"
 
 echo -e "$green--- Update repo ---$reset"
-
-
 
 if [ -f ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}" ]; then
   git add ".sap_deployment_automation/${ENVIRONMENT}${LOCATION}"
