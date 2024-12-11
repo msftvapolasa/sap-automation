@@ -236,26 +236,25 @@ data "azurerm_key_vault_secret" "pk" {
   depends_on                           = [ azurerm_key_vault_secret.pk ]
 
   name                                 = local.pk_secret_name
-  key_vault_id                         = var.key_vault.kv_user_id
+  key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.kv_user_id)
 }
-
 
 data "azurerm_key_vault_secret" "ppk" {
   count                                = (local.enable_key && local.key_exist) ? 1 : 0
   name                                 = local.ppk_secret_name
-  key_vault_id                         = var.key_vault.kv_user_id
+  key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.kv_user_id)
 }
 
 data "azurerm_key_vault_secret" "username" {
   count                                = (local.username_exist) ? 1 : 0
   name                                 = local.username_secret_name
-  key_vault_id                         = var.key_vault.kv_user_id
+  key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.kv_user_id)
 }
 
 data "azurerm_key_vault_secret" "pwd" {
   count                                = (local.enable_password && local.pwd_exist) ? 1 : 0
   name                                 = local.pwd_secret_name
-  key_vault_id                         = var.key_vault.kv_user_id
+  key_vault_id                         = try(azurerm_key_vault.kv_user[0].id, var.key_vault.kv_user_id)
 }
 
 
