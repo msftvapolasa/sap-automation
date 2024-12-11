@@ -320,9 +320,10 @@ if [ 1 = $added ]; then
   git config --global user.name "$BUILD_REQUESTEDFOR"
   git commit -m "Added updates from Control Plane Deployment for $DEPLOYER_FOLDERNAME $LIBRARY_FOLDERNAME $BUILD_BUILDNUMBER [skip ci]"
   if git -c http.extraheader="AUTHORIZATION: bearer $SYSTEM_ACCESSTOKEN" push --set-upstream origin "$BRANCH" --force-with-lease; then
-    echo "##vso[task.logissue type=error]Failed to push changes to the repository."
+    # echo "##vso[task.logissue type=error]Failed to push changes to the repository."
+		echo ""
   fi
-fi
+fi§
 if [ -f "$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md" ]; then
   echo "##vso[task.uploadsummary]$CONFIG_REPO_PATH/.sap_deployment_automation/${ENVIRONMENT}${LOCATION}.md"
 fi
