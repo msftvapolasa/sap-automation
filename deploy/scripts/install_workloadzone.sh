@@ -1096,6 +1096,13 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 	save_config_vars "landscape_tfstate_key" "${workload_config_information}"
 	workloadkeyvault=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw workloadzone_kv_name | tr -d \")
 
+	workload_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+	if [ -n "${workload_random_id}" ]; then
+		save_config_var "workload_random_id" "${workload_config_information}"
+		custom_random_id="${workload_random_id}"
+		save_config_var "custom_random_id" ${parameterfile}
+	fi
+
 	resourceGroupName=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
 
 	temp=$(echo "${workloadkeyvault}" | grep "Warning" || true)

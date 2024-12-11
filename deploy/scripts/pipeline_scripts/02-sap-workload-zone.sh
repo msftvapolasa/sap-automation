@@ -425,7 +425,8 @@ set +o errexit
 echo -e "$green--- Add & update files in the DevOps Repository ---$reset"
 
 cd "$CONFIG_REPO_PATH" || exit
-git pull
+# Pull changes
+git pull -q origin "$BRANCH"
 
 added=0
 if [ -f ".sap_deployment_automation/${prefix}" ]; then
@@ -444,13 +445,15 @@ if [ -f "${workload_prefix}.md" ]; then
   added=1
 fi
 
+if [ -f "$WORKLOAD_ZONE_TFVARS_FILENAME" ]; then
+  git add -f "$WORKLOAD_ZONE_TFVARS_FILENAME"
+  added=1
+fi
+
 if [ -f "/.terraform/terraform.tfstate" ]; then
   git add -f "LANDSCAPE/$WORKLOAD_ZONE_FOLDERNAME/.terraform/terraform.tfstate"
   added=1
 fi
-
-# Pull changes
-git pull -q origin "$BRANCH"
 
 if [ 1 == $added ]; then
   git config --global user.email "$BUILD_REQUESTEDFOREMAIL"
