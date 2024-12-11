@@ -330,6 +330,7 @@ locals {
                                             "name" = var.ams_subnet_name
                                             "arm_id" = var.ams_subnet_arm_id
                                             "prefix" = var.ams_subnet_address_prefix
+                                            "defined" = length(var.ams_subnet_address_prefix) > 0
                                             "nsg" = {
                                                   "name"   = var.ams_subnet_nsg_name
                                                   "arm_id" = var.ams_subnet_nsg_arm_id
