@@ -235,7 +235,7 @@ resource "azurerm_key_vault_secret" "pwd" {
                                          )
 }
 
-ephemeral "azurerm_key_vault_secret" "pk" {
+data "azurerm_key_vault_secret" "pk" {
   count                                = (local.enable_key && !local.key_exist) ? (1) : (0)
   depends_on                           = [ azurerm_key_vault_secret.pk ]
 

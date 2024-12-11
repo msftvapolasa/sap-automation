@@ -172,7 +172,7 @@ resource "azurerm_linux_virtual_machine" "deployer" {
                                             for_each = range(local.public_key == null ? 0 : 1)
                                             content {
                                                       username   = local.username
-                                                      public_key = ephemeral.azurerm_key_vault_secret.pk[0].value
+                                                      public_key = try(data.azurerm_key_vault_secret.pk[0].value, local.public_key)
                                                     }
                                           }
 
