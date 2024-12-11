@@ -337,7 +337,20 @@ else
 					return 10
 				fi
 			fi
+		else
+			if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
+				echo ""
+				echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+				echo ""
+			else
+				echo ""
+				echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
+				echo ""
+				return 10
+			fi
+
 		fi
+
 	else
 		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
 			echo ""
