@@ -64,7 +64,7 @@ resource "azurerm_storage_account" "hanashared" {
 resource "azurerm_storage_share" "hanashared" {
   provider                             = azurerm.main
    count                                = var.NFS_provider == "AFS" && var.database.scale_out ? (
-                                           length(var.hanashared_id) > 0 ? (
+                                           length(try(var.hanashared_id, "")) > 0 ? (
                                              0) : (
                                              length(var.database.zones)
                                            )) : (
@@ -78,7 +78,7 @@ resource "azurerm_storage_share" "hanashared" {
 
   name                                 = format("%s-%s-%01d", lower(local.sid),local.resource_suffixes.hanasharedafs, count.index+1)
   storage_account_id                   = var.NFS_provider == "AFS" ? (
-                                           length(var.hanashared_id) > 0 ? (
+                                           length(try(var.hanashared_id, "")) > 0 ? (
                                              var.hanashared_id[count.index]) : (
                                              azurerm_storage_account.hanashared[count.index].id
                                            )
@@ -93,7 +93,7 @@ resource "azurerm_storage_share" "hanashared" {
 resource "azurerm_private_endpoint" "hanashared" {
   provider                             = azurerm.main
   count                                = var.NFS_provider == "AFS" && var.use_private_endpoint && var.database.scale_out ? (
-                                          try(length(var.hanashared_private_endpoint_id) > 0, false) ? (
+                                          length(try(var.hanashared_private_endpoint_id, "")) > 0 ? (
                                             0) : (
                                             length(var.database.zones)
                                           )) : (
@@ -131,7 +131,7 @@ resource "azurerm_private_endpoint" "hanashared" {
                                 local.resource_suffixes.storage_privatelink_hanashared
                               )
                               is_manual_connection = false
-                              private_connection_resource_id = try(length(var.hanashared_id), false) > 0 ? (
+                              private_connection_resource_id = length(try(var.hanashared_id, "")) > 0 ? (
                                 var.hanashared_id[count.index]) : (
                                 azurerm_storage_account.hanashared[count.index].id
                               )

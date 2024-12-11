@@ -1262,7 +1262,7 @@ if [ 1 == $return_value ]; then
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
-	echo -e "#                          $bold_red_underscore!Errors during the apply phase!$reset_formatting                              #"
+	echo -e "#                       $bold_red_underscore!!! Errors during the apply phase !!!$reset_formatting                           #"
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
 	echo ""
