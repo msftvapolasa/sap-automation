@@ -141,7 +141,7 @@ resource "azurerm_private_endpoint" "kv_user" {
                                          )
 
   subnet_id                            = local.application_subnet_existing ? (
-                                           var.infrastructure.vnets.sap.subnet_app.arm_id) : (
+                                           var.infrastructure.virtual_networks.sap.subnet_app.arm_id) : (
                                            azurerm_subnet.app[0].id
                                          )
 

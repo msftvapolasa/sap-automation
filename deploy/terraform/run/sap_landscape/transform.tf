@@ -396,8 +396,6 @@ locals {
                                          )
                                        )
 
-  temp_vnet                            = merge(local.virtual_networks, { "sap" = local.all_subnets })
-
 
   iscsi                                = {
                                            iscsi_count    = var.iscsi_count
@@ -430,7 +428,7 @@ locals {
                                             null
                                           )), (
                                           {
-                                            "vnets" = local.temp_vnet
+                                            "virtual_networks" = merge(local.virtual_networks, { "sap" = local.all_subnets })
                                           }
                                           ), (
                                           {
