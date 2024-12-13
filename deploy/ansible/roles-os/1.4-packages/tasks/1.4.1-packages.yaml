@@ -19,6 +19,16 @@
   ansible.builtin.set_fact:
     packages_for_specific_tier:        []
 
+# Analyse the package list for this distribution selecting only those
+# packages assigned to the active tier or 'all'. This is used for
+# distributions that have a specific package list.
+- name:                                "1.4 Packages: - Determine packages appropriate for tier on: {{ distribution_full_id }}"
+  ansible.builtin.set_fact:
+    packages_for_specific_tier:        "{{ packages[distribution_full_id] |
+                                          selectattr('tier', 'in', ['all', tier]) |
+                                          selectattr('node_tier', 'in', ['all', node_tier]) | default([]) |
+                                          list }}"
+
 - name:                                "1.4 Packages: - Debug - output packages for a specific tier"
   ansible.builtin.debug:
     msg: |
@@ -33,17 +43,6 @@
   ansible.builtin.fail:
     msg:                               "No packages defined for {{ distribution_full_id }}"
   when:                                packages | selectattr(distribution_full_id, "defined") | list | length == 0
-
-# Analyse the package list for this distribution selecting only those
-# packages assigned to the active tier or 'all'. This is used for
-# distributions that have a specific package list.
-- name:                                "1.4 Packages: - Determine packages appropriate for tier on: {{ distribution_full_id }}"
-  when:                                packages | selectattr(distribution_full_id, "defined") | list | length > 0
-  ansible.builtin.set_fact:
-    packages_for_specific_tier:        "{{ packages[distribution_full_id] |
-                                          selectattr('tier', 'in', ['all', tier]) |
-                                          selectattr('node_tier', 'in', ['all', node_tier]) | default([]) |
-                                          list }}"
 
 - name:                                "1.4 Packages: - Show packages"
   when:                                packages_for_tier is defined
