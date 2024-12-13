@@ -19,6 +19,11 @@
   ansible.builtin.set_fact:
     packages_for_specific_tier:        []
 
+- name:                                "1.4 Packages: - Debug - output packages for a specific tier"
+  ansible.builtin.debug:
+    msg:                               "{{ packages | selectattr(distribution_full_id, 'defined') }}"
+    verbosity:                         2
+
 # Analyse the package list for this distribution selecting only those
 # packages assigned to the active tier or 'all'. This is used for
 # distributions that have a specific package list.
