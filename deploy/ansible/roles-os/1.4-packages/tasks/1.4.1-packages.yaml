@@ -14,12 +14,10 @@
                                           selectattr('node_tier', 'in', ['all', node_tier]) |
                                           list }}"
 
-- name:                                "1.4 Packages: - Show packages for {{ tier }} on {{ distribution_id }}"
-  when:                                packages_for_tier is defined
-  ansible.builtin.debug:
-    msg:
-                                       - "Packages for {{ distribution_id }} : {{ packages_for_tier }}"
-    verbosity:                         2
+# Initialize packages_for_specific_tier with an empty list
+- name:                                "1.4 Packages: - Initialize specific tier packages"
+  ansible.builtin.set_fact:
+    packages_for_specific_tier:        []
 
 # Analyse the package list for this distribution selecting only those
 # packages assigned to the active tier or 'all'. This is used for
