@@ -31,12 +31,14 @@
 
 - name:                                "1.4 Packages: - Debug - output packages for a specific tier"
   ansible.builtin.debug:
-    msg: |
-                                       "- Distribution        : {{ distribution_id }}
-                                        - Distribution Full Id: {{ distribution_full_id }}
-                                        - Tier                : {{ tier }}
-                                        - Node Tier           : {{ node_tier }}
-                                        - Packages            : {{ packages_for_specific_tier }}"
+    msg:
+                                       - "Distribution        : {{ distribution_id }}"
+                                       - "Distribution Full Id: {{ distribution_full_id }}"
+                                       - "Tier                : {{ tier }}"
+                                       - "Node Tier           : {{ node_tier }}"
+                                       - "Packages            : {{ packages | selectattr(distribution_full_id, 'defined') }}"
+                                       - "Available keys: {{ packages.keys() | list }}"
+                                       - "Key exists: {{ distribution_full_id in packages }}"
     verbosity:                         2
 
 - name:                                "1.4 Packages - Debug - Fail here"
@@ -62,7 +64,7 @@
                                            map(attribute='package') |
                                            list }}"
         state:                         "{{ item.state }}"
-        disablerepo:                   "epel*"
+        # disablerepo:                   "epel*"
         skip_broken:                   true
         nobest:                        true
       register:                        package_result
@@ -106,7 +108,7 @@
                                           map(attribute='package') |
                                           list }}"
             state:                     "{{ item.state }}"
-            disablerepo:              "epel*"
+            # disablerepo:              "epel*"
             skip_broken:              true
             nobest:                   true
           register:                    package_result
@@ -152,7 +154,7 @@
                                            map(attribute='package') |
                                            list }}"
         state:                         "{{ item.state }}"
-        disablerepo:                   "epel*"
+        # disablerepo:                   "epel*"
         skip_broken:                   true
         nobest:                        true
       register:                        package_result
@@ -196,7 +198,7 @@
                                           map(attribute='package') |
                                           list }}"
             state:                     "{{ item.state }}"
-            disablerepo:               "epel*"
+            # disablerepo:               "epel*"
             skip_broken:               true
             nobest:                    true
           register:                    package_result
