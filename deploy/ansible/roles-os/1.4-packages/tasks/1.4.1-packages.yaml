@@ -36,13 +36,13 @@
                                         - Distribution Full Id: {{ distribution_full_id }}
                                         - Tier                : {{ tier }}
                                         - Node Tier           : {{ node_tier }}
-                                        - Packages            : {{ packages | selectattr(distribution_full_id, 'defined') }}"
+                                        - Packages            : {{ packages_for_specific_tier }}"
     verbosity:                         2
 
 - name:                                "1.4 Packages - Debug - Fail here"
   ansible.builtin.fail:
     msg:                               "No packages defined for {{ distribution_full_id }}"
-  when:                                packages | selectattr(distribution_full_id, "defined") | list | length == 0
+  when:                                packages_for_specific_tier | length == 0
 
 - name:                                "1.4 Packages: - Show packages"
   when:                                packages_for_tier is defined
