@@ -44,7 +44,7 @@ data "azurerm_storage_account" "storage_bootdiag" {
 
 resource "azurerm_private_endpoint" "storage_bootdiag" {
   provider                             = azurerm.main
-  count                                = var.use_private_endpoint && local.admin_subnet_defined && (length(var.diagnostics_storage_account.arm_id) == 0) ? 0 : 0
+  count                                = var.use_private_endpoint && local.admin_subnet_defined && (length(var.diagnostics_storage_account.arm_id) == 0) ? 1 : 0
   depends_on                           = [
                                            azurerm_subnet.app
                                          ]
