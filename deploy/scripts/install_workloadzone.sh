@@ -1126,7 +1126,10 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 	if [ -n "${workload_random_id}" ]; then
 		save_config_var "workload_random_id" "${workload_config_information}"
 		custom_random_id="${workload_random_id}"
-		save_config_var "custom_random_id" ${parameterfile}
+		sed -i -e "" -e /"custom_random_id"/d "${parameterfile}"
+		printf "custom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+
+
 	fi
 
 	resourceGroupName=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw created_resource_group_name | tr -d \")
