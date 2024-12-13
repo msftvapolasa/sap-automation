@@ -23,7 +23,7 @@ namespace SDAFWebApp.Services
     {
 
       string devops_authentication = Environment.GetEnvironmentVariable("AUTHENTICATION_TYPE");
-      string accountName = _configuration.GetConnectionString(_settings.ConnectionStringKey).Replace("blob", "table");
+      string accountName = _configuration.GetConnectionString(_settings.ConnectionStringKey).Replace("blob", "table").Replace(".privatelink","");
       DefaultAzureCredential creds = new DefaultAzureCredential(new DefaultAzureCredentialOptions
       {
         TenantId = Environment.GetEnvironmentVariable("AZURE_TENANT_ID"),
