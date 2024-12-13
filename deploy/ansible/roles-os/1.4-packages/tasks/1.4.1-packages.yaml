@@ -41,7 +41,7 @@
                                        - "Available keys      : {{ packages.keys() | list }}"
                                        - "Key exists 1        : {{ distribution_full_id in packages }}"
                                        - "Key exists 2        : {{ packages[distribution_full_id] is defined }}"
-    # verbosity:                         2
+    verbosity:                         2
 
 - name:                                "1.4 Packages - Debug - Fail here"
   ansible.builtin.fail:
