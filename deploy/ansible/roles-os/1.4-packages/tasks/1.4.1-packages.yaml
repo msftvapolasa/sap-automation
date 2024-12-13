@@ -23,6 +23,7 @@
 # packages assigned to the active tier or 'all'. This is used for
 # distributions that have a specific package list.
 - name:                                "1.4 Packages: - Determine packages appropriate for tier on: {{ distribution_full_id }}"
+  when:                                packages[distribution_full_id] is defined
   ansible.builtin.set_fact:
     packages_for_specific_tier:        "{{ packages[distribution_full_id] |
                                           selectattr('tier', 'in', ['all', tier]) |
@@ -38,7 +39,8 @@
                                        - "Node Tier           : {{ node_tier }}"
                                        - "Packages            : {{ packages | selectattr(distribution_full_id, 'defined') }}"
                                        - "Available keys      : {{ packages.keys() | list }}"
-                                       - "Key exists          : {{ distribution_full_id in packages }}"
+                                       - "Key exists 1        : {{ distribution_full_id in packages }}"
+                                       - "Key exists 2        : {{ packages[distribution_full_id] is defined }}"
     # verbosity:                         2
 
 - name:                                "1.4 Packages - Debug - Fail here"
