@@ -5,13 +5,25 @@
   ansible.builtin.debug:
     msg:                               "Installing packages for tier {{ tier }} on {{ distribution_id }}"
 
+# Analyse the package list for this distribution selecting only those
+# packages assigned to the active tier or 'all'.
 - name:                                "1.4 Packages: - Determine packages appropriate for tier on: {{ distribution_id }}"
   ansible.builtin.set_fact:
     packages_for_tier:                 "{{ packages[distribution_id] |
                                           selectattr('tier', 'in', ['all', tier]) |
-                                          selectattr('node_tier', 'in', ['all', node_tier]) | default([]) |
+                                          selectattr('node_tier', 'in', ['all', node_tier]) |
                                           list }}"
 
+- name:                                "1.4 Packages: - Show packages for {{ tier }} on {{ distribution_id }}"
+  when:                                packages_for_tier is defined
+  ansible.builtin.debug:
+    msg:
+                                       - "Packages for {{ distribution_id }} : {{ packages_for_tier }}"
+    verbosity:                         2
+
+# Analyse the package list for this distribution selecting only those
+# packages assigned to the active tier or 'all'. This is used for
+# distributions that have a specific package list.
 - name:                                "1.4 Packages: - Determine packages appropriate for tier on: {{ distribution_full_id }}"
   when:                                packages | selectattr(distribution_full_id, "defined") | list | length > 0
   ansible.builtin.set_fact:
