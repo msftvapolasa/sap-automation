@@ -21,8 +21,18 @@
 
 - name:                                "1.4 Packages: - Debug - output packages for a specific tier"
   ansible.builtin.debug:
-    msg:                               "{{ packages | selectattr(distribution_full_id, 'defined') }}"
+    msg: |
+                                       "- Distribution        : {{ distribution_id }}
+                                        - Distribution Full Id: {{ distribution_full_id }}
+                                        - Tier                : {{ tier }}
+                                        - Node Tier           : {{ node_tier }}
+                                        - Packages            : {{ packages | selectattr(distribution_full_id, 'defined') }}"
     verbosity:                         2
+
+- name:                                "1.4 Packages - Debug - Fail here"
+  ansible.builtin.fail:
+    msg:                               "No packages defined for {{ distribution_full_id }}"
+  when:                                packages | selectattr(distribution_full_id, "defined") | list | length == 0
 
 # Analyse the package list for this distribution selecting only those
 # packages assigned to the active tier or 'all'. This is used for
