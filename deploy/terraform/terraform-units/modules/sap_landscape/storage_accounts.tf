@@ -32,6 +32,7 @@ resource "azurerm_storage_account" "storage_bootdiag" {
   cross_tenant_replication_enabled     = false
   tags                                 = var.tags
   shared_access_key_enabled            = var.infrastructure.shared_access_key_enabled
+  public_network_access_enabled        = var.public_network_access_enabled
 
 }
 
