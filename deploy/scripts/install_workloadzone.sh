@@ -1029,7 +1029,10 @@ if [ 1 == $apply_needed ]; then
 				return_value=0
 			fi
 		else
-			return_value=$?
+			echo ""
+			echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+			echo ""
+			return_value=0
 		fi
 	else
 		# Using if so that no zero return codes don't fail -o errexit
@@ -1048,7 +1051,10 @@ if [ 1 == $apply_needed ]; then
 				return_value=0
 			fi
 		else
-			return_value=$?
+			echo ""
+			echo -e "${cyan}Terraform apply:                       succeeded$reset_formatting"
+			echo ""
+			return_value=0
 		fi
 	fi
 
