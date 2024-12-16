@@ -149,7 +149,7 @@ resource "azurerm_storage_account" "witness_storage" {
                                                     null
                                                   ),
                                                   length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null,
-                                                  length(var.agent_network_id) > 0 ? var.agent_network_id : null
+                                                  length(var.additional_network_id) > 0 ? var.additional_network_id : null
                                                   ]
                                                 ) : null
                   ip_rules                   = var.public_network_access_enabled ? compact([
@@ -286,7 +286,7 @@ resource "azurerm_storage_account" "transport" {
                                                     null
                                                   ),
                                                   length(local.deployer_subnet_management_id) > 0 ? local.deployer_subnet_management_id : null,
-                                                  length(var.agent_network_id) > 0 ? var.agent_network_id : null
+                                                  length(var.additional_network_id) > 0 ? var.additional_network_id : null
                                                   ]
                                                 ) : null
                   ip_rules                   = var.public_network_access_enabled ? compact([
@@ -440,8 +440,8 @@ resource "azurerm_storage_account" "install" {
                                            azurerm_subnet.app,
                                            azurerm_subnet.db,
                                            azurerm_subnet.web,
-                                           azurerm_virtual_network_peering.peering_agent_sap,
-                                           azurerm_virtual_network_peering.peering_sap_agent
+                                           azurerm_virtual_network_peering.peering_additional_network_sap,
+                                           azurerm_virtual_network_peering.peering_sap_additional_network
                                          ]
   name                                 = replace(
                                            lower(
