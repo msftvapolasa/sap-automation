@@ -38,6 +38,7 @@ resource "azurerm_virtual_network" "vnet_sap" {
   address_space                        = local.network_address_space
   flow_timeout_in_minutes              = local.network_flow_timeout_in_minutes
   tags                                 = var.tags
+  dns_servers                          = length(var.dns_settings.dns_server_list) > 0 ? var.dns_settings.dns_server_list : []
 }
 
 // Imports data of existing SAP VNET
