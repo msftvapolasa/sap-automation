@@ -76,7 +76,7 @@ stages:
         workspace:
           clean:                       all
         steps:
-          - task:                      PostBuildCleanup@3
+          - task:                      PostBuildCleanup@4
           - checkout:                  self
             persistCredentials:        true
             submodules:                true
@@ -183,7 +183,7 @@ stages:
 
                 az_var=$(az pipelines variable-group variable list --group-id ${VARIABLE_GROUP_ID} --query "${NETWORK}"Workload_Key_Vault.value | tr -d \")
                 if [ -z ${az_var} ]; then
-                  export workload_key_vault=$(cat "${environment_file_name}"  | grep workload_key_vault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
+                  export workload_key_vault=$(cat "${environment_file_name}"  | grep workloadkeyvault      | awk -F'=' '{print $2}' | xargs) ; echo 'Workload Key Vault' ${workload_key_vault}
                 else
                   export workload_key_vault=${az_var} ; echo 'Workload Key Vault' ${workload_key_vault}
                 fi
@@ -408,7 +408,7 @@ stages:
           parameters_folder:           $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.FOLDER'] ]
           DEPLOYMENT_REPO_PATH:        $[ stageDependencies.Preparation_for_Ansible.Preparation_step.outputs['Preparation.DEPLOYMENT_REPO_PATH'] ]
         steps:
-          - task:                      PostBuildCleanup@3
+          - task:                      PostBuildCleanup@4
           - script: |
               #!/bin/bash
               echo "nothing to do here right now"

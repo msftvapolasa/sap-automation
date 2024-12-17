@@ -54,7 +54,7 @@
       "source_image_id": "",
       "publisher": "RedHat",
       "offer": "RHEL-SAP-APPS",
-      "sku": "8_4",
+      "sku": "84sapapps-gen2",
       "version": "latest",
       "type": "marketplace"
     }
@@ -78,7 +78,7 @@
       "source_image_id": "",
       "publisher": "RedHat",
       "offer": "RHEL-SAP-APPS",
-      "sku": "8_6",
+      "sku": "86sapapps-gen2",
       "version": "latest",
       "type": "marketplace"
     }
@@ -96,13 +96,37 @@
     }
   },
   {
+    "name": "Red Hat 8.8",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
+      "offer": "RHEL-SAP-APPS",
+      "sku": "88sapapps-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Red Hat 8.8 HA",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
+      "offer": "RHEL-SAP-HA",
+      "sku": "88sapha-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
     "name": "Red Hat 9.0",
     "data": {
       "os_type": "LINUX",
       "source_image_id": "",
       "publisher": "RedHat",
       "offer": "RHEL-SAP-APPS",
-      "sku": "9_0",
+      "sku": "90sapapps-gen2",
       "version": "latest",
       "type": "marketplace"
     }
@@ -115,6 +139,30 @@
       "publisher": "RedHat",
       "offer": "RHEL-SAP-HA",
       "sku": "90sapha-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Red Hat 9.2",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
+      "offer": "RHEL-SAP-APPS",
+      "sku": "92sapapps-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Red Hat 9.2 HA",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "RedHat",
+      "offer": "RHEL-SAP-HA",
+      "sku": "92sapha-gen2",
       "version": "latest",
       "type": "marketplace"
     }
@@ -150,6 +198,30 @@
       "source_image_id": "",
       "publisher": "SUSE",
       "offer": "sles-sap-15-sp4",
+      "sku": "gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "SUSE 15 SP5",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "SUSE",
+      "offer": "sles-sap-15-sp5",
+      "sku": "gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "SUSE 15 SP6",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "SUSE",
+      "offer": "sles-sap-15-sp6",
       "sku": "gen2",
       "version": "latest",
       "type": "marketplace"
@@ -192,6 +264,30 @@
     }
   },
   {
+    "name": "OracleLinux 8.8",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "Oracle",
+      "offer": "Oracle-Linux",
+      "sku": "ol88-lvm-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "OracleLinux 8.9",
+    "data": {
+      "os_type": "LINUX",
+      "source_image_id": "",
+      "publisher": "Oracle",
+      "offer": "Oracle-Linux",
+      "sku": "ol89-lvm-gen2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
     "name": "Windows Server 2016",
     "data": {
       "os_type": "WINDOWS",
@@ -216,6 +312,18 @@
     }
   },
   {
+    "name": "Windows Server 2019-G2",
+    "data": {
+      "os_type": "WINDOWS",
+      "source_image_id": "",
+      "publisher": "MicrosoftWindowsServer",
+      "offer": "windowsserver",
+      "sku": "2019-datacenter-g2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
     "name": "Windows Server 2022",
     "data": {
       "os_type": "WINDOWS",
@@ -223,6 +331,30 @@
       "publisher": "MicrosoftWindowsServer",
       "offer": "windowsserver",
       "sku": "2022-datacenter",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Windows Server 2022-G2",
+    "data": {
+      "os_type": "WINDOWS",
+      "source_image_id": "",
+      "publisher": "MicrosoftWindowsServer",
+      "offer": "windowsserver",
+      "sku": "2022-datacenter-g2",
+      "version": "latest",
+      "type": "marketplace"
+    }
+  },
+  {
+    "name": "Windows Server 2022-G2",
+    "data": {
+      "os_type": "WINDOWS",
+      "source_image_id": "",
+      "publisher": "MicrosoftWindowsServer",
+      "offer": "windowsserver",
+      "sku": "2022-datacenter-g2",
       "version": "latest",
       "type": "marketplace"
     }

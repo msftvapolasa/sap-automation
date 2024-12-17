@@ -47,7 +47,6 @@ variable "web_sid" {
   default     = ""
 }
 
-
 variable "db_sid" {
   description = "Database SID"
   default     = ""
@@ -123,9 +122,19 @@ variable "database_high_availability" {
   default = false
 }
 
+variable "database_cluster_type" {
+  description   = "Cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI"
+  default       = "AFA"
+}
+
 variable "scs_high_availability" {
   type    = bool
   default = false
+}
+
+variable "scs_cluster_type" {
+  description   = "Cluster quorum type; AFA (Azure Fencing Agent), ASD (Azure Shared Disk), ISCSI"
+  default       = "AFA"
 }
 
 variable "use_zonal_markers" {
@@ -199,6 +208,8 @@ variable "region_mapping" {
     "francesouth"        = "frso"
     "germanynorth"       = "geno"
     "germanywestcentral" = "gewc"
+    "israelcentral"      = "isce"
+    "italynorth"         = "itno"
     "japaneast"          = "jaea"
     "japanwest"          = "jawe"
     "jioindiacentral"    = "jinc"
@@ -209,6 +220,7 @@ variable "region_mapping" {
     "northeurope"        = "noeu"
     "norwayeast"         = "noea"
     "norwaywest"         = "nowe"
+    "polandcentral"      = "plce"
     "qatarcentral"       = "qace"
     "southafricanorth"   = "sano"
     "southafricawest"    = "sawe"
@@ -249,10 +261,10 @@ variable "resource_prefixes" {
     "app_avset"                      = ""
     "app_subnet"                     = ""
     "app_subnet_nsg"                 = ""
-    "app_service_plan"                = ""
+    "app_service_plan"               = ""
     "bastion_host"                   = ""
     "bastion_pip"                    = ""
-    "cluster_disk"                   = ""
+    "database_cluster_disk"          = ""
     "db_alb"                         = ""
     "db_alb_bepool"                  = ""
     "db_alb_feip"                    = ""
@@ -305,6 +317,7 @@ variable "resource_prefixes" {
     "sapbits"                        = ""
     "sapmnt"                         = ""
     "sapmnt_smb"                     = ""
+    "storage_privatelink_hanashared" = ""
     "storage_private_link_diag"      = ""
     "storage_private_svc_diag"       = ""
     "storage_private_link_install"   = ""
@@ -331,6 +344,7 @@ variable "resource_prefixes" {
     "scs_clst_feip"                  = ""
     "scs_clst_rule"                  = ""
     "scs_clst_hp"                    = ""
+    "scs_cluster_disk"               = ""
     "scs_ers_feip"                   = ""
     "scs_ers_hp"                     = ""
     "scs_ers_rule"                   = ""
@@ -339,6 +353,7 @@ variable "resource_prefixes" {
     "scs_fs_rule"                    = ""
     "scs_scs_rule"                   = ""
     "sdu_rg"                         = ""
+    "sdu_secret"                     = ""
     "tfstate"                        = ""
     "transport_volume"               = ""
     "vm"                             = ""
@@ -358,6 +373,8 @@ variable "resource_prefixes" {
     "witness"                        = ""
     "witness_accesskey"              = ""
     "witness_name"                   = ""
+    "ams_subnet"                     = ""
+    "nat_gateway"                    = ""
   }
 }
 
@@ -381,7 +398,7 @@ variable "resource_suffixes" {
     "app_subnet_nsg"                 = "appSubnet-nsg"
     "bastion_host"                   = "bastion-host"
     "bastion_pip"                    = "bastion-pip"
-    "cluster_disk"                   = "cluster-disks"
+    "database_cluster_disk"          = "db-cluster-disk"
     "db_alb"                         = "db-alb"
     "db_alb_bepool"                  = "dbAlb-bePool"
     "db_alb_feip"                    = "dbAlb-feip"
@@ -415,6 +432,7 @@ variable "resource_suffixes" {
     "hanadata"                       = "hanadata"
     "hanalog"                        = "hanalog"
     "hanashared"                     = "hanashared"
+    "hanasharedafs"                  = "hanashared"
     "install_volume"                 = "install"
     "install_volume_smb"             = "install-smb"
     "iscsi_subnet"                   = "iscsi-subnet"
@@ -435,6 +453,7 @@ variable "resource_suffixes" {
     "sapbits"                        = "sapbits"
     "sapmnt"                         = "sapmnt"
     "sapmnt_smb"                     = "sapmnt-smb"
+    "storage_privatelink_hanashared" = "-hanashared-storage-private-endpoint"
     "storage_private_link_diag"      = "-diag-storage-private-endpoint"
     "storage_private_svc_diag"       = "-diag-storage-private-service"
     "storage_private_link_install"   = "-install-storage-private-endpoint"
@@ -450,8 +469,8 @@ variable "resource_suffixes" {
     "storage_private_link_witness"   = "-witness-storage-private-endpoint"
     "storage_private_svc_witness"    = "-witness-storage-private-service"
     "storage_nic"                    = "-storage-nic"
-    "storage_subnet"                 = "_storage-subnet"
-    "storage_subnet_nsg"             = "_storageSubnet-nsg"
+    "storage_subnet"                 = "storage-subnet"
+    "storage_subnet_nsg"             = "storageSubnet-nsg"
     "scs_alb"                        = "scs-alb"
     "scs_alb_bepool"                 = "scsAlb-bePool"
     "scs_alb_feip"                   = "scsAlb-feip"
@@ -461,6 +480,7 @@ variable "resource_suffixes" {
     "scs_clst_feip"                  = "scsClst-feip"
     "scs_clst_rule"                  = "scsClst-rule"
     "scs_clst_hp"                    = "scsClst-hp"
+    "scs_cluster_disk"               = "scs-cluster-disk"
     "scs_ers_feip"                   = "scsErs-feip"
     "scs_ers_hp"                     = "scsErs-hp"
     "scs_ers_rule"                   = "scsErs-rule"
@@ -469,6 +489,7 @@ variable "resource_suffixes" {
     "scs_fs_rule"                    = "scsFs-rule"
     "scs_scs_rule"                   = "scsScs-rule"
     "sdu_rg"                         = ""
+    "sdu_secret"                     = ""
     "tfstate"                        = "tfstate"
     "transport_volume"               = "transport"
     "usrsap"                         = "usrsap"
@@ -489,6 +510,9 @@ variable "resource_suffixes" {
     "witness"                        = "-witness"
     "witness_accesskey"              = "-witness-accesskey"
     "witness_name"                   = "-witness-name"
+    "ams_subnet"                     = "ams-subnet"
+    "ams_instance"                   = "-AMS"
+    "nat_gateway"                    = "-nat-gateway"
   }
 }
 
@@ -537,4 +561,9 @@ variable "deployer_location" {
 variable "utility_vm_count" {
   type    = number
   default = 0
+}
+
+variable "scale_out" {
+  type    = bool
+  default = false
 }

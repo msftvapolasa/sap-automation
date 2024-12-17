@@ -65,7 +65,7 @@
   register:                            oracle_installed
 
 - name:                                "ORACLE: Install RPM Packages"
-  ansible.builtin.yum:
+  ansible.builtin.dnf:
     name:                              "{{ target_media_location }}/downloads/compat-libcap1-1.10-7.el7.x86_64.rpm"
     state:                             present
     disable_gpg_check:                 true
@@ -270,14 +270,19 @@
     - name:                            "ORACLE: Find MOPatch"
       ansible.builtin.fail:
         msg:                           "Too many MOPatches found"
-      when:                            mopatch_directory.matched != 1
+      when:                            mopatch_directory.matched > 1
+
+    - name:                            "ORACLE: Find MOPatch"
+      ansible.builtin.fail:
+        msg:                           "No MOPatches found"
+      when:                            mopatch_directory.matched == 0
 
     - name:                            "ORACLE: MOPatch path"
       ansible.builtin.set_fact:
         mopatch_path:                  "{{ mopatch_directory.files[0].path }}"
       when:                            mopatch_directory.matched == 1
 
-    - name:                            "ORACLE: Check if 'OPatch.bck' exists"
+    - name:                            "ORACLE: Check if 'OPatch.bck' exists in /oracle/{{ db_sid | upper }}/{{ ora_version }}"
       ansible.builtin.stat:
         path:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch.bck
       register:                        opatch_stat
@@ -291,14 +296,14 @@
       when:
         - not opatch_stat.stat.exists
 
-    - name:                            "ORACLE: remove old OPatch"
+    - name:                            "ORACLE: remove old OPatch from /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch "
       ansible.builtin.file:
         path:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}/OPatch
         state:                         absent
       when:
         - not opatch_stat.stat.exists
 
-    - name:                            "ORACLE: copy OPatch"
+    - name:                            "ORACLE: copy OPatch from {{ target_media_location }}/SBP/OPATCH/OPatch to /oracle/{{ db_sid | upper }}/{{ ora_version }}"
       # become:                              true
       # become_user:                         "oracle"
       ansible.builtin.copy:
@@ -309,9 +314,7 @@
         owner:                         oracle
         group:                         oinstall
 
-    - name:                            "ORACLE: copy MOPatch"
-      # become:                              true
-      # become_user:                         "oracle"
+    - name:                            "ORACLE: copy MOPatch from {{ mopatch_path }} to /oracle/{{ db_sid | upper }}/{{ ora_version }}"
       ansible.builtin.copy:
         src:                           "{{ mopatch_path }}"
         dest:                          /oracle/{{ db_sid | upper }}/{{ ora_version }}
@@ -330,7 +333,7 @@
 
     - name:                            "ORACLE: Post Processing - SBP Patching - progress"
       ansible.builtin.debug:
-        msg:                           "Running SBP Patching, please wait"
+        msg:                           "Running SBP Patching using ({{ oracle_sbp_patch }}), please wait"
 
     - name:                            "ORACLE: Post Processing - SBP Patching"
       become:                          true
@@ -426,22 +429,17 @@
     - name:                            "ORACLE: Successful installation"
       block:
         - name:                        "Retrieve Subscription ID and Resource Group Name"
-          ansible.builtin.command:     curl -H Metadata:true --noproxy "*" "http://169.254.169.254/metadata/instance?api-version=2021-02-01"
-          register:                    azure_metadata
-          no_log:                      true
-          changed_when:                false
-          args:
-            warn:                      false
-
-        - name:                        "ORACLE: Save the Json data to a Variable as a Fact"
-          ansible.builtin.set_fact:
-            json_azure_data:           "{{ azure_metadata.stdout | from_json }}"
-          no_log:                      true
+          ansible.builtin.uri:
+            url:                       http://169.254.169.254/metadata/instance?api-version=2021-02-01
+            use_proxy:                 false
+            headers:
+              Metadata:                true
+          register: azure_metadata
 
         - name:                        "ORACLE: Extract details"
           ansible.builtin.set_fact:
-            subscription_id:           "{{ json_azure_data | json_query('compute.subscriptionId') }}"
-            resource_group_name:       "{{ json_azure_data | json_query('compute.resourceGroupName') }}"
+            subscription_id:           "{{ azure_metadata.json.compute.subscriptionId }}"
+            resource_group_name:       "{{ azure_metadata.json.compute.resourceGroupName }}"
 
         - name:                        "ORACLE: Show the subscription and resource group"
           ansible.builtin.debug:

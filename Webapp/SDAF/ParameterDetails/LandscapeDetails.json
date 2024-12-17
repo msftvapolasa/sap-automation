@@ -1,7 +1,7 @@
 [
   {
     "Section": "Set as default",
-    "Link": "https://review.docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/configure-workload-zone",
     "Parameters": [
       {
         "Name": "IsDefault",
@@ -15,7 +15,7 @@
   },
   {
     "Section": "Subscription *",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone",
     "Parameters": [
       {
         "Name": "subscription",
@@ -35,7 +35,7 @@
   },
   {
     "Section": "Environment",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#resource-group-parameters",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#environment-parameters",
     "Parameters": [
       {
         "Name": "environment",
@@ -86,9 +86,27 @@
         "Display": 1
       },
       {
+        "Name": "Description",
+        "Required": false,
+        "Description": "Workload zone description.",
+        "Type": "textbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
+        "Name": "LastModified",
+        "Required": false,
+        "Description": "System definition was modified on.",
+        "Type": "textbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 1
+      },
+      {
         "Name": "save_naming_information",
         "Required": false,
-        "Description": "If defined, will create a naming information json file for the resources, see <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming-module#provide-name-overrides-using-a-json-file' target='_blank' rel='noopener noreferrer'>custom naming</a>.",
+        "Description": "If defined, will create a naming information json file for the resources, see <a href='https://learn.microsoft.com/en-us/azure/sap/automation/automation-naming-module#provide-name-overrides-using-a-json-file' target='_blank' rel='noopener noreferrer'>custom naming</a>.",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
@@ -97,21 +115,89 @@
       {
         "Name": "name_override_file",
         "Required": false,
-        "Description": "If provided,defines a json formatted file defining the name overrides, see <a href='https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-naming-module#provide-name-overrides-using-a-json-file' target='_blank' rel='noopener noreferrer'>custom naming</a>.",
+        "Description": "If provided,defines a json formatted file defining the name overrides, see <a href='https://learn.microsoft.com/en-us/azure/sap/automation/automation-naming-module#provide-name-overrides-using-a-json-file' target='_blank' rel='noopener noreferrer'>custom naming</a>.",
         "Type": "field",
         "Options": [],
         "Overrules": "",
         "Display": 2
       },
       {
+        "Name": "prevent_deletion_if_contains_resources",
+        "Required": false,
+        "Description": "Prevent deletion of resource group if there are Resources left within the Resource Group during deletion",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }
+    ]
+  },
+  {
+    "Section": "Infrastructure settings",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#environment-parameters",
+    "Parameters": [
+      {
         "Name": "place_delete_lock_on_resources",
         "Required": false,
-        "Description": " If defined, a delete lock will be placed on the key resources (virtual network and key vault)",
+        "Description": "If defined, a delete lock will be placed on the key resources (virtual network and key vault)",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
         "Display": 2
       },
+      {
+        "Name": "use_spn",
+        "Required": false,
+        "Description": "If set, the deployment is performed using the Service Principal defined for the workload zone, otherwise the managed identity of the deployer is used",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "shared_access_key_enabled",
+        "Required": false,
+        "Description": "Storage account authorization using Shared Access Key.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+
+      {
+        "Name": "shared_access_key_enabled_nfs",
+        "Required": false,
+        "Description": "Storage account authorization using Shared Access Key (NFS shares).",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "install_always_create_fileshares",
+        "Required": false,
+        "Description": "Indicating if file shares are created when using existing storage accounts.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+
+      {
+        "Name": "install_create_smb_shares",
+        "Required": false,
+        "Description": "Indicating if SMB shares should be created.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }
+    ]
+  },
+  {
+    "Section": "Resource Group",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/configure-workload-zone#resource-group-parameters",
+    "Parameters": [
       {
         "Name": "resourcegroup_name",
         "Required": false,
@@ -134,12 +220,21 @@
         ],
         "Overrules": "resourcegroup_name",
         "Display": 3
+      },
+      {
+        "Name": "tags",
+        "Required": false,
+        "Description": "Defines a list of tags to be applied to all resources",
+        "Type": "tag",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
     ]
   },
   {
     "Section": "Credentials",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-plan-deployment#sap-and-virtual-machine-credentials-management",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-plan-deployment#sap-and-virtual-machine-credentials-management",
     "Parameters": [
       {
         "Name": "automation_username",
@@ -181,7 +276,7 @@
   },
   {
     "Section": "Network",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#network-parameters",
     "Parameters": [
       {
         "Name": "network_logical_name",
@@ -259,13 +354,21 @@
         "Options": [],
         "Overrules": "",
         "Display": 2
+      },
+      {
+        "Name": "public_network_access_enabled",
+        "Required": false,
+        "Description": "Defines if public access is allowed for the storage accounts and key vaults",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
       }
-
     ]
   },
   {
     "Section": "Admin subnet",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-system#network-parameters",
     "Parameters": [
       {
         "Name": "admin_subnet_name",
@@ -326,7 +429,7 @@
   },
   {
     "Section": "Database subnet",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-system#network-parameters",
     "Parameters": [
       {
         "Name": "db_subnet_name",
@@ -387,7 +490,7 @@
   },
   {
     "Section": "Application subnet",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-system#network-parameters",
     "Parameters": [
       {
         "Name": "app_subnet_name",
@@ -448,7 +551,7 @@
   },
   {
     "Section": "Web subnet",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-system?branch=main#network-parameters",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-system#network-parameters",
     "Parameters": [
       {
         "Name": "web_subnet_name",
@@ -508,8 +611,8 @@
     ]
   },
   {
-    "Section": "ISCSI subnet",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#iscsi-parameters",
+    "Section": "iSCSI subnet",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#iscsi-parameters",
     "Parameters": [
       {
         "Name": "iscsi_subnet_arm_id",
@@ -542,13 +645,7 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
-      }
-    ]
-  },
-  {
-    "Section": "ISCSI subnet network security group",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#iscsi-parameters",
-    "Parameters": [
+      },
       {
         "Name": "iscsi_subnet_nsg_arm_id",
         "Required": false,
@@ -575,8 +672,69 @@
     ]
   },
   {
+    "Section": "Azure Monitor subnet",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone",
+    "Parameters": [
+      {
+        "Name": "ams_subnet_arm_id",
+        "Required": false,
+        "Description": "Specifies Azure resource identifier for the existing subnet for the ams subnet",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "ams_subnet_address_prefix",
+        "Display": 2
+      },
+      {
+        "Name": "ams_subnet_address_prefix",
+        "Required": false,
+        "Description": "Defines the subnet address range for the ams subnet.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ams_subnet_name",
+        "Required": false,
+        "Description": "Should only be used if the default naming is not acceptable.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ams_subnet_nsg_arm_id",
+        "Required": false,
+        "Description": "Specifies Azure resource identifier for the existing network security group to use.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "ams_subnet_nsg_name",
+        "Display": 2
+      },
+      {
+        "Name": "ams_subnet_nsg_name",
+        "Required": false,
+        "Description": "Should only be used if the default naming is not acceptable for the network security group name",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }
+    ]
+  },
+  {
     "Section": "ANF subnet",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#network-parameters",
     "Parameters": [
       {
         "Name": "anf_subnet_address_prefix",
@@ -609,13 +767,7 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
-      }
-    ]
-  },
-  {
-    "Section": "ANF subnet network security group",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#network-parameters",
-    "Parameters": [
+      },
       {
         "Name": "anf_subnet_nsg_arm_id",
         "Required": false,
@@ -642,8 +794,154 @@
     ]
   },
   {
+    "Section": "Storage subnet",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone",
+    "Parameters": [
+      {
+        "Name": "storage_subnet_arm_id",
+        "Required": false,
+        "Description": "Specifies Azure resource identifier for the existing subnet for the storage subnet",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "storage_subnet_address_prefix",
+        "Display": 2
+      },
+      {
+        "Name": "storage_subnet_address_prefix",
+        "Required": false,
+        "Description": "Defines the subnet address range for the storage subnet.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "storage_subnet_name",
+        "Required": false,
+        "Description": "Should only be used if the default naming is not acceptable.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "storage_subnet_nsg_arm_id",
+        "Required": false,
+        "Description": "Specifies Azure resource identifier for the existing network security group to use.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "storage_subnet_nsg_name",
+        "Display": 2
+      },
+      {
+        "Name": "storage_subnet_nsg_name",
+        "Required": false,
+        "Description": "Should only be used if the default naming is not acceptable for the network security group name",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }
+    ]
+  },
+  {
+    "Section": "Azure keyvault support",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#key-vault-parameters",
+    "Parameters": [
+      {
+        "Name": "user_keyvault_id",
+        "Required": false,
+        "Description": "Specifies the Azure resource identifier for an existing key vault designed to host secrets for the administrative users.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "spn_keyvault_id",
+        "Required": false,
+        "Description": "Specifies the Azure resource identifier for an existing key vault. Designed to host the deployment credentials used by the automation.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "enable_purge_control_for_keyvaults",
+        "Required": false,
+        "Description": "Disables the purge protection for Azure key vaults",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "additional_users_to_add_to_keyvault_policies",
+        "Required": false,
+        "Description": "Additional users (object IDs) to add to the key vault policies.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+
+      {
+        "Name": "enable_rbac_authorization_for_keyvault",
+        "Required": false,
+        "Description": "Controls the access policy model for the workload zone keyvault",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "soft_delete_retention_days",
+        "Required": false,
+        "Description": "The number of days that items should be retained in the soft delete period",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "set_secret_expiry",
+        "Required": false,
+        "Description": "Sets expiry date for secrets",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }
+    ]
+  },
+  {
     "Section": "DNS",
-    "Link": "",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/configure-workload-zone#dns-support",
     "Parameters": [
       {
         "Name": "dns_label",
@@ -657,7 +955,7 @@
       {
         "Name": "dns_server_list",
         "Required": false,
-        "Description": "Boolean value indicating if a custom dns record should be created for the storage account",
+        "Description": "List of IP addresses to add as DNS servers",
         "Type": "list",
         "Options": [
           {
@@ -667,10 +965,29 @@
         ],
         "Overrules": "",
         "Display": 3
-      },{
+      },
+      {
         "Name": "use_custom_dns_a_registration",
         "Required": false,
         "Description": "Boolean value indicating if custom dns registration is used",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "register_virtual_network_to_dns",
+        "Required": false,
+        "Description": "Defines if the Virtual network and the load balancers are registered with DNS",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "register_endpoints_with_dns",
+        "Required": false,
+        "Description": "Defines if the Private Endpoints are registered with DNS",
         "Type": "checkbox",
         "Options": [],
         "Overrules": "",
@@ -693,12 +1010,30 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
+      },
+      {
+        "Name": "privatelink_dns_subscription_id",
+        "Required": false,
+        "Description": "Subscription for the DNS zone containing the PrivateLink resources, if different from the management subscription",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "privatelink_dns_resourcegroup_name",
+        "Required": false,
+        "Description": "Resource group for the DNS zone containing the PrivateLink resources, if different from the SAP Library resource group",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
       }
     ]
   },
   {
     "Section": "NFS support",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#nfs-support",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#nfs-support",
     "Parameters": [
       {
         "Name": "NFS_provider",
@@ -727,6 +1062,24 @@
         "Display": 1
       },
       {
+        "Name": "use_AFS_for_shared_storage",
+        "Required": false,
+        "Description": "Defines if shared media is shared from Azure Files when using Azure NetApp Files for data.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "create_transport_storage",
+        "Required": false,
+        "Description": "Defines if the workload zone will host storage for the transport data.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "transport_volume_size",
         "Required": false,
         "Description": "Defines the size of the transport volume.",
@@ -739,7 +1092,7 @@
   },
   {
     "Section": "ANF Support",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#azure-netapp-files-support",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#azure-netapp-files-support",
     "Parameters": [
       {
         "Name": "ANF_account_name",
@@ -836,6 +1189,32 @@
         "Display": 3
       },
       {
+        "Name": "ANF_transport_volume_zone",
+        "Required": false,
+        "Description": "Azure NetApp transport volume availability zone.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "1",
+            "Value": "1"
+          },
+          {
+            "Text": "2",
+            "Value": "2"
+          },
+          {
+            "Text": "3",
+            "Value": "3"
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
         "Name": "ANF_install_volume_throughput",
         "Required": false,
         "Description": "The throughput in MB/s for the install volume.",
@@ -843,59 +1222,28 @@
         "Options": [],
         "Overrules": "",
         "Display": 3
-      }
-    ]
-  },
-  {
-    "Section": "Azure keyvault support",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#key-vault-parameters",
-    "Parameters": [
-      {
-        "Name": "user_keyvault_id",
-        "Required": false,
-        "Description": "Specifies the Azure resource identifier for an existing key vault designed to host secrets for the administrative users.",
-        "Type": "lookup",
-        "Options": [
-          {
-            "Text": "",
-            "Value": ""
-          }
-        ],
-        "Overrules": "",
-        "Display": 3
       },
       {
-        "Name": "spn_keyvault_id",
+        "Name": "ANF_install_volume_zone",
         "Required": false,
-        "Description": "Specifies the Azure resource identifier for an existing key vault. Designed to host the deployment credentials used by the automation.",
-        "Type": "lookup",
-        "Options": [
-          {
-            "Text": "",
-            "Value": ""
-          }
-        ],
-        "Overrules": "",
-        "Display": 3
-      },
-      {
-        "Name": "enable_purge_control_for_keyvaults",
-        "Required": false,
-        "Description": "Disables the purge protection for Azure key vaults",
-        "Type": "checkbox",
-        "Options": [],
-        "Overrules": "",
-        "Display": 3
-      },
-      {
-        "Name": "additional_users_to_add_to_keyvault_policies",
-        "Required": false,
-        "Description": "Additional users (object IDs) to add to the key vault policies.",
+        "Description": "Azure NetApp install volume availability zone.",
         "Type": "list",
         "Options": [
           {
             "Text": "",
             "Value": ""
+          },
+          {
+            "Text": "1",
+            "Value": "1"
+          },
+          {
+            "Text": "2",
+            "Value": "2"
+          },
+          {
+            "Text": "3",
+            "Value": "3"
           }
         ],
         "Overrules": "",
@@ -904,8 +1252,229 @@
     ]
   },
   {
+    "Section": "iSCSI support",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/configure-workload-zone#iscsi-parameters",
+    "Parameters": [
+      {
+        "Name": "iscsi_count",
+        "Required": false,
+        "Description": "The number of iSCSI virtual machines.",
+        "Type": "field",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "iscsi_size",
+        "Required": false,
+        "Description": "Size of iSCSI Virtual Machines to be created.",
+        "Type": "field",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "iscsi_useDHCP",
+        "Required": false,
+        "Description": "Controls whether to use dynamic IP addresses provided by the Azure subnet",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "iscsi_image_offering",
+        "Required": false,
+        "Description": "Defines the Virtual Machine image for the iSCSI devices.",
+        "Type": "image_dropdown",
+        "Options": [],
+        "Overrules": "iscsi_image",
+        "Display": 3
+      },
+      {
+        "Name": "iscsi_image",
+        "Required": false,
+        "Description": "Defines the Virtual Machine image for the iSCSI devices.",
+        "Type": "image",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "iscsi_authentication_type",
+        "Required": false,
+        "Description": "Defines the Virtual Machine authentication type for the iSCSI devices.",
+        "Type": "field",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "iscsi_authentication_username",
+        "Required": false,
+        "Description": "Defines the username for the iSCSI devices.",
+        "Type": "field",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "iscsi_nic_ips",
+        "Required": false,
+        "Description": "Defines the IP Addresses for the iSCSI devices.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "iscsi_vm_zones",
+        "Required": false,
+        "Description": "Defines the Availability zones for the iSCSI devices.",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "1",
+            "Value": "1"
+          },
+          {
+            "Text": "2",
+            "Value": "2"
+          },
+          {
+            "Text": "3",
+            "Value": "3"
+          }
+        ],
+        "Overrules": "",
+        "Display": 3
+      }
+    ]
+  },
+  {
+    "Section": "Common Virtual Machine settings",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/configure-workload-zone#vm-parameters",
+    "Parameters": [
+      {
+        "Name": "user_assigned_identity_id",
+        "Required": false,
+        "Description": "Azure resource identifier for User assigned identity.",
+        "Type": "lookup",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "deploy_monitoring_extension",
+        "Required": false,
+        "Description": "If defined, will add the Microsoft.Azure.Monitor.AzureMonitorLinuxAgent extension to the virtual machines",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "deploy_defender_extension",
+        "Required": false,
+        "Description": "If defined, will add the Microsoft.Azure.Security.Monitoring extension to the virtual machines",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "patch_mode",
+        "Required": false,
+        "Description": "Defines the patching mode for the Virtual Machines.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "ImageDefault (Linux)",
+            "Value": "ImageDefault"
+          },
+          {
+            "Text": "Manual (Windows)",
+            "Value": "Manual"
+          },
+          {
+            "Text": "AutomaticByOS (Windows)",
+            "Value": "AutomaticByOS"
+          },
+          {
+            "Text": "AutomaticByPlatform (Azure Orchestrated patching)",
+            "Value": "AutomaticByPlatform"
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "patch_assessment_mode",
+        "Required": false,
+        "Description": "Specifies the mode of VM Guest Patching for the Virtual Machine.",
+        "Type": "lookup",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "ImageDefault",
+            "Value": "ImageDefault"
+          },
+          {
+            "Text": "AutomaticByPlatform (Azure Orchestrated patching)",
+            "Value": "AutomaticByPlatform"
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      }
+
+
+    ]
+  },
+  {
     "Section": "Utility VM",
-    "Link": "",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/configure-workload-zone#utility-vm-parameters",
     "Parameters": [
       {
         "Name": "utility_vm_count",
@@ -920,6 +1489,24 @@
         "Name": "utility_vm_size",
         "Required": false,
         "Description": "Defines the size for the utility virtual machine. Default size is Standard_D4ds_v4.",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "utility_vm_os_disk_size",
+        "Required": false,
+        "Description": "Defines the size of the OS disk for the Virtual Machine. Default size is 128",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 3
+      },
+      {
+        "Name": "utility_vm_os_disk_type",
+        "Required": false,
+        "Description": "Defines the type of the OS disk for the Virtual Machine. Default size is Premium_LRS.",
         "Type": "field",
         "Options": [],
         "Overrules": "",
@@ -973,9 +1560,9 @@
       }
     ]
   },
- {
+  {
     "Section": "Storage Accounts",
-    "Link": "https://docs.microsoft.com/en-us/azure/virtual-machines/workloads/sap/automation-configure-workload-zone?branch=main#azure-files-nfs-support",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/automation-configure-workload-zone#azure-files-nfs-support",
     "Parameters": [
       {
         "Name": "install_volume_size",
@@ -1089,5 +1676,125 @@
         "Display": 3
       }
     ]
+  },
+  {
+    "Section": "Azure Monitor Settings",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/configure-workload-zone#utility-vm-parameters",
+    "Parameters": [
+      {
+        "Name": "create_ams_instance",
+        "Required": false,
+        "Description": "Defines if an AMS Instance should be created.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ams_instance_name",
+        "Required": false,
+        "Description": "Defines the name of the AMS instance",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "ams_laws_arm_id",
+        "Required": false,
+        "Description": "Defines the Azure resource id for the Log analytics workspace in AMS",
+        "Type": "lookup",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }
+    ]
+  },
+  {
+    "Section": "NAT Gateway",
+    "Link": "https://learn.microsoft.com/en-us/azure/sap/automation/configure-workload-zone#dns-support",
+    "Parameters": [
+      {
+        "Name": "deploy_nat_gateway",
+        "Required": false,
+        "Description": "Defines if a NAT gateway will be created.",
+        "Type": "checkbox",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "nat_gateway_name",
+        "Required": false,
+        "Description": "The name of the NAT Gateway",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "nat_gateway_arm_id",
+        "Required": false,
+        "Description": "Defines the Azure resource id for the NAT gateway",
+        "Type": "lookup",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "nat_gateway_public_ip_zones",
+        "Required": false,
+        "Description": "Defines the zones for the NAT Gateway public IP",
+        "Type": "list",
+        "Options": [
+          {
+            "Text": "",
+            "Value": ""
+          },
+          {
+            "Text": "1",
+            "Value": "1"
+          },
+          {
+            "Text": "2",
+            "Value": "2"
+          },
+          {
+            "Text": "3",
+            "Value": "3"
+          }
+        ],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "nat_gateway_public_ip_arm_id",
+        "Required": false,
+        "Description": "Azure resource id for the NAT Gateway public IP",
+        "Type": "lookup",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "nat_gateway_idle_timeout_in_minutes",
+        "Required": false,
+        "Description": "The idle timeout in minutes for the NAT Gateway",
+        "Type": "field",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      },
+      {
+        "Name": "nat_gateway_public_ip_tags",
+        "Required": false,
+        "Description": "Defines a list of tags for the NAT Gateway public IP",
+        "Type": "tag",
+        "Options": [],
+        "Overrules": "",
+        "Display": 2
+      }
+    ]
   }
+
 ]

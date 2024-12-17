@@ -31,13 +31,13 @@
 
 - name:                                'WIN: Calculating the domain\service account names'
   ansible.builtin.set_fact:
-    domain_sqlsvc_account:            '{{ domain | upper }}\{{ win_sql_svc_account }}'
-    domain_sqlagent_account:          '{{ domain | upper }}\{{ win_sqlagent_svc_account }}'
+    domain_sqlsvc_account:            '{{ win_sql_svc_account }}@{{ domain_name }}'
+    domain_sqlagent_account:          '{{ win_sqlagent_svc_account }}@{{ domain_name }}'
   when:
     - domain is defined
 
 
-- name:                                "WIN: Joining the domain {{ domain }}"
+- name:                                "WIN: Information {{ domain }}"
   ansible.builtin.debug:
     msg:
       - "Domain:                       {{ domain_name }}"
@@ -72,25 +72,6 @@
     - Bypass_traverse_checking
     - Lock_pages_in_memory
 
-# - name:                                "Grant required privileges to the SQL Server account"
-#   become:                              true
-#   become_method:                       'runas'
-#   become_user:                         '{{ orchestration_ansible_user }}'
-#   ansible.windows.win_user_right:
-#     name:                              '{{ privilege_constant }}'
-#     users:                             '{{ domain_sqlsvc_account }}'
-#     action:                            add
-#   loop:
-#     - SeServiceLogonRight
-#     - SeAssignPrimaryTokenPrivilege
-#     - SeChangeNotifyPrivilege
-#     - SeIncreaseQuotaPrivilege
-#     - SeIncreaseWorkingSetPrivilege
-#     - SeManageVolumePrivilege
-#     - SeLockMemoryPrivilege
-#   loop_control:
-#     loop_var:                         privilege_constant
-
 - name:                                "Grant required privileges to the SQL Server agent account"
   ansible.windows.win_dsc:
     resource_name:                     UserRightsAssignment
@@ -102,28 +83,12 @@
     - Modify_an_object_label
     - Adjust_memory_quotas_for_a_process
 
-# - name:                                "Grant required privileges to the SQL Server agent account"
-#   become:                              true
-#   become_method:                       'runas'
-#   become_user:                         '{{ orchestration_ansible_user }}'
-#   ansible.windows.win_user_right:
-#     name:                              '{{ privilege_constant }}'
-#     users:                             '{{ domain_sqlagent_account }}'
-#     action:                            add
-#   loop:
-#     - SeServiceLogonRight
-#     - SeAssignPrimaryTokenPrivilege
-#     - SeChangeNotifyPrivilege
-#     - SeIncreaseQuotaPrivilege
-#   loop_control:
-#     loop_var:                         privilege_constant
-
 - name:                                "Add SPNs for SQL Server"
   ansible.windows.win_shell: |
-    'setspn -A MSSQLSvc/{{ mssql_primary_node }}.{{ domain_name }} {{ domain_sqlsvc_account }}'
-    'setspn -A MSSQLSvc/{{ mssql_primary_node }}.{{ domain_name }}:1433 {{ domain_sqlsvc_account }}'
-    'setspn -A MSSQLSvc/{{ mssql_secondary_node }}.{{ domain_name }} {{ domain_sqlsvc_account }}'
-    'setspn -A MSSQLSvc/{{ mssql_secondary_node }}.{{ domain_name }}:1433 {{ domain_sqlsvc_account }}'
+    'setspn -A MSSQLSvc/{{ mssql_primary_node }}.{{ domain_name }} {{ domain | upper  }}\{{ win_sql_svc_account }}'
+    'setspn -A MSSQLSvc/{{ mssql_primary_node }}.{{ domain_name }}:1433 {{ domain | upper  }}\{{ win_sql_svc_account }}'
+    'setspn -A MSSQLSvc/{{ mssql_secondary_node }}.{{ domain_name }} {{ domain | upper  }}\{{ win_sql_svc_account }}'
+    'setspn -A MSSQLSvc/{{ mssql_secondary_node }}.{{ domain_name }}:1433 {{ domain | upper  }}\{{ win_sql_svc_account }}'
 
 - name:                                "Convert SQL Server service from running with local account to domain account"
   ansible.windows.win_service:
@@ -175,9 +140,9 @@
     PsDscRunAsCredential_password:     "{{ domain_service_password }}"
   loop:
     - "{{ win_cluster_svc_account }}"
-    - "{{ domain_sqlsvc_account }}"
-    - "{{ domain_sqlagent_account }}"
-    - '{{ domain | upper }}\{{ domain_service_account }}'
+    - '{{ domain | upper  }}\{{ win_sql_svc_account }}'
+    - '{{ domain | upper  }}\{{ win_sqlagent_svc_account }}'
+    - '{{ domain | upper  }}\{{ domain_service_account }}'
   register:                           sql_login
 
 - name:                                "Add required users to server role in SQL Server"
@@ -188,16 +153,15 @@
     InstanceName:                      "{{ mssql_instance_name }}"
     ServerRoleName:                    "sysadmin"
     MembersToInclude:
-      - "{{ domain_sqlsvc_account }}"
-      - "{{ domain_sqlagent_account }}"
-      - '{{ domain | upper }}\{{ domain_service_account }}'
+    - '{{ domain | upper  }}\{{ win_sql_svc_account }}'
+    - '{{ domain | upper  }}\{{ win_sqlagent_svc_account }}'
+    - '{{ domain | upper  }}\{{ domain_service_account }}'
     PsDscRunAsCredential_username:     '{{ sap_sid }}adm@{{ domain_name }}'
     PsDscRunAsCredential_password:     '{{ domain_user_password }}'
   register:                           sql_role_addition
 
 # maybe split to two tasks, and assign lesser perms to cluster service account
 - name:                                "Give permissions on the SQL Server to cluster service account"
-  become:                              true
   ansible.windows.win_dsc:
     resource_name:                     SqlPermission
     ServerName:                        "{{ ansible_hostname }}"
@@ -209,12 +173,14 @@
           - ViewServerState
           - AlterAnyEndpoint
           - AlterAnyAvailabilityGroup
+    # PsDscRunAsCredential_username:     '{{ sap_sid }}adm@{{ domain_name }}'
+    # PsDscRunAsCredential_password:     '{{ domain_user_password }}'
     Name:                              "{{ item }}"
   loop:
     - "{{ win_cluster_svc_account }}"
-    - "{{ domain_sqlsvc_account }}"
-    - "{{ domain_sqlagent_account }}"
-    - '{{ domain | upper }}\{{ domain_service_account }}'
+    - '{{ domain | upper  }}\{{ win_sql_svc_account }}'
+    - '{{ domain | upper  }}\{{ win_sqlagent_svc_account }}'
+    - '{{ domain | upper  }}\{{ domain_service_account }}'
   register:                           sql_server_permission
 
 - name:                                "Create SQL Server Availability Group Endpoint"

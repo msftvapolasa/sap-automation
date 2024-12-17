@@ -1,4 +1,4 @@
-﻿@model AutomationForm.Models.FormViewModel<SystemModel>;
+@model AutomationForm.Models.FormViewModel<SystemModel>;
 @using System.Text.Json
 
 @{
@@ -73,7 +73,7 @@
             </div>
         </div>
     }
-    
+
     <div id="form-sticky-header">
         <div class="filter-checkboxes">
             <fluent-checkbox checked class="parameters-filter" onchange="toggleParams(this, 1)" id="basic-filter">Basic</fluent-checkbox>
@@ -89,15 +89,63 @@
     <form class="wrapper" asp-controller="system" asp-action="edit">
         @Html.AntiForgeryToken()
 
-        @await Html.PartialAsync("_FormPartial", Model) 
+        @await Html.PartialAsync("_FormPartial", Model)
 
-        <fluent-button appearance="accent" style="margin-top: 15px" type="submit" onclick="submitting=true">
-            <i class="ms-Icon ms-Icon--Save" aria-hidden="true"></i> Save
-        </fluent-button>
+        <table class="table" aria-label="Custom naming and sizing">
+            <thead>
+                <tr>
+                    <th>
+                        Custom naming and sizing files
+                    </th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="td-align-left">
+                        @Html.ActionLink(@Model.SapObject.Id+ "_custom_sizes.json", "Edit", "File", new { id = @Model.SapObject.Id, sourceController = "System", fileName ="custom_sizes.json", type = 1 }, null)
+                    </td>
+                </tr>
+                <tr>
+                    <td class="td-align-left">
+                        @Html.ActionLink(@Model.SapObject.Id+ "_custom_naming.json", "Edit", "File", new { id = @Model.SapObject.Id, sourceController = "System", fileName ="custom_naming.json", type = 2 }, null)
+                    </td>
+                </tr>
+            </tbody>
+        </table>
 
-        <fluent-anchor href="@Url.Action("Index", "System")">
-            Cancel
-        </fluent-anchor>
+
+        <tr>
+            <td>
+              &nbsp
+              <fluent-button appearance="accent" style="margin-top: 15px" type="submit" onclick="submitting=true">
+                <i class="ms-Icon ms-Icon--Save" aria-hidden="true"></i> Save
+              </fluent-button>
+            </td>
+
+            <td>
+                &nbsp
+                <fluent-anchor appearance="accent" style="margin-top: 15px" href="@Url.Action("Index", "System")">
+                Close
+              </fluent-anchor>
+            </td>
+
+            <td>
+                &nbsp
+                <fluent-anchor appearance="accent" style="margin-top: 15px" href="@Url.Action("Deploy", "System", new { id = @Model.SapObject.Id, partitionKey = @Model.SapObject.environment })">
+                  Deploy
+              </fluent-anchor>
+            </td>
+
+            <td>
+                &nbsp
+                <fluent-anchor appearance="accent" style="margin-top: 15px" href="@Url.Action("Download", "System", new { id = @Model.SapObject.Id, partitionKey = @Model.SapObject.environment })">
+                    Download
+                </fluent-anchor>
+            </td>
+
+         </tr>
+
 
     </form>
 </div>

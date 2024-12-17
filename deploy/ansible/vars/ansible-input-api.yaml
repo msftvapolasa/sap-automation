@@ -2,6 +2,12 @@
 # API Input template with defaults
 
 become_user_name:                       root
+oracle_user_name:                       oracle
+orchestration_ansible_user:             azureadm
+# ------------------- Begin - SDAF Ansible Version ---------------------------8
+SDAF_Version:                           "3.13.1.0"
+
+# ------------------- End - SDAF Ansible Version ---------------------------8
 
 # ------------------- Begin - OS Config Settings variables -------------------8
 chrony_pool:                            ""
@@ -22,7 +28,7 @@ check_storage_account:                  true
 bom_processing_become:                  true                                    # BOM processing as root user
 deployer_free_temp_disk_space:          100                                     # Free disk space requirement on deployer
 is_run_with_infraCreate_only:           false                                   # For situations when you want to run the playbooks 01 & 02 without a BOM
-
+is_executed_by_acss:                    false                                   # For situations when code is executed by acss
 BOM_directory:                         "{{ playbook_dir }}/BOM-catalog"
 
 always_upload_jinja_templates:         true
@@ -30,22 +36,22 @@ always_upload_jinja_templates:         true
 # -------------------------------------+---------------------------------------8
 
 # SAP Configuration for templates and install
-
 hana_use_master_password:              y
-hana_password_copy:                         ""
+hana_password_copy:                    ""
 hana_backup_path:                      /hana/backup
-aas_hostname:                          ""
-aas_instance_number:                   ""
+# Note: the spacing and lining of Jinja2 expression is critical here, lest we end up with a stray character in the path
+hana_data_basepath:                    "{% if database_scale_out %}/hana/data/{{ db_sid | upper }}{% else %}/hana/data{% endif %}"
+hana_log_basepath:                     "{% if database_scale_out %}/hana/log/{{ db_sid | upper }}{% else %}/hana/log{% endif %}"
+hana_shared_basepath:                  "/hana/shared"
+hana_usrsap_basepath:                  "/usr/sap"
+hana_autostart:                        false                                   # When set to true, will configure autostart parameter to 1 for HANA nodes. Only applicable for Scale out
 sap_sid:                               ""                                      # REQUIRED - SAP Install
 download_basket_dir:                   "{{ target_media_location }}/download_basket"
-hdb_hostname:                          ""
 db_sid:                                "XDB"                                   # Default
 db_instance_number:                    "00"                                    # Default
 hana_schema:                           "SAPHANADB"
-pas_hostname:                          ""
 pas_instance_number:                   "00"
 web_instance_number:                   "00"
-password_hana_system:                  ""
 main_password:                         ""                                      # SAP Install
 sap_fqdn:                              ""                                      # SAP Install
 sapadm_uid:                            2100
@@ -54,25 +60,67 @@ sapsys_gid:                            2000
 drop_schema:                           false
 
 sap_trans_permissions:                 775
-
 use_msi_for_clusters:                  false
-
 hana_components:                       "all"
 
 instance_type:                         "ASCS"
+
+dbload_retry_count:                    120
+
+single_server:                         false
+
+hana_scaleout_wait_for_start_in_sec:   300
+scs_wait_for_start_in_sec:             300
+hana_wait_for_start_in_sec:            300
+hana_wait_for_stop_in_sec:             120
+
+# Default sizes for volumes
+
+sapmnt_volume_size:                    32g
+usrsap_volume_size:                    32g
+hanashared_volume_size:                32g
+
+hana_data_stripe_size:                 256
+hana_log_stripe_size:                  64
+hana_bkp_stripe_size:                  1024
+
+db2_log_stripe_size:                   64
+db2_data_stripe_size:                  256
+db2_temp_stripe_size:                  128
+
+sybase_data_stripe_size:               256
+sybase_log_stripe_size:                64
+sybase_temp_stripe_size:               128
+
+oracle_data_stripe_size:               256
+oracle_log_stripe_size:                128
+
+default_stripe_size:                   128
+
+# Custom virtual hostnames
+custom_db_virtual_hostname:            ""
+custom_ers_virtual_hostname:           ""
+custom_pas_virtual_hostname:           ""
+custom_scs_virtual_hostname:           ""
+
+# Custom ASCS and ERS NFS filesystem devices when not using AFS or ANF
+ascs_filesystem_device:                ""
+ers_filesystem_device:                 ""
+
 # DB2 specific parameters
-# db2_sid:                                "DB6"
 db2sysadm_gid:                         3000
 db2sysctrl_gid:                        3001
 db2sysmaint_gid:                       3002
 db2sysmon_gid:                         3003
 db2sidadm_uid:                         3004
-db2sapsid_uid:                         3005
+db2sapsid_uid:                         3005 # Uid of the database connect user
 db2hadr_port1:                         51012
 db2hadr_port2:                         51013
+# Name of the database connect user for ABAP. Default value is 'sap<sapsid>'.
+db2_abap_connect_user:                 ""
 
 tmp_directory:                         "/var/tmp"
-url_internet:                          "http://www.github.com"                 # URL to use for internet access checks"
+url_internet:                          "https://azure.status.microsoft/en-us/status"                 # URL to use for internet access checks"
 check_outbound:                        false
 
 # ASE specific parameters
@@ -98,21 +146,20 @@ orasid_uid:                            3100
 oracle_uid:                            3101
 hdbshm_gid:                            2002
 observer_uid:                          4000
-scs_hostname:                          ""
 scs_instance_number:                   "00"                                    # SAP Install
 ers_instance_number:                   "02"
 app_instance_number:                   "00"
 sidadm_uid:                            2003
 hdbadm_uid:                            2200
 scs_lb_ip:                             ""                                      # SAP HA
-db_lb_ip:                              ""                                      # SAP HA
+database_loadbalancer_ip:              ""                                      # SAP HA
 reinstall:                             false                                   # Provide a way to override the idempotency flags for SAP tasks
 
 ora_release:                           19
 ora_version:                           19.0.0
 ora_supported_version:                 19
 ora_compatible:                        19.0.0.0.0
-orchestration_ansible_user:            azureadm
+
 PLATFORM:                              ""
 platform:                              ""
 password_cockpit_admin:                ""
@@ -147,6 +194,11 @@ domain_user_password:                   "{{ winadm_password }}"
 sid_service_password:                   "{{ svc_password }}"
 win_sap_admin:                          "SAP_{{ sap_sid | upper }}_GlobalAdmin"
 
+# Windows patch releated parameters
+
+win_updates_reject_list:                ["KB5034439"]
+win_updates_accept_list:                []
+
 # SQL Server specific parameters
 use_sql_for_SAP:                        true
 data_disks:                             F:\{{ sap_sid | upper }}DATA1\{{ sap_sid | upper }}4DATA1.mdf,G:\{{ sap_sid | upper }}DATA2\{{ sap_sid | upper }}4DATA2.mdf,H:\{{ sap_sid | upper }}DATA3\{{ sap_sid | upper }}4DATA3.mdf,I:\{{ sap_sid | upper }}DATA4\{{ sap_sid | upper }}4DATA4.mdf
@@ -173,6 +225,23 @@ sapbits_sas_token_secret:               "sapbits-sas-token"                     
 
 # NFS
 NFS_provider:                           "NONE"
+NFS_version:                            "NFSv4.1"
+use_simple_mount:                       false
+
+# Cluster - Defaults
+# database_high_availability:            false
+database_scale_out:                    false
+database_cluster_type:                 "AFA"
+database_no_standby:                   false                                    # when set to true, will deploy the scale out - ANF cluster without a standby node.
+# scs_high_availability:                 false
+scs_cluster_type:                      "AFA"
+# Configure pacemaker for Azure scheduled events
+cluster_use_scheduled_events_agent:    true
+# Custom pacemaker NFS filesystem and SAP monitor timeouts
+custom_cluster_fs_mon_timeout:         ""
+custom_cluster_sap_mon_timeout:        ""
+
+use_fence_kdump:                       false
 
 # ------------------- Begin - SAP SWAP settings variables --------------------8
 sap_swap:
@@ -189,4 +258,22 @@ sap_swap:
   - { tier: "oracle-multi-sid",   swap_size_mb: "20480" }
   - { tier: "observer",           swap_size_mb: "2048"  }
   - { tier: 'sqlserver',          swap_size_mb: '20480' }
-  # --------------------- End - SAP SWAP settings variables --------------------8
+# --------------------- End - SAP SWAP settings variables --------------------8
+
+# ------------------- Begin - Azure Monitor for SAP (AMS) variables ------------8
+ams_resource_id:                        ""
+enable_os_monitoring:                   false
+enable_ha_monitoring:                   false
+# ------------------- End - Azure Monitor for SAP (AMS) variables --------------8
+
+# ------------------- Begin - SAP CAL Integration variables --------------------8
+enable_sap_cal:                         false
+calapi_kv:                              ""
+sap_cal_product_name:                   ""
+vg_root:                                "rootvg"
+lv_root_size:                           10g
+lv_root_size_db:                        20g
+lv_tmp_size:                            10g
+# ------------------- End - SAP CAL Integration variables ----------------------8
+
+python_version:                        "python3"

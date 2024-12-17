@@ -1,112 +1,130 @@
+#######################################4#######################################8
+#                                                                              #
+#              Web App subnet - Check if locally provided                      #
+#                                                                              #
+#######################################4#######################################8
+
 resource "azurerm_subnet" "webapp" {
-  depends_on = [
-    azurerm_subnet.subnet_mgmt
-  ]
+  depends_on                                    = [
+                                                    azurerm_subnet.subnet_mgmt
+                                                  ]
 
-  count = var.use_webapp ? local.webapp_subnet_exists ? 0 : 1 : 0
-  name  = local.webapp_subnet_name
-  resource_group_name = local.vnet_mgmt_exists ? (
-    data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
-    azurerm_virtual_network.vnet_mgmt[0].resource_group_name
-  )
-  virtual_network_name = local.vnet_mgmt_exists ? (
-    data.azurerm_virtual_network.vnet_mgmt[0].name) : (
-    azurerm_virtual_network.vnet_mgmt[0].name
-  )
-  address_prefixes = [local.webapp_subnet_prefix]
+  count                                         = var.use_webapp ? local.webapp_subnet_exists ? 0 : 1 : 0
+  name                                          = local.webapp_subnet_name
+  resource_group_name                           = local.vnet_mgmt_exists ? (
+                                                    data.azurerm_virtual_network.vnet_mgmt[0].resource_group_name) : (
+                                                    azurerm_virtual_network.vnet_mgmt[0].resource_group_name
+                                                  )
+  virtual_network_name                          = local.vnet_mgmt_exists ? (
+                                                    data.azurerm_virtual_network.vnet_mgmt[0].name) : (
+                                                    azurerm_virtual_network.vnet_mgmt[0].name
+                                                  )
 
-  private_endpoint_network_policies_enabled     = var.use_private_endpoint
-  private_link_service_network_policies_enabled = false
+  address_prefixes                              = [local.webapp_subnet_prefix]
 
-  service_endpoints = var.use_service_endpoint ? (
-    var.use_webapp ? (
-      ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web"]) : (
-      ["Microsoft.Storage", "Microsoft.KeyVault"]
-    )) : (
-    null
-  )
+  private_endpoint_network_policies             = var.use_private_endpoint ? "Enabled" : "Disabled"
+
+  service_endpoints                             = var.use_service_endpoint ? (
+                                                    var.use_webapp ? (
+                                                      ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.Web"]) : (
+                                                      ["Microsoft.Storage", "Microsoft.KeyVault"]
+                                                    )) : (
+                                                    null
+                                                  )
 
   dynamic "delegation" {
-    for_each = range(var.use_webapp ? 1 : 0)
-    content {
-      name = "delegation"
-      service_delegation {
-        actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-        name    = "Microsoft.Web/serverFarms"
-      }
-    }
-  }
+                        for_each = range(var.use_webapp ? 1 : 0)
+                        content {
+                          name = "delegation"
+                          service_delegation {
+                            actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+                            name    = "Microsoft.Web/serverFarms"
+                          }
+                        }
+                      }
 
 }
 
 data "azurerm_subnet" "webapp" {
-  count                = var.use_webapp ? local.webapp_subnet_exists ? 1 : 0 : 0
-  name                 = split("/", local.webapp_subnet_arm_id)[10]
-  resource_group_name  = split("/", local.webapp_subnet_arm_id)[4]
-  virtual_network_name = split("/", local.webapp_subnet_arm_id)[8]
+  count                                         = var.use_webapp ? local.webapp_subnet_exists ? 1 : 0 : 0
+  name                                          = split("/", local.webapp_subnet_arm_id)[10]
+  resource_group_name                           = split("/", local.webapp_subnet_arm_id)[4]
+  virtual_network_name                          = split("/", local.webapp_subnet_arm_id)[8]
 }
 
 
 
 # Create the Windows App Service Plan
 resource "azurerm_service_plan" "appserviceplan" {
-  count               = var.use_webapp ? 1 : 0
-  name                = lower(format("%s%s%s%s", var.naming.resource_prefixes.app_service_plan, var.naming.prefix.LIBRARY, var.naming.resource_suffixes.app_service_plan, substr(random_id.deployer.hex, 0, 3)))
-  resource_group_name = local.rg_name
-  location            = local.rg_appservice_location
-  os_type             = "Windows"
-  sku_name            = "S1"
+  count                                         = var.use_webapp ? 1 : 0
+  name                                          = lower(format("%s%s%s%s", var.naming.resource_prefixes.app_service_plan, var.naming.prefix.DEPLOYER, var.naming.resource_suffixes.app_service_plan, substr(random_id.deployer.hex, 0, 3)))
+  resource_group_name                           = local.resourcegroup_name
+  location                                      = local.rg_appservice_location
+  os_type                                       = "Windows"
+  sku_name                                      = var.deployer.app_service_SKU
 }
 
 
 # Create the app service with AD authentication and storage account connection string
 resource "azurerm_windows_web_app" "webapp" {
-  count               = var.use_webapp ? 1 : 0
-  name                = lower(format("%s%s%s%s", var.naming.resource_prefixes.app_service_plan, var.naming.prefix.LIBRARY, var.naming.resource_suffixes.webapp_url, substr(random_id.deployer.hex, 0, 3)))
-  resource_group_name = local.rg_name
-  location            = local.rg_appservice_location
-  service_plan_id     = azurerm_service_plan.appserviceplan[0].id
-  https_only          = true
+  count                                          = var.use_webapp ? 1 : 0
+  name                                           = lower(format("%s%s%s%s", var.naming.resource_prefixes.app_service_plan, var.naming.prefix.LIBRARY, var.naming.resource_suffixes.webapp_url, substr(random_id.deployer.hex, 0, 3)))
+  resource_group_name                            = local.resourcegroup_name
+  location                                       = local.rg_appservice_location
+  service_plan_id                                = azurerm_service_plan.appserviceplan[0].id
+  https_only                                     = true
+  webdeploy_publish_basic_authentication_enabled = false
+  ftp_publish_basic_authentication_enabled       = false
 
-  auth_settings {
-    enabled          = true
-    issuer           = "https://sts.windows.net/${data.azurerm_client_config.deployer.tenant_id}/v2.0"
-    default_provider = "AzureActiveDirectory"
-    active_directory {
-      client_id     = var.app_registration_app_id
-      client_secret = var.webapp_client_secret
-    }
-    unauthenticated_client_action = "RedirectToLoginPage"
-  }
+  # auth_settings {
+  #   enabled          = true
+  #   issuer           = "https://sts.windows.net/${data.azurerm_client_config.deployer.tenant_id}/v2.0"
+  #   default_provider = "AzureActiveDirectory"
+  #   active_directory {
+  #     client_id     = var.app_registration_app_id
+  #     client_secret = var.webapp_client_secret
+  #   }
+  #   unauthenticated_client_action = "RedirectToLoginPage"
+  # }
+
+
 
   app_settings = {
-    "PAT"                                      = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/PAT/)", local.keyvault_names.user_access) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
     "CollectionUri"                            = var.agent_ado_url
     "IS_PIPELINE_DEPLOYMENT"                   = false
-    "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET" = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/WEB-PWD/)", local.keyvault_names.user_access) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/WEB-PWD/)", local.keyvault_names.user_access)
+    "OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"   = length(var.deployer.user_assigned_identity_id) > 0 ? data.azurerm_user_assigned_identity.deployer[0].client_id : azurerm_user_assigned_identity.deployer[0].client_id
+    "WEBSITE_AUTH_CUSTOM_AUTHORIZATION"        = true
+    "WHICH_ENV"                                = length(var.deployer.user_assigned_identity_id) > 0 ? "DATA" : "LOCAL"
+    "AZURE_TENANT_ID"                          = data.azurerm_client_config.deployer.tenant_id
+    "AUTHENTICATION_TYPE"                      = var.deployer.devops_authentication_type
+    "PAT"                                      = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/PAT/)", local.keyvault_names.user_access) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
   }
-  # auth_settings_v2 {
-  #   auth_enabled           = true
-  #   unauthenticated_action = "RedirectToLoginPage"
-  #   default_provider       = "AzureActiveDirectory"
-  #   active_directory_v2 {
-  #     client_id                   = var.app_registration_app_id
-  #     login_parameters            = {}
-  #     tenant_auth_endpoint        = format("https://login.microsoftonline.com/v2.0/%s/", data.azurerm_client_config.deployer.tenant_id)
-  #     www_authentication_disabled = false
-  #     client_secret_setting_name  = "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET"
-  #   }
-  #   login {
-  #     token_store_enabled = true
-  #   }
-  # }
 
-  # app_settings = {
-  #   "PAT"                                      = format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/PAT/)", local.keyvault_names.user_access)
-  #   "CollectionUri"                            = var.agent_ado_url
-  #   "IS_PIPELINE_DEPLOYMENT"                   = false
-  #   "MICROSOFT_PROVIDER_AUTHENTICATION_SECRET" = format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/WEB-PWD/)", local.keyvault_names.user_access)
-  # }
+  sticky_settings {
+    app_setting_names                          = ["OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"]
+    connection_string_names                    = ["sa_tfstate_conn_str"]
+  }
+
+  auth_settings_v2 {
+    auth_enabled                               = true
+    unauthenticated_action                     = "RedirectToLoginPage"
+    default_provider                           = "AzureActiveDirectory"
+    active_directory_v2 {
+      client_id                                = var.app_registration_app_id
+      tenant_auth_endpoint                     = "https://login.microsoftonline.com/${data.azurerm_client_config.deployer.tenant_id}/v2.0"
+      www_authentication_disabled              = false
+      client_secret_setting_name               = "OVERRIDE_USE_MI_FIC_ASSERTION_CLIENTID"
+      allowed_applications                     = [var.app_registration_app_id]
+      allowed_audiences                        = []
+      allowed_groups                           = []
+      allowed_identities                       = []
+    }
+    login {
+      token_store_enabled = false
+    }
+  }
+
+
 
   virtual_network_subnet_id = local.webapp_subnet_exists ? data.azurerm_subnet.webapp[0].id : azurerm_subnet.webapp[0].id
   site_config {
@@ -122,26 +140,30 @@ resource "azurerm_windows_web_app" "webapp" {
     # scm_use_main_ip_restriction = true
   }
 
-  key_vault_reference_identity_id = azurerm_user_assigned_identity.deployer.id
+  key_vault_reference_identity_id = length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].id : data.azurerm_user_assigned_identity.deployer[0].id
 
-  identity {
-    type         = "SystemAssigned, UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.deployer.id]
-  }
-  connection_string {
-    name  = "sa_tfstate_conn_str"
-    type  = "Custom"
-    value = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/sa-connection-string/)", local.user_keyvault_name) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/sa-connection-string/)", local.user_keyvault_name)
-  }
+  identity                                   {
+    # type                                        = length(var.deployer.user_assigned_identity_id) == 0 ? (
+    #                                                 "SystemAssigned") : (
+    #                                                 "SystemAssigned, UserAssigned"
+    #                                               )
+    # for now set the identity type to "SystemAssigned, UserAssigned" as assigning identities
+    # is not supported by the provider when type is "SystemAssigned"
+    type                                        = "SystemAssigned, UserAssigned"
+    identity_ids                                = [length(var.deployer.user_assigned_identity_id) == 0 ? azurerm_user_assigned_identity.deployer[0].id : data.azurerm_user_assigned_identity.deployer[0].id ]
+                                             }
+  connection_string                          {
+    name                                        = "tfstate"
+    type                                        = "Custom"
+    value                                       = var.use_private_endpoint ? format("@Microsoft.KeyVault(SecretUri=https://%s.privatelink.vaultcore.azure.net/secrets/tfstate/)", local.user_keyvault_name) : format("@Microsoft.KeyVault(SecretUri=https://%s.vault.azure.net/secrets/tfstate/)", local.user_keyvault_name)
+                                             }
 
-  lifecycle {
-    ignore_changes = [
-      app_settings,
-      connection_string,
-      zip_deploy_file,
-      tags
-    ]
-  }
+  lifecycle                                  {
+    ignore_changes                              = [
+                                                    zip_deploy_file,
+                                                    tags
+                                                  ]
+                                             }
 
 }
 

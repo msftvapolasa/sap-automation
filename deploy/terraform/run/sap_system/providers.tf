@@ -12,79 +12,93 @@
                         ~> 0.8.4 is equivalent to >= 0.8.4, < 0.9
 */
 
-provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = true
-    }
-  }
-  subscription_id = local.spn.subscription_id
-  client_id       = local.spn.client_id
-  client_secret   = local.spn.client_secret
-  tenant_id       = local.spn.tenant_id
+provider "azurerm"                     {
+                                         features {}
+                                         subscription_id     = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
+                                         storage_use_azuread = true
+                                       }
 
-  partner_id = "3179cd51-f54b-4c73-ac10-8e99417efce7"
-  alias      = "system"
-}
+provider "azurerm"                     {
+                                         features {
+                                                    resource_group {
+                                                                     prevent_deletion_if_contains_resources = var.prevent_deletion_if_contains_resources
+                                                                   }
+                                                    key_vault {
+                                                                 purge_soft_delete_on_destroy               = !var.enable_purge_control_for_keyvaults
+                                                                 purge_soft_deleted_keys_on_destroy         = !var.enable_purge_control_for_keyvaults
+                                                                 purge_soft_deleted_secrets_on_destroy      = !var.enable_purge_control_for_keyvaults
+                                                                 purge_soft_deleted_certificates_on_destroy = !var.enable_purge_control_for_keyvaults
+                                                              }
+                                                  }
+                                         client_id           = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.spn.client_id : null
+                                         client_secret       = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.spn.client_secret : null
+                                         tenant_id           = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.spn.tenant_id : null
+                                         use_msi             = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? false : true
 
-provider "azurerm" {
-  features {}
-  subscription_id = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
-}
+                                         partner_id          = "3179cd51-f54b-4c73-ac10-8e99417efce7"
+                                         storage_use_azuread = true
+                                         alias               = "system"
 
-provider "azurerm" {
-  features {}
-  alias                      = "dnsmanagement"
-  subscription_id            = length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null //length(var.management_dns_subscription_id) > 1 ? var.management_dns_subscription_id : length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : null
-  client_id                  = local.cp_spn.client_id
-  client_secret              = local.cp_spn.client_secret
-  tenant_id                  = local.cp_spn.tenant_id
-  skip_provider_registration = true
+                                       }
 
-}
+provider "azurerm"                     {
+                                         features {}
+                                         alias               = "dnsmanagement"
+                                         subscription_id     = coalesce(try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id,""), var.management_dns_subscription_id, length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "")
+                                         client_id           = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.cp_spn.client_id : null
+                                         client_secret       = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.cp_spn.client_secret : null
+                                         tenant_id           = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.cp_spn.tenant_id : null
+                                         use_msi             = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? false : true
+                                         storage_use_azuread = true
+                                       }
 
-provider "azuread" {
-  client_id     = local.spn.client_id
-  client_secret = local.spn.client_secret
-  tenant_id     = local.spn.tenant_id
-}
+provider "azurerm"                     {
+                                         features {}
+                                         alias               = "privatelinkdnsmanagement"
+                                         subscription_id     = coalesce(
+                                                                       try(data.terraform_remote_state.landscape.outputs.privatelink_dns_subscription_id,""),
+                                                                       var.privatelink_dns_subscription_id,
+                                                                       try(data.terraform_remote_state.landscape.outputs.management_dns_subscription_id,""),
+                                                                       var.management_dns_subscription_id,
+                                                                       length(local.deployer_subscription_id) > 0 ? local.deployer_subscription_id : "")
+                                         client_id           = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.cp_spn.client_id : null
+                                         client_secret       = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.cp_spn.client_secret : null
+                                         tenant_id           = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.cp_spn.tenant_id : null
+                                         use_msi             = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? false : true
+                                         storage_use_azuread = true
+                                       }
 
-provider "azapi" {
-  alias           = "api"
-  subscription_id = local.spn.subscription_id
-  client_id       = local.spn.client_id
-  client_secret   = local.spn.client_secret
-  tenant_id       = local.spn.tenant_id
-}
 
-terraform {
-  required_version = ">= 1.0"
-  required_providers {
-    external = {
-      source = "hashicorp/external"
-    }
-    local = {
-      source = "hashicorp/local"
-    }
-    random = {
-      source = "hashicorp/random"
-    }
-    null = {
-      source = "hashicorp/null"
-    }
-    tls = {
-      source = "hashicorp/tls"
-    }
-    azuread = {
-      source  = "hashicorp/azuread"
-      version = "~> 2.2"
-    }
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = ">=3.3"
-    }
-    azapi = {
-      source = "Azure/azapi"
-    }
-  }
-}
+
+provider "azuread"                     {
+                                         client_id           = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.spn.client_id : null
+                                         client_secret       = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? local.spn.client_secret : null
+                                         tenant_id           = local.spn.tenant_id
+                                         use_msi             = try(data.terraform_remote_state.landscape.outputs.use_spn, true) && var.use_spn ? false : true
+                                       }
+
+terraform                              {
+                                         required_version   = ">= 1.0"
+                                         required_providers {
+                                                              external = {
+                                                                           source = "hashicorp/external"
+                                                                         }
+                                                              local    = {
+                                                                           source = "hashicorp/local"
+                                                                         }
+                                                              random   = {
+                                                                           source = "hashicorp/random"
+                                                                         }
+                                                              null =     {
+                                                                           source = "hashicorp/null"
+                                                                         }
+                                                              azuread =  {
+                                                                           source  = "hashicorp/azuread"
+                                                                           version = "3.0.2"
+                                                                         }
+                                                              azurerm =  {
+                                                                           source  = "hashicorp/azurerm"
+                                                                           version = "4.7.0"
+                                                                         }
+                                                            }
+                                       }
