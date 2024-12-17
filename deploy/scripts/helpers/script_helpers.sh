@@ -543,6 +543,12 @@ function ImportAndReRunApply {
 				done
 				rm "$fileName"
 
+				if ! terraform -chdir="${terraform_module_directory}" plan -input=false $applyParameters ; then
+						echo ""
+						echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
+						echo ""
+				fi
+
 				echo "#########################################################################################"
 				echo "#                                                                                       #"
 				echo -e "#                          $cyan Re-running Terraform apply$reset_formatting                                  #"

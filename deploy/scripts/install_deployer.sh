@@ -458,13 +458,18 @@ fi
 sshsecret=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_sshkey_secret_name | tr -d \")
 if [ -n "${sshsecret}" ]; then
 	save_config_var "sshsecret" "${deployer_config_information}"
-	return_value=0
 fi
 
 deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
 if [ -n "${deployer_public_ip_address}" ]; then
 	save_config_var "deployer_public_ip_address" "${deployer_config_information}"
-	return_value=0
+fi
+
+deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+if [ -n "${deployer_random_id}" ]; then
+	save_config_var "deployer_random_id" "${deployer_config_information}"
+	custom_random_id="${deployer_random_id}"
+	save_config_var "custom_random_id" ${parameterfile}
 fi
 
 unset TF_DATA_DIR
