@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 
 #######################################4#######################################8
 #                                                                              #
@@ -16,7 +19,7 @@ resource "azurerm_network_interface" "web" {
                                          )
   location                             = var.resource_group[0].location
   resource_group_name                  = var.resource_group[0].name
-  accelerated_networking_enabled        = local.web_sizing.compute.accelerated_networking
+  accelerated_networking_enabled       = local.web_sizing.compute.accelerated_networking
   tags                                 = var.tags
 
   dynamic "ip_configuration" {
@@ -29,7 +32,7 @@ resource "azurerm_network_interface" "web" {
                                           private_ip_address = try(pub.value.nic_ips[count.index],
                                             var.application_tier.use_DHCP ? (
                                               null) : (
-                                              local.web_subnet_defined ?
+                                              var.infrastructure.virtual_networks.sap.subnet_web.defined ?
                                               cidrhost(
                                                 local.web_subnet_prefix,
                                                 (tonumber(count.index) + local.ip_offsets.web_vm + pub.value.offset)
@@ -175,6 +178,8 @@ resource "azurerm_linux_virtual_machine" "web" {
 # patch_mode                           = var.infrastructure.patch_mode
 
   tags                                 = merge(var.application_tier.web_tags, var.tags)
+
+  encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 
   dynamic "admin_ssh_key" {
                             for_each = range(var.deployment == "new" ? 1 : (local.enable_auth_password ? 0 : 1))
@@ -330,6 +335,8 @@ resource "azurerm_windows_virtual_machine" "web" {
 # patch_mode                           = var.infrastructure.patch_mode
 
   tags                                 = merge(var.application_tier.web_tags, var.tags)
+
+  encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 
   dynamic "os_disk" {
                       iterator = disk
@@ -542,13 +549,16 @@ resource "azurerm_lb" "web" {
                                 var.naming.separator,
                                 local.resource_suffixes.web_alb_feip
                               )
-                              subnet_id = local.web_subnet_deployed.id
+                              subnet_id = local.web_subnet_deployed_id
                               private_ip_address = var.application_tier.use_DHCP ? (
                                 null) : (
                                 try(
                                   local.webdispatcher_loadbalancer_ips[0],
                                   cidrhost(
-                                    local.web_subnet_deployed.address_prefixes[0],
+                                    local.web_subnet_exists ? (
+                                             data.azurerm_subnet.subnet_sap_web[0].address_prefixes[0]) : (
+                                             azurerm_subnet.subnet_sap_web[0].address_prefixes[0]
+                                         ),
                                     local.ip_offsets.web_lb
                                   )
                                 )

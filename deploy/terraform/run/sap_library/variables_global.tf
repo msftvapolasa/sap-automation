@@ -1,6 +1,9 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #######################################4#######################################8
 #                                                                              #
-#                              Variable definitioms                            #
+#                              Variable definitions                            #
 #                                                                              #
 #######################################4#######################################8
 variable "infrastructure"                {

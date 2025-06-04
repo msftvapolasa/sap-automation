@@ -1,6 +1,9 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #######################################4#######################################8
 #                                                                              #
-#                          Resource group definitioms                          #
+#                          Resource group definitions                          #
 #                                                                              #
 #######################################4#######################################8
 
@@ -19,6 +22,10 @@ output "created_resource_group_subscription_id"  {
                                                    value       = module.sap_library.created_resource_group_subscription_id
                                                  }
 
+output "random_id"                               {
+                                                   description = "Random ID for library"
+                                                   value       = substr(coalesce(var.custom_random_id, module.sap_library.random_id), 0, 3)
+                                                 }
 
 ###############################################################################
 #                                                                             #
@@ -39,7 +46,7 @@ output "sapbits_sa_resource_group_name"          {
 output "saplibrary_subscription_id"              {
                                                    description = "Subscription Id for SAP Binaries"
                                                    sensitive   = true
-                                                   value       = local.spn.subscription_id
+                                                   value       = local.SAPLibrary_subscription_id
                                                  }
 
 output "tfstate_resource_id"                     {
@@ -66,18 +73,5 @@ output "sa_connection_string"                    {
                                                    description = "Connection string to storage account"
                                                    sensitive   = true
                                                    value       = module.sap_library.sa_connection_string
-                                                 }
-
-
-###############################################################################
-#                                                                             #
-#                                    Random                                   #
-#                                                                             #
-###############################################################################
-
-output "random_id_b64"                          {
-                                                   description = "Random ID in base64"
-                                                   sensitive   = true
-                                                   value       = format("LIBRARY_%s",module.sap_library.random_id_b64)
                                                  }
 

@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 
 
 #######################################4#######################################8
@@ -78,6 +81,8 @@ resource "azurerm_linux_virtual_machine" "observer" {
   license_type                         = length(var.license_type) > 0 ? var.license_type : null
 
   tags                                 = merge(local.tags, var.tags)
+
+  encryption_at_host_enabled           = var.infrastructure.encryption_at_host_enabled
 
   patch_mode                                             = var.infrastructure.patch_mode
   patch_assessment_mode                                  = var.infrastructure.patch_assessment_mode

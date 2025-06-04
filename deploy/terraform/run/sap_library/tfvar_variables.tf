@@ -1,6 +1,9 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
 #######################################4#######################################8
 #                                                                              #
-#                           Environment definitioms                            #
+#                           Environment definitions                            #
 #                                                                              #
 #######################################4#######################################8
 
@@ -37,6 +40,13 @@ variable "place_delete_lock_on_resources"        {
                                                    default     = false
                                                  }
 
+variable "prevent_deletion_if_contains_resources" {
+                                                    description = "Controls if resource groups are deleted even if they contain resources"
+                                                    type        = bool
+                                                    default     = true
+                                                  }
+
+
 variable "short_named_endpoints_nics"            {
                                                    description = "If defined, uses short names for private endpoints nics"
                                                    default     = false
@@ -45,12 +55,36 @@ variable "short_named_endpoints_nics"            {
 
 variable "use_spn"                               {
                                                   description = "Log in using a service principal when performing the deployment"
-                                                  default     = false
+                                                  default = true
                                                  }
+
+variable "spn_id"                                {
+                                                   description = "SPN ID to be used for the deployment"
+                                                   nullable    = true
+                                                   default     = ""
+                                                 }
+
+variable "subscription_id"                       {
+                                                   description = "Defines the Azure subscription_id"
+                                                   type        = string
+                                                   default     = null
+                                                 }
+
+variable "deployer_prefix"                       {
+                                                    description = "Defines the prefix for the deployer"
+                                                    type        = string
+                                                    default     = ""
+                                                 }
+
+variable "assign_permissions"                    {
+                                                    description = "Boolean value indicating if permissions should be assigned to the storage accounts"
+                                                    default     = true
+                                                    type        = bool
+                                                  }
 
 #######################################4#######################################8
 #                                                                              #
-#                          Resource group definitioms                          #
+#                          Resource group definitions                          #
 #                                                                              #
 #######################################4#######################################8
 
@@ -208,7 +242,7 @@ variable "public_network_access_enabled"              {
                                                       }
 #########################################################################################
 #                                                                                       #
-#  Miscallaneous definitioms                                                            #
+#  Miscallaneous definitions                                                            #
 #                                                                                       #
 #########################################################################################
 
@@ -228,10 +262,20 @@ variable "shared_access_key_enabled"            {
                                                   type        = bool
                                                 }
 
+variable "data_plane_available"                 {
+                                                  description = "Boolean value indicating if storage account access is via data plane"
+                                                  default     = true
+                                                  type        = bool
+                                                }
+
+variable "custom_random_id"                     {
+                                                  description = "If provided, the value of the custom random id"
+                                                  default     = ""
+                                                }
 
 #########################################################################################
 #                                                                                       #
-#  Web App definitioms                                                                  #
+#  Web App definitions                                                                  #
 #                                                                                       #
 #########################################################################################
 
@@ -240,6 +284,10 @@ variable "use_webapp"                            {
                                                    default     = false
                                                  }
 
+variable "application_configuration_deployment"                         {
+                                                        description = "Boolean value indicating if a webapp should be deployed"
+                                                        default     = false
+                                                      }
 
 variable "Agent_IP"                              {
                                                    description = "IP address of the agent"
@@ -270,6 +318,12 @@ variable "tfstate_resource_id"                       {
 #                                                                                       #
 #########################################################################################
 
+
+variable "dns_label"                             {
+                                                   description = "DNS label"
+                                                   default     = ""
+                                                 }
+
 variable "use_custom_dns_a_registration"         {
                                                    description = "Boolean value indicating if a custom dns a record should be created when using private endpoints"
                                                    default     = false
@@ -293,12 +347,20 @@ variable "dns_zone_names"                        {
                                                    description = "Private DNS zone names"
                                                    type        = map(string)
                                                    default = {
-                                                     "file_dns_zone_name"   = "privatelink.file.core.windows.net"
-                                                     "blob_dns_zone_name"   = "privatelink.blob.core.windows.net"
-                                                     "table_dns_zone_name"  = "privatelink.table.core.windows.net"
-                                                     "vault_dns_zone_name"  = "privatelink.vaultcore.azure.net"
-                                                   }
+                                                               "file_dns_zone_name"      = "privatelink.file.core.windows.net"
+                                                               "blob_dns_zone_name"      = "privatelink.blob.core.windows.net"
+                                                               "table_dns_zone_name"     = "privatelink.table.core.windows.net"
+                                                               "vault_dns_zone_name"     = "privatelink.vaultcore.azure.net"
+                                                               "appconfig_dns_zone_name" = "privatelink.azconfig.io"
+                                                             }
+
                                                  }
+
+variable "enable_firewall_for_keyvaults_and_storage" {
+                                                       description = "Boolean value indicating if firewall should be enabled for key vaults and storage"
+                                                       default     = true
+                                                       type        = bool
+                                                     }
 
 variable "register_storage_accounts_keyvaults_with_dns" {
                                                      description = "Boolean value indicating if storage accounts and key vaults should be registered to the corresponding dns zones"
@@ -324,12 +386,30 @@ variable "privatelink_dns_resourcegroup_name"    {
                                                    type        = string
                                                  }
 
-variable "dns_label"                             {
-                                                   description = "DNS label"
+variable "create_privatelink_dns_zones"          {
+                                                   description = "Boolean value indicating if PrivateLink DNS Zones should be created"
+                                                   default     = true
+                                                   type        = bool
+                                                 }
+
+#########################################################################################
+#                                                                                       #
+#  Miscellaneous                                                                         #
+#                                                                                       #
+#########################################################################################
+
+variable "additional_network_id"                {
+                                                   description = "Agent Network resource ID"
                                                    default     = ""
                                                  }
+
 
 variable "tags"                                  {
                                                    description = "If provided, tags for all resources"
                                                    default     = {}
+                                                 }
+variable "application_configuration_id"          {
+                                                    description = "Defines the Azure application configuration Resource id"
+                                                    type        = string
+                                                    default     = ""
                                                  }
