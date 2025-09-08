@@ -15,11 +15,15 @@ reset_formatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-#call stack has full scriptname when using source
+#call stack has full script name when using source
 source "${script_directory}/deploy_utils.sh"
 
 #helper files
 source "${script_directory}/helpers/script_helpers.sh"
+
+SCRIPT_NAME="$(basename "$0")"
+
+echo "Entering: ${SCRIPT_NAME}"
 
 #Internal helper functions
 function showhelp {
@@ -97,7 +101,7 @@ done
 deployment_system=sap_library
 use_deployer=true
 
-if [ "$DEBUG" = True ]; then
+if [ "$DEBUG" = true ]; then
 	set -x
 	set -o errexit
 fi
@@ -143,6 +147,7 @@ else
 	exit 2
 fi
 key=$(echo "${parameterfile_name}" | cut -d. -f1)
+deployer_tf_state="${key}.terraform.tfstate"
 
 if [ -z "${environment}" ]; then
 	echo "#########################################################################################"
@@ -317,39 +322,29 @@ else
 					--backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME" \
 					--backend-config "container_name=tfstate" \
 					--backend-config "key=${key}.terraform.tfstate"; then
-					echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+					print_banner "$banner_title" "Terraform init succeeded." "success"
 
 					terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}" -input=false \
-						-var deployer_statefile_foldername="${deployer_statefile_foldername}"
+						-var deployer_tfstate_key="${deployer_tf_state}"
 				else
-					echo ""
-					echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
-					echo ""
-					return 10
+					print_banner "$banner_title" "Terraform init failed." "error" "Terraform init return code: $return_value"
+					exit 10
 				fi
 			else
 				if terraform -chdir="${terraform_module_directory}" init -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
-					echo ""
-					echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-					echo ""
+					print_banner "$banner_title" "Terraform init succeeded." "success"
 					terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
 				else
-					echo ""
-					echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
-					echo ""
-					return 10
+					print_banner "$banner_title" "Terraform init failed." "error" "Terraform init return code: $return_value"
+					exit 10
 				fi
 			fi
 		else
 			if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
-				echo ""
-				echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-				echo ""
+				print_banner "$banner_title" "Terraform init succeeded." "success"
 			else
-				echo ""
-				echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
-				echo ""
-				return 10
+				print_banner "$banner_title" "Terraform init failed." "error" "Terraform init return code: $return_value"
+				exit 10
 			fi
 
 		fi
@@ -357,13 +352,11 @@ else
 	else
 		if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
 			echo ""
-			echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
+			print_banner "$banner_title" "Terraform init succeeded." "success"
 			echo ""
 		else
-			echo ""
-			echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-			echo ""
-			return 10
+			print_banner "$banner_title" "Terraform init failed." "error" "Terraform init return code: $return_value"
+			exit 10
 		fi
 	fi
 fi
@@ -381,63 +374,43 @@ if [ -f terraform.tfvars ]; then
 else
 	unset extra_vars
 fi
-return_value=0
+install_library_return_value=0
 
 if [ -n "${deployer_statefile_foldername}" ]; then
 	echo "Deployer folder specified:           ${deployer_statefile_foldername}"
-	if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode \
+	terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode \
 		-var-file="${var_file}" -input=false \
-		-var deployer_statefile_foldername="${deployer_statefile_foldername}" | tee plan_output.log 2>&1; then
-		return_value=${PIPESTATUS[0]}
-	else
-		return_value=${PIPESTATUS[0]}
-	fi
-	if [ 0 == $return_value ]; then
-		echo ""
-		echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
-		echo ""
+		-var deployer_statefile_foldername="${deployer_statefile_foldername}" | tee -a plan_output.log
+	install_library_return_value=${PIPESTATUS[0]}
+	if [ $install_library_return_value -eq 1 ]; then
+		print_banner "$banner_title" "Error when running plan" "error" "Terraform plan return code: $return_value"
+
+		unset TF_DATA_DIR
+		exit $install_library_return_value
 
 	else
-		echo ""
-		echo -e "${cyan}Terraform plan:                        succeeded$reset_formatting"
-		echo ""
+		print_banner "$banner_title" "Terraform plan succeeded." "success" "Terraform plan return code: $return_value"
 	fi
-	allParameters=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s " "${var_file}" "${deployer_statefile_foldername}" "${extra_vars}")
-	allImportParameters=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s " "${var_file}" "${deployer_statefile_foldername}" "${extra_vars}")
-
 else
-	if ! terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode \
-		-var-file="${var_file}" -input=false | tee plan_output.log 2>&1; then
-		return_value=${PIPESTATUS[0]}
+	terraform -chdir="${terraform_module_directory}" plan -no-color -detailed-exitcode \
+		-var-file="${var_file}" -input=false | tee plan_output.log
+	install_library_return_value=${PIPESTATUS[0]}
+	if [ $install_library_return_value -eq 1 ]; then
+
+		print_banner "$banner_title" "Error when running plan" "error" "Terraform plan return code: $return_value"
+
+		unset TF_DATA_DIR
+		exit $install_library_return_value
 	else
-		return_value=${PIPESTATUS[0]}
+		print_banner "$banner_title" "Terraform plan succeeded." "success" "Terraform plan return code: $return_value"
+
+		unset TF_DATA_DIR
+		exit $install_library_return_value
 	fi
-	if [ 0 == $return_value ]; then
-		echo ""
-		echo -e "${bold_red}Terraform plan:                        failed$reset_formatting"
-		echo ""
-	else
-		return_value=$?
-		echo ""
-		echo -e "${cyan}Terraform plan:                        succeeded$reset_formatting"
-		echo ""
-	fi
-	allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
-	allImportParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
 fi
 
-if [ 1 == $return_value ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                          $bold_red_underscore Errors during the plan phase $reset_formatting                               #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
-
-	unset TF_DATA_DIR
-	exit $return_value
-fi
+      allParameters=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s " "${var_file}" "${deployer_statefile_foldername}" "${extra_vars}")
+allImportParameters=$(printf " -var-file=%s -var deployer_statefile_foldername=%s %s " "${var_file}" "${deployer_statefile_foldername}" "${extra_vars}")
 
 parallelism=10
 
@@ -448,7 +421,7 @@ fi
 
 echo "Parallelism count:                   $parallelism"
 
-return_value=0
+install_library_return_value=0
 
 echo ""
 echo "#########################################################################################"
@@ -460,40 +433,25 @@ echo ""
 
 if [ -n "${approve}" ]; then
 	# shellcheck disable=SC2086
-	if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters --auto-approve | tee apply_output.json; then
-		return_value=${PIPESTATUS[0]}
-	else
-		return_value=${PIPESTATUS[0]}
-	fi
-	if [ $return_value -eq 1 ]; then
-		echo ""
-		echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
-		echo ""
-	else
-		# return code 2 is ok
-		echo ""
-		echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
-		echo ""
-		return_value=0
-	fi
+	terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -no-color -compact-warnings -json -input=false $allParameters --auto-approve | tee apply_output.json
+	install_library_return_value=${PIPESTATUS[0]}
 
 else
 	# shellcheck disable=SC2086
-	if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters; then
-		return_value=${PIPESTATUS[0]}
-	else
-		return_value=${PIPESTATUS[0]}
-	fi
-	if [ $return_value -eq 1 ]; then
-		echo ""
-		echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
-		echo ""
-	else
-		# return code 2 is ok
-		echo ""
-		echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
-		echo ""
-		return_value=0
+	terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" -input=false $allParameters
+	install_library_return_value=$?
+fi
+
+if [ $install_library_return_value -eq 1 ]; then
+
+	print_banner "$banner_title" "Terraform apply failed" "error" "Terraform apply return code: $return_value"
+
+else
+	# return code 2 is ok
+	print_banner "$banner_title" "Terraform apply succeeded" "success" "Terraform apply return code: $return_value"
+	install_library_return_value=0
+	if [ -f apply_output.json ]; then
+		rm apply_output.json
 	fi
 fi
 
@@ -501,57 +459,64 @@ if [ -f apply_output.json ]; then
 	errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
 	if [[ -n $errors_occurred ]]; then
-		# shellcheck disable=SC2086
-		if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-			return_value=$?
-		fi
 
-		if [ -f apply_output.json ]; then
-			# shellcheck disable=SC2086
-			if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-				return_value=$?
-			fi
-		fi
+		if [ -n "${approve}" ]; then
 
-		if [ -f apply_output.json ]; then
 			# shellcheck disable=SC2086
-			if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-				return_value=$?
+			if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
+				install_library_return_value=0
+			else
+				install_library_return_value=$?
 			fi
-		fi
-
-		if [ -f apply_output.json ]; then
-			# shellcheck disable=SC2086
-			if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-				return_value=$?
+			if [ -f apply_output.json ]; then
+				# shellcheck disable=SC2086
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
+					install_library_return_value=0
+				else
+					install_library_return_value=$?
+				fi
 			fi
-		fi
-
-		if [ -f apply_output.json ]; then
-			# shellcheck disable=SC2086
-			if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters" $parallelism; then
-				return_value=$?
+			if [ -f apply_output.json ]; then
+				# shellcheck disable=SC2086
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
+					install_library_return_value=0
+				else
+					install_library_return_value=$?
+				fi
 			fi
+			if [ -f apply_output.json ]; then
+				# shellcheck disable=SC2086
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
+					install_library_return_value=0
+				else
+					install_library_return_value=$?
+				fi
+			fi
+			if [ -f apply_output.json ]; then
+				# shellcheck disable=SC2086
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
+					install_library_return_value=0
+				else
+					install_library_return_value=$?
+				fi
+			fi
+		else
+			install_library_return_value=10
 		fi
 	fi
+
 fi
 if [ -f apply_output.json ]; then
 	rm apply_output.json
 fi
 
-if [ 1 == $return_value ]; then
-	echo ""
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo -e "#                          $bold_red_underscore Errors during the apply phase $reset_formatting                              #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
-	echo ""
+if [ 1 == $install_library_return_value ]; then
+	print_banner "$banner_title" "Terraform apply failed" "error" "Terraform apply return code: $return_value"
 	unset TF_DATA_DIR
-	exit $return_value
+	exit "$install_library_return_value"
 fi
 
-if [ "$DEBUG" = True ]; then
+if [ "$DEBUG" = true ]; then
 	terraform -chdir="${terraform_module_directory}" output
 fi
 
@@ -576,7 +541,9 @@ if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"
 
 	fi
 else
-	return_value=20
+	install_library_return_value=20
 fi
 
-exit $return_value
+echo "Exiting: ${SCRIPT_NAME}"
+
+exit "$install_library_return_value"

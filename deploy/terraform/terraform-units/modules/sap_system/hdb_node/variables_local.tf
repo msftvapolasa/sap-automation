@@ -34,9 +34,9 @@ locals {
   region                               = var.infrastructure.region
   sid                                  = upper(var.sap_sid)
   prefix                               = trimspace(var.naming.prefix.SDU)
-  resource_group_exists                = length(try(var.infrastructure.resource_group.arm_id, "")) > 0
+  resource_group_exists                = length(try(var.infrastructure.resource_group.id, "")) > 0
   resourcegroup_name                   = local.resource_group_exists ? (
-                                          try(split("/", var.infrastructure.resource_group.arm_id)[4], "")) : (
+                                          try(split("/", var.infrastructure.resource_group.id)[4], "")) : (
                                           coalesce(
                                             try(var.infrastructure.resource_group.name, ""),
                                             format("%s%s%s",
@@ -178,13 +178,19 @@ locals {
                                               var.naming.separator,
                                               local.resource_suffixes.db_alb_feip
                                             )
-                                            subnet_id = var.database.scale_out ? var.admin_subnet.id :  var.db_subnet.id
+                                            subnet_id = var.database.scale_out && var.database_dual_nics && var.NFS_provider == "ANF" ? (
+                                              try(
+                                                var.admin_subnet.id,
+                                                var.landscape_tfstate.admin_subnet_id
+                                              )) : (
+                                                var.db_subnet.id
+                                              )
                                             private_ip_address = length(try(var.database.loadbalancer.frontend_ips[0], "")) > 0 ? (
                                               var.database.loadbalancer.frontend_ips[0]) : (
                                               var.database.use_DHCP ? (
                                                 null) : (
                                                 cidrhost(
-                                                  var.database.scale_out ? var.admin_subnet.address_prefixes[0] : var.db_subnet.address_prefixes[0],
+                                                  var.database.scale_out && var.database_dual_nics && var.NFS_provider == "ANF" ? var.admin_subnet.address_prefixes[0] : var.db_subnet.address_prefixes[0],
                                                   local.hdb_ip_offsets.hdb_lb
                                               ))
                                             )
@@ -197,13 +203,19 @@ locals {
                                               var.naming.separator,
                                               try(local.resource_suffixes.db_rlb_feip, "dbRlb-feip")
                                             )
-                                            subnet_id = var.database.scale_out ? var.admin_subnet.id : var.db_subnet.id
+                                            subnet_id = var.database.scale_out && var.database_dual_nics && var.NFS_provider == "ANF" ? (
+                                              try(
+                                                var.admin_subnet.id,
+                                                var.landscape_tfstate.admin_subnet_id
+                                              )) : (
+                                                var.db_subnet.id
+                                              )
                                             private_ip_address = length(try(var.database.loadbalancer.frontend_ips[1], "")) > 0 ? (
                                               var.database.loadbalancer.frontend_ips[0]) : (
                                               var.database.use_DHCP ? (
                                                 null) : (
                                                 cidrhost(
-                                                  var.database.scale_out ? var.admin_subnet.address_prefixes[0] :  var.db_subnet.address_prefixes[0],
+                                                  var.database.scale_out && var.database_dual_nics && var.NFS_provider == "ANF" ? var.admin_subnet.address_prefixes[0] :  var.db_subnet.address_prefixes[0],
                                                   local.hdb_ip_offsets.hdb_lb + 1
                                               ))
                                             )
@@ -468,7 +480,7 @@ locals {
   use_shared_volumes                   = local.use_avg || var.hana_ANF_volumes.use_for_shared && var.hana_ANF_volumes.use_existing_shared_volume
 
   #If using an existing VM for observer set use_observer to false in .tfvars
-  observer_size                        = "Standard_D4s_v3"
+  observer_vm_size                     = try(var.observer_vm_size, "Standard_D4s_v3")
   observer_authentication              = local.authentication
   observer_custom_image                = local.hdb_custom_image
   observer_custom_image_id             = local.enable_deployment ? local.hdb_os.source_image_id : ""
@@ -483,5 +495,24 @@ locals {
                                            ]
                                          )
 
+  # Determine if cluster disk attachment is needed
+  enable_cluster_disk                  = (
+                                            local.enable_deployment &&
+                                            var.database.high_availability &&
+                                            (
+                                              upper(var.database.os.os_type) == "WINDOWS" ||
+                                              (
+                                                upper(var.database.os.os_type) == "LINUX" &&
+                                                upper(var.database.database_cluster_type) == "ASD"
+                                              )
+                                            )
+                                          )
+
+  # Create VM ID list for attachment
+  cluster_vm_ids                       = local.enable_cluster_disk ? (
+                                            upper(var.database.os.os_type) == "LINUX" ? [
+                                              for i in range(var.database_server_count) : azurerm_linux_virtual_machine.vm_dbnode[i].id
+                                            ] : []
+                                          ) : []
 
 }

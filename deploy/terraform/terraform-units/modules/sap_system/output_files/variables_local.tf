@@ -4,8 +4,9 @@
 
 locals {
 
+  parsed_tfstate_id                    = provider::azurerm::parse_resource_id(var.tfstate_resource_id)
   tfstate_resource_id                  = try(var.tfstate_resource_id, "")
-  tfstate_storage_account_name         = split("/", local.tfstate_resource_id)[8]
+  tfstate_storage_account_name         = local.parsed_tfstate_id["resource_name"]
   ansible_container_name               = try(var.naming.resource_suffixes.ansible, "ansible")
 
   kv_name                              = split("/", var.sid_keyvault_user_id)[8]
@@ -30,7 +31,13 @@ locals {
 
   app_tier                             = (local.app_server_count + local.scs_server_count) > 0
 
-  db_supported_tiers                   = local.app_tier ? lower(var.platform) : format("%s, scs, pas", lower(var.platform))
+  single_server                          = length(var.webdispatcher_server_ips) + length(var.application_server_ips) + length(var.scs_server_ips) + length(var.database_server_ips) == 1 ? (
+                                                       true) : (
+                                                       false
+                                                     )
+
+
+  db_supported_tiers                   = local.app_tier ? lower(var.platform) : format("%s, scs, pas, web", lower(var.platform))
   scs_supported_tiers                  = local.app_server_count > 0 ? "scs" : "scs, pas"
 
   # If PAS and SCS is on same server

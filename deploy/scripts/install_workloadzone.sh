@@ -18,8 +18,19 @@ reset_formatting="\e[0m"
 #. "$(dirname "${BASH_SOURCE[0]}")/deploy_utils.sh"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
+parent_caller="${BASH_SOURCE[${#BASH_SOURCE[@]} - 1]}"
+parent_caller_directory="$(dirname $(realpath "${parent_caller}"))"
 
-#call stack has full scriptname when using source
+# Check if parent caller is from v1 directory
+if [[ "${parent_caller_directory}" == *"/v1/"* || "${parent_caller_directory}" == *"/v1" ]]; then
+    echo "DEBUG: Detected v1 caller"
+		isCallerV1=0
+else
+		echo "DEBUG: Detected v2 caller"
+    isCallerV1=1
+fi
+
+#call stack has full script name when using source
 # shellcheck disable=SC1091
 source "${script_directory}/deploy_utils.sh"
 
@@ -219,16 +230,23 @@ fi
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation
 generic_config_information="${automation_config_directory}"/config
 
-if [ "$deployer_environment" != "$environment" ]; then
-	if [ -f "${automation_config_directory}/${environment}${region_code}" ]; then
-		# Add support for having multiple vnets in the same environment and zone - rename exiting file to support seamless transition
-		if [ -f "${automation_config_directory}/${environment}${region_code}${network_logical_name}" ]; then
-			mv "${automation_config_directory}/${environment}${region_code}" "${automation_config_directory}/${environment}${region_code}${network_logical_name}"
+if [ $isCallerV1 -eq 1 ]; then
+	if [ "$deployer_environment" != "$environment" ]; then
+		if [ -f "${automation_config_directory}/${environment}${region_code}" ]; then
+			# Add support for having multiple vnets in the same environment and zone - rename exiting file to support seamless transition
+			if [ -f "${automation_config_directory}/${environment}${region_code}${network_logical_name}" ]; then
+				mv "${automation_config_directory}/${environment}${region_code}" "${automation_config_directory}/${environment}${region_code}${network_logical_name}"
+			fi
 		fi
 	fi
 fi
 
-workload_config_information="${automation_config_directory}/${environment}${region_code}${network_logical_name}"
+if [ $isCallerV1 -eq 0 ]; then
+	workload_config_information="${automation_config_directory}/${environment}${region_code}"
+elif [ $isCallerV1 -eq 1 ]; then
+	workload_config_information="${automation_config_directory}/${environment}${region_code}${network_logical_name}"
+fi
+
 touch "${workload_config_information}"
 deployer_config_information="${automation_config_directory}/${deployer_environment}${region_code}"
 save_config_vars "${workload_config_information}" \
@@ -1041,7 +1059,7 @@ if [ 1 == $apply_needed ]; then
 		fi
 	else
 		# Using if so that no zero return codes don't fail -o errexit
-		terraform -chdir="${terraform_module_directory}" apply -detailed-exitcode -parallelism="${parallelism}" $allParameters
+		terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters
 		return_value=$?
 
 		echo    "Return value:                        $return_value"

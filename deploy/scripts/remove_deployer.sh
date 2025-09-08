@@ -16,7 +16,7 @@ reset_formatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-#call stack has full scriptname when using source
+#call stack has full script name when using source
 source "${script_directory}/deploy_utils.sh"
 
 #helper files
@@ -182,12 +182,8 @@ if [[ -n "$TF_PARALLELLISM" ]]; then
 	parallelism="$TF_PARALLELLISM"
 fi
 
-if terraform -chdir="${terraform_module_directory}" destroy "${approve}" -lock=false -parallelism="${parallelism}" -json -var-file="${var_file}" "$extra_vars" | tee destroy_output.json; then
-	return_value=${PIPESTATUS[0]}
-else
-	return_value=${PIPESTATUS[0]}
-fi
-if [ 0 == $return_value ]; then
+if terraform -chdir="${terraform_module_directory}" destroy "${approve}" -lock=false -refresh=false -parallelism="${parallelism}" -json -var-file="${var_file}" "$extra_vars" | tee -a destroy_output.json; then
+	return_value=$?
 	echo ""
 	echo -e "${cyan}Terraform destroy:                     succeeded$reset_formatting"
 	echo ""

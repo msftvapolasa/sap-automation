@@ -15,11 +15,15 @@ reset_formatting="\e[0m"
 full_script_path="$(realpath "${BASH_SOURCE[0]}")"
 script_directory="$(dirname "${full_script_path}")"
 
-#call stack has full scriptname when using source
+#call stack has full script name when using source
 source "${script_directory}/deploy_utils.sh"
 
 #helper files
 source "${script_directory}/helpers/script_helpers.sh"
+
+SCRIPT_NAME="$(basename "$0")"
+
+echo "Entering: ${SCRIPT_NAME}"
 
 #Internal helper functions
 function showhelp {
@@ -52,6 +56,7 @@ function showhelp {
 	echo "#########################################################################################"
 }
 
+approve=""
 #process inputs - may need to check the option i for auto approve as it is not used
 INPUT_ARGUMENTS=$(getopt -n install_deployer -o p:ih --longoptions parameterfile:,auto-approve,help -- "$@")
 VALID_ARGUMENTS=$?
@@ -86,6 +91,7 @@ done
 deployment_system=sap_deployer
 
 param_dirname=$(dirname "${parameterfile}")
+param_filename=$(basename "${parameterfile}")
 export TF_DATA_DIR="${param_dirname}/.terraform"
 
 echo "Parameter file:                      ${parameterfile}"
@@ -111,7 +117,7 @@ if [ "$param_dirname" != '.' ]; then
 	exit 3
 fi
 
-if [ "$DEBUG" = True ]; then
+if [ "$DEBUG" = true ]; then
 	set -x
 	set -o errexit
 fi
@@ -133,10 +139,22 @@ key=$(echo "${parameterfile}" | cut -d. -f1)
 automation_config_directory=$CONFIG_REPO_PATH/.sap_deployment_automation/
 generic_config_information="${automation_config_directory}"config
 deployer_config_information="${automation_config_directory}""${environment}""${region_code}"
+deployer_plan_directory="${automation_config_directory}/plan/"
+deployer_plan_name="${deployer_plan_directory}${param_filename}.tfplan"
 
 param_dirname=$(pwd)
 
 init "${automation_config_directory}" "${generic_config_information}" "${deployer_config_information}"
+
+# check if the deployer plan directory exists, if not create it
+if [ ! -d "${deployer_plan_directory}" ]; then
+	mkdir -p "${deployer_plan_directory}"
+	touch "${deployer_plan_name}"
+else
+	if [ ! -f "${deployer_plan_name}" ]; then
+		touch "${deployer_plan_name}"
+	fi
+fi
 
 var_file="${param_dirname}"/"${parameterfile}"
 # Check that the exports ARM_SUBSCRIPTION_ID and SAP_AUTOMATION_REPO_PATH are defined
@@ -175,22 +193,14 @@ allParameters=$(printf " -var-file=%s %s" "${var_file}" "${extra_vars}")
 allImportParameters=$(printf " -var-file=%s %s " "${var_file}" "${extra_vars}")
 
 if [ ! -d ./.terraform/ ]; then
-	echo "#########################################################################################"
-	echo "#                                                                                       #"
-	echo "#                                   New deployment                                      #"
-	echo "#                                                                                       #"
-	echo "#########################################################################################"
+	print_banner "New deployment" "info"
 	terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
 else
 	if [ -f ./.terraform/terraform.tfstate ]; then
 		azure_backend=$(grep "\"type\": \"azurerm\"" .terraform/terraform.tfstate || true)
 		if [ -n "$azure_backend" ]; then
 
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo "#                     The state is already migrated to Azure!!!                         #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
+			print_banner "The state is already migrated to Azure!!!" "info"
 
 			REINSTALL_SUBSCRIPTION=$(grep -m1 "subscription_id" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d '", \r' | xargs || true)
 			REINSTALL_ACCOUNTNAME=$(grep -m1 "storage_account_name" "${param_dirname}/.terraform/terraform.tfstate" | cut -d ':' -f2 | tr -d ' ",\r' | xargs || true)
@@ -207,7 +217,7 @@ else
 
 				terraform_module_directory="${SAP_AUTOMATION_REPO_PATH}/deploy/terraform/run/sap_deployer"/
 
-				if terraform -chdir="${terraform_module_directory}" init -upgrade=true \
+				if terraform -chdir="${terraform_module_directory}" init -upgrade=true -migrate-state \
 					--backend-config "subscription_id=$REINSTALL_SUBSCRIPTION" \
 					--backend-config "resource_group_name=$REINSTALL_RESOURCE_GROUP" \
 					--backend-config "storage_account_name=$REINSTALL_ACCOUNTNAME" \
@@ -234,33 +244,33 @@ else
 				fi
 			else
 				if terraform -chdir="${terraform_module_directory}" init -upgrade=true -reconfigure --backend-config "path=${param_dirname}/terraform.tfstate"; then
-					echo ""
-					echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-					echo ""
+					print_banner "Install Deployer" "Terraform init: succeeded" "success"
 					terraform -chdir="${terraform_module_directory}" refresh -var-file="${var_file}"
 				else
-					echo -e "${bold_red}Terraform init:                        succeeded$reset_formatting"
+					print_banner "Install Deployer" "Terraform init: failed" "error"
 					exit 10
 				fi
 			fi
 		else
-			if terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
-				echo ""
-				echo -e "${cyan}Terraform init:                        succeeded$reset_formatting"
-				echo ""
+			if terraform -chdir="${terraform_module_directory}" init -migrate-state -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"; then
+				print_banner "Install Deployer" "Terraform init: succeeded" "success"
 			else
 				echo ""
-				echo -e "${bold_red}Terraform init:                        failed$reset_formatting"
-				echo ""
+				print_banner "Install Deployer" "Terraform init: failed" "error"
 				exit 10
 			fi
 		fi
+
+	else
+		print_banner "Install Deployer" "New deployment" "info"
+		terraform -chdir="${terraform_module_directory}" init -upgrade=true -backend-config "path=${param_dirname}/terraform.tfstate"
 	fi
 	echo "Parameters:                          $allParameters"
 	terraform -chdir="${terraform_module_directory}" refresh $allParameters
 fi
-return_value=$?
-if [ 1 == $return_value ]; then
+install_deployer_return_value=$?
+if [ 1 == $install_deployer_return_value ]; then
+
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
@@ -269,7 +279,7 @@ if [ 1 == $return_value ]; then
 	echo "#########################################################################################"
 	echo ""
 	unset TF_DATA_DIR
-	exit $return_value
+	exit $install_deployer_return_value
 fi
 
 echo ""
@@ -282,30 +292,37 @@ echo ""
 
 # shellcheck disable=SC2086
 
-if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -input=false $allParameters | tee plan_output.log; then
-	return_value=${PIPESTATUS[0]}
+if terraform -chdir="$terraform_module_directory" plan -detailed-exitcode -input=false -out="$deployer_plan_name" $allParameters | tee plan_output.log; then
+	install_deployer_return_value=${PIPESTATUS[0]}
 else
-	return_value=${PIPESTATUS[0]}
+	install_deployer_return_value=${PIPESTATUS[0]}
 fi
-echo "Terraform plan return code:          $return_value"
-if [ 0 == $return_value ]; then
+echo "Terraform plan return code:          $install_deployer_return_value"
+if [ 0 == $install_deployer_return_value ]; then
 	echo ""
 	echo -e "${cyan}Terraform plan:                      succeeded$reset_formatting"
 	echo ""
-	return_value=0
-elif [ 2 == $return_value ]; then
+	install_deployer_return_value=0
+elif [ 2 == $install_deployer_return_value ]; then
 	echo ""
 	echo -e "${cyan}Terraform plan:                      succeeded$reset_formatting"
 	echo ""
-	return_value=0
+	install_deployer_return_value=0
 else
 	echo ""
 	echo -e "${bold_red}Terraform plan:                      failed$reset_formatting"
 	echo ""
-	exit $return_value
+	if [ -f "$deployer_plan_name" ]; then
+		echo "Removing the plan file: $deployer_plan_name"
+		# cleanup the plan file as we do not want to use it
+		rm -f "$deployer_plan_name"
+	fi
+
+	# shellcheck disable=SC2086
+	exit $install_deployer_return_value
 fi
 
-if [ 1 == $return_value ]; then
+if [ 1 == $install_deployer_return_value ]; then
 	echo ""
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
@@ -318,7 +335,7 @@ if [ 1 == $return_value ]; then
 		rm plan_output.log
 	fi
 	unset TF_DATA_DIR
-	exit $return_value
+	exit $install_deployer_return_value
 fi
 
 if [ -f plan_output.log ]; then
@@ -344,43 +361,56 @@ if [ -f apply_output.json ]; then
 	rm apply_output.json
 fi
 
+install_deployer_return_value=0
+
 if [ -n "${approve}" ]; then
 	# shellcheck disable=SC2086
-	if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
-		$allParameters -no-color -compact-warnings -json -input=false --auto-approve | tee apply_output.json; then
-		return_value=$?
-		echo "Terraform apply return code:         $return_value"
-		if [ $return_value -eq 1 ]; then
-			echo ""
-			echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
-			echo ""
-		else
-			# return code 2 is ok
-			echo ""
-			echo -e "${cyan} Terraform apply:                    succeeded$reset_formatting"
-
-			echo ""
-			return_value=0
-		fi
-	fi
-else
-	# shellcheck disable=SC2086
-	if ! terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" $allParameters | tee apply_output.json; then
-		return_value=${PIPESTATUS[0]}
+	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" \
+		-no-color -compact-warnings -json -input=false -auto-approve "$deployer_plan_name" | tee apply_output.json; then
+		install_deployer_return_value=${PIPESTATUS[0]}
 	else
-		return_value=${PIPESTATUS[0]}
+		install_deployer_return_value=${PIPESTATUS[0]}
 	fi
-	echo "Terraform apply return code:         $return_value"
-	if [ $return_value -eq 1 ]; then
+	if [ $install_deployer_return_value -eq 1 ]; then
 		echo ""
-		echo -e "${bold_red}Terraform apply:                     failed$reset_formatting"
+		echo -e "${bold_red}Terraform apply:                     failed ($install_deployer_return_value)$reset_formatting"
 		echo ""
 	else
 		# return code 2 is ok
 		echo ""
-		echo -e "${cyan}Terraform apply:                     succeeded$reset_formatting"
+		echo -e "${cyan} Terraform apply:                    succeeded ($install_deployer_return_value)$reset_formatting"
 		echo ""
-		return_value=0
+		# remove the plan file as it is not needed anymore
+		if [ -f "$deployer_plan_name" ]; then
+			echo "Removing the plan file: $deployer_plan_name"
+			rm -f "$deployer_plan_name"
+		fi
+		# shellcheck disable=SC2086
+		install_deployer_return_value=0
+	fi
+else
+	# shellcheck disable=SC2086
+	if terraform -chdir="${terraform_module_directory}" apply -parallelism="${parallelism}" "${deployer_plan_name}"; then
+		install_deployer_return_value=${PIPESTATUS[0]}
+	else
+		install_deployer_return_value=${PIPESTATUS[0]}
+	fi
+	if [ $install_deployer_return_value -eq 1 ]; then
+		echo ""
+		echo -e "${bold_red}Terraform apply:                     failed ($install_deployer_return_value)$reset_formatting"
+		echo ""
+		exit 10
+	else
+		# return code 2 is ok
+		echo ""
+		echo -e "${cyan}Terraform apply:                     succeeded ($install_deployer_return_value)$reset_formatting"
+		echo ""
+		# remove the plan file as it is not needed anymore
+		if [ -f "$deployer_plan_name" ]; then
+			echo "Removing the plan file: $deployer_plan_name"
+			rm -f "$deployer_plan_name"
+		fi
+		install_deployer_return_value=0
 	fi
 fi
 
@@ -388,100 +418,131 @@ if [ -f apply_output.json ]; then
 	errors_occurred=$(jq 'select(."@level" == "error") | length' apply_output.json)
 
 	if [[ -n $errors_occurred ]]; then
-		return_value=10
+		install_deployer_return_value=10
 		if [ -n "${approve}" ]; then
 
 			# shellcheck disable=SC2086
-			if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-				return_value=$?
+			if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
+				install_deployer_return_value=0
+			else
+				install_deployer_return_value=$?
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
-				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-					return_value=$?
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
+					install_deployer_return_value=0
+				else
+					install_deployer_return_value=$?
 				fi
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
-				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-					return_value=$?
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
+					install_deployer_return_value=0
+				else
+					install_deployer_return_value=$?
 				fi
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
-				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-					return_value=$?
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
+					install_deployer_return_value=0
+				else
+					install_deployer_return_value=$?
 				fi
 			fi
 			if [ -f apply_output.json ]; then
 				# shellcheck disable=SC2086
-				if ! ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" $allImportParameters $allParameters; then
-					return_value=$?
+				if ImportAndReRunApply "apply_output.json" "${terraform_module_directory}" "$allImportParameters" "$allParameters"; then
+					install_deployer_return_value=0
+				else
+					install_deployer_return_value=$?
 				fi
 			fi
 		else
-			return_value=10
+			install_deployer_return_value=10
 		fi
 	fi
 fi
 
-echo "Terraform Apply return code:         $return_value"
+echo "Terraform Apply return code:         $install_deployer_return_value"
 
-if [ 0 != $return_value ]; then
+if [ 0 != $install_deployer_return_value ]; then
 	echo "#########################################################################################"
 	echo "#                                                                                       #"
 	echo -e "#                      $bold_red_underscore !!! Error when Creating the deployer !!! $reset_formatting                       #"
 	echo "#                                                                                       #"
 	echo "#########################################################################################"
 	echo ""
-	exit $return_value
+
+	if [ -f "${deployer_plan_name}" ]; then
+		echo "Removing the plan file: $deployer_plan_name"
+		rm -f "$deployer_plan_name"
+	fi
+
+	# shellcheck disable=SC2086
+	exit $install_deployer_return_value
 fi
 
-if ! terraform -chdir="${terraform_module_directory}" output | grep "No outputs"; then
+if DEPLOYER_KEYVAULT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_kv_user_name | tr -d \"); then
+	touch "${deployer_config_information}"
+	printf -v val %-.20s "$DEPLOYER_KEYVAULT"
+	save_config_var "DEPLOYER_KEYVAULT" "${deployer_config_information}"
+	export DEPLOYER_KEYVAULT
 
-	keyvault=$(terraform -chdir="${terraform_module_directory}" output deployer_kv_user_name | tr -d \")
-	temp=$(echo "${keyvault}" | grep "Warning")
-	if [ -z "${temp}" ]; then
-		temp=$(echo "${keyvault}" | grep "Backend reinitialization required")
-		if [ -z "${temp}" ]; then
-			touch "${deployer_config_information}"
-			printf -v val %-.20s "$keyvault"
+	echo ""
+	echo "#########################################################################################"
+	echo "#                                                                                       #"
+	echo -e "#                Keyvault to use for SPN details:$cyan $val $reset_formatting                 #"
+	echo "#                                                                                       #"
+	echo "#########################################################################################"
+	echo ""
 
-			echo ""
-			echo "#########################################################################################"
-			echo "#                                                                                       #"
-			echo -e "#                Keyvault to use for SPN details:$cyan $val $reset_formatting                 #"
-			echo "#                                                                                       #"
-			echo "#########################################################################################"
-			echo ""
+	install_deployer_return_value=0
+else
+	install_deployer_return_value=2
+fi
 
-			save_config_var "keyvault" "${deployer_config_information}"
-			return_value=0
-		else
-			return_value=2
-		fi
-	fi
+APPLICATION_CONFIGURATION_NAME=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw application_configuration_name | tr -d \")
+if [ -n "${APPLICATION_CONFIGURATION_NAME}" ]; then
+	save_config_var "APPLICATION_CONFIGURATION_NAME" "${deployer_config_information}"
+	export APPLICATION_CONFIGURATION_NAME
+	echo "APPLICATION_CONFIGURATION_NAME:         $APPLICATION_CONFIGURATION_NAME"
+fi
 
-	sshsecret=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_sshkey_secret_name | tr -d \")
-	if [ -n "${sshsecret}" ]; then
-		save_config_var "sshsecret" "${deployer_config_information}"
-	fi
+APPLICATION_CONFIGURATION_DEPLOYMENT=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw app_config_deployment | tr -d \")
+if [ -n "${APPLICATION_CONFIGURATION_DEPLOYMENT}" ]; then
+	save_config_var "APPLICATION_CONFIGURATION_DEPLOYMENT" "${deployer_config_information}"
+	export APPLICATION_CONFIGURATION_DEPLOYMENT
+	echo "APPLICATION_CONFIGURATION_DEPLOYMENT:  $APPLICATION_CONFIGURATION_DEPLOYMENT"
+fi
 
-	deployer_public_ip_address=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_public_ip_address | tr -d \")
-	if [ -n "${deployer_public_ip_address}" ]; then
-		save_config_var "deployer_public_ip_address" "${deployer_config_information}"
-	fi
+deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
+if [ -n "${deployer_random_id}" ]; then
+	custom_random_id="${deployer_random_id:0:3}"
+	sed -i -e /"custom_random_id"/d "${parameterfile}"
+	printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+fi
 
-	deployer_random_id=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw random_id | tr -d \")
-	if [ -n "${deployer_random_id}" ]; then
-		save_config_var "deployer_random_id" "${deployer_config_information}"
-		custom_random_id="${deployer_random_id:0:3}"
-		sed -i -e /"custom_random_id"/d "${var_file}"
-		printf "# The parameter 'custom_random_id' can be used to control the random 3 digits at the end of the storage accounts and key vaults\ncustom_random_id=\"%s\"\n" "${custom_random_id}" >>"${var_file}"
+ARM_CLIENT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_client_id | tr -d \")
+if [ -n "${ARM_CLIENT_ID}" ]; then
+	save_config_var "ARM_CLIENT_ID" "${deployer_config_information}"
+	export ARM_CLIENT_ID
+fi
 
-	fi
+ARM_OBJECT_ID=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw deployer_user_assigned_identity | tr -d \")
+if [ -n "${ARM_OBJECT_ID}" ]; then
+	save_config_var "ARM_OBJECT_ID" "${deployer_config_information}"
+	export ARM_OBJECT_ID
+fi
+
+DevOpsInfrastructureObjectId=$(terraform -chdir="${terraform_module_directory}" output -no-color -raw DevOpsInfrastructureObjectId | tr -d \")
+if [ -n "${DevOpsInfrastructureObjectId}" ]; then
+	save_config_var "DevOpsInfrastructureObjectId" "${deployer_config_information}"
+	export DevOpsInfrastructureObjectId
 fi
 
 unset TF_DATA_DIR
+echo "Exiting: ${SCRIPT_NAME} ($install_deployer_return_value)"
 
-exit $return_value
+exit $install_deployer_return_value

@@ -3,7 +3,7 @@
 
 #######################################4#######################################8
 #                                                                              #
-#                           Environment definitioms                            #
+#                           Environment definitions                            #
 #                                                                              #
 #######################################4#######################################8
 
@@ -49,24 +49,37 @@ variable "prevent_deletion_if_contains_resources" {
 
 variable "use_spn"                               {
                                                   description = "Log in using a service principal when performing the deployment"
-                                                  default     = false
-                                                 }
 
-variable "tags"                                  {
-                                                   description = "If provided, tags for all resources"
-                                                   default     = {}
+                                                 }
+variable "spn_id"                                {
+                                                   description = "SPN ID to be used for the deployment"
+                                                   nullable    = true
+                                                   default     = ""
+                                                   validation {
+                                                     condition     = length(var.spn_id) == 0 ? true : length(var.spn_id) == 36
+                                                     error_message = "If specified the 'spn_id' variable must be a correct service principal ID."
+                                                   }
                                                  }
 
 variable "subscription_id"                       {
                                                    description = "Defines the Azure subscription_id"
                                                    type        = string
                                                    default     = null
+                                                   validation {
+                                                     condition     = length(var.subscription_id) == 0 ? true : length(var.subscription_id) == 36
+                                                     error_message = "If specified the 'subscription_id' variable must be a correct subscription ID."
+                                                   }
                                                  }
 
+variable "deployer_prefix"                       {
+                                                    description = "Defines the prefix for the deployer"
+                                                    type        = string
+                                                    default     = ""
+                                                 }
 
 #######################################4#######################################8
 #                                                                              #
-#                          Resource group definitioms                          #
+#                          Resource group definitions                          #
 #                                                                              #
 #######################################4#######################################8
 
@@ -78,6 +91,11 @@ variable "resourcegroup_name"                   {
 variable "resourcegroup_arm_id"                 {
                                                   description = "If provided, the Azure resource group id"
                                                   default     = ""
+                                                  validation {
+                                                    condition     = length(var.resourcegroup_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.resourcegroup_arm_id))
+                                                    error_message = "If specified the 'resourcegroup_arm_id' variable must be a correct Azure resource identifier."
+                                                  }
+
                                                 }
 
 variable "resourcegroup_tags"                   {
@@ -96,6 +114,10 @@ variable "resourcegroup_tags"                   {
 variable "library_sapmedia_arm_id"               {
                                                    description = "Optional Azure resource identifier for the storage account where the SAP bits will be stored"
                                                    default     = ""
+                                                  validation {
+                                                    condition     = length(var.library_sapmedia_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.library_sapmedia_arm_id))
+                                                    error_message = "If specified the 'library_sapmedia_arm_id' variable must be a correct Azure resource identifier."
+                                                  }
                                                  }
 
 variable "library_sapmedia_name"                 {
@@ -159,6 +181,10 @@ variable "library_sapmedia_blob_container_name" {
 variable "library_terraform_state_arm_id"        {
                                                    description = "Optional Azure resource identifier for the storage account where the terraform state will be stored"
                                                    default     = ""
+                                                  validation {
+                                                    condition     = length(var.library_terraform_state_arm_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.library_terraform_state_arm_id))
+                                                    error_message = "If specified the 'library_terraform_state_arm_id' variable must be a correct Azure resource identifier."
+                                                 }
                                                  }
 
 variable "library_terraform_state_name"          {
@@ -222,22 +248,34 @@ variable "short_named_endpoints_nics"           {
                                                    default     = false
                                                  }
 
-variable "public_network_access_enabled"              {
-                                                        description = "Boolean value indicating if public access should be enabled for key vaults and storage"
-                                                        default     = true
-                                                        type        = bool
-                                                      }
+variable "public_network_access_enabled"         {
+                                                   description = "Boolean value indicating if public access should be enabled for key vaults and storage"
+                                                   default     = true
+                                                   type        = bool
+                                                 }
+
+variable "assign_permissions"                    {
+                                                    description = "Boolean value indicating if permissions should be assigned to the storage accounts"
+                                                    default     = true
+                                                    type        = bool
+                                                  }
+
 
 
 #########################################################################################
 #                                                                                       #
-#  Miscallaneous definitioms                                                            #
+#  Miscellaneous definitions                                                            #
 #                                                                                       #
 #########################################################################################
 
 variable "spn_keyvault_id"                      {
                                                   description = "Azure resource identifier for the keyvault where the spn will be stored"
                                                   default = ""
+                                                  validation {
+                                                    condition     = length(var.spn_keyvault_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.spn_keyvault_id))
+                                                    error_message = "If specified the 'spn_keyvault_id' variable must be a correct Azure resource identifier."
+                                                  }
+
                                                 }
 
 variable "shared_access_key_enabled"            {
@@ -248,7 +286,7 @@ variable "shared_access_key_enabled"            {
 
 variable "data_plane_available"                 {
                                                   description = "Boolean value indicating if storage account access is via data plane"
-                                                  default     = false
+                                                  default     = true
                                                   type        = bool
                                                 }
 
@@ -259,7 +297,7 @@ variable "custom_random_id"                     {
 
 #########################################################################################
 #                                                                                       #
-#  Web App definitioms                                                                  #
+#  Web App definitions                                                                  #
 #                                                                                       #
 #########################################################################################
 
@@ -322,11 +360,12 @@ variable "dns_zone_names"                        {
                                                    description = "Private DNS zone names"
                                                    type        = map(string)
                                                    default = {
-                                                      "file_dns_zone_name"   = "privatelink.file.core.windows.net"
-                                                      "blob_dns_zone_name"   = "privatelink.blob.core.windows.net"
-                                                      "table_dns_zone_name"  = "privatelink.table.core.windows.net"
-                                                      "vault_dns_zone_name"  = "privatelink.vaultcore.azure.net"
-                                                   }
+                                                                "file_dns_zone_name"      = "privatelink.file.core.windows.net"
+                                                                "blob_dns_zone_name"      = "privatelink.blob.core.windows.net"
+                                                                "table_dns_zone_name"     = "privatelink.table.core.windows.net"
+                                                                "vault_dns_zone_name"     = "privatelink.vaultcore.azure.net"
+                                                                "appconfig_dns_zone_name" = "privatelink.azconfig.io"
+                                                              }
                                                  }
 
 variable "register_storage_accounts_keyvaults_with_dns" {
@@ -352,7 +391,56 @@ variable "create_privatelink_dns_zones"              {
                                                        type        = bool
                                                      }
 
-variable "additional_network_id"                     {
-                                                       description = "Agent Network resource ID"
-                                                       default     = ""
-                                                     }
+#########################################################################################
+#                                                                                       #
+#  Miscellaneous                                                                         #
+#                                                                                       #
+#########################################################################################
+
+variable "additional_network_id"                {
+                                                   description = "Agent Network resource ID"
+                                                   default     = ""
+                                                    validation {
+                                                      condition     = length(var.additional_network_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.additional_network_id))
+                                                      error_message = "If specified the 'additional_network_id' variable must be a correct Azure resource identifier."
+                                                    }
+                                                 }
+
+variable "management_network_id"                {
+                                                   description = "Management Network resource ID"
+                                                   default     = ""
+                                                    validation {
+                                                      condition     = length(var.management_network_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.management_network_id))
+                                                      error_message = "If specified the 'management_network_id' variable must be a correct Azure resource identifier."
+                                                    }
+                                                 }
+
+
+
+
+variable "tags"                                  {
+                                                   description = "If provided, tags for all resources"
+                                                   default     = {}
+                                                 }
+
+
+#########################################################################################
+#                                                                                       #
+#  Application configuration variables                                                  #
+#                                                                                       #
+#########################################################################################
+
+variable "control_plane_name"                   {
+                                                  description = "The name of the control plane"
+                                                  default     = ""
+                                                }
+variable "application_configuration_id"          {
+                                                    description = "Defines the Azure application configuration Resource id"
+                                                    type        = string
+                                                    default     = ""
+                                                    validation {
+                                                      condition     = length(var.application_configuration_id) == 0 ? true : can(provider::azurerm::parse_resource_id(var.application_configuration_id))
+                                                      error_message = "If specified the 'application_configuration_id' variable must be a correct Azure resource identifier."
+                                                    }
+
+                                                 }
